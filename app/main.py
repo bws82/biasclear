@@ -69,7 +69,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="BiasClear API",
     description="Bias detection engine built on Persistent Influence Theory (PIT)",
-    version=f"1.0.0 (core {CORE_VERSION})",
+    version=f"1.1.0 (core {CORE_VERSION})",
     lifespan=lifespan,
 )
 
