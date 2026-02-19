@@ -664,8 +664,10 @@
     <p
       style="color:var(--text-muted);font-size:0.85rem;margin-bottom:1rem;text-transform:uppercase;letter-spacing:0.05em;">
       See It In Action</p>
-    <img src="/static/demo.webp" alt="BiasClear live demo — structural bias detection"
-      style="width:100%;border-radius:16px;border:1px solid var(--border);">
+    <video src="/static/demo.mp4" autoplay loop muted playsinline
+      style="width:100%;border-radius:16px;border:1px solid var(--border);"
+      alt="BiasClear live demo — structural bias detection">
+    </video>
   </div>
 
   <div class="stats">
@@ -801,84 +803,84 @@
   </footer>
 
   <script>
-const input = document.getElementById('scan-input');
-const charCount = document.getElementById('char-count');
-const btnScan = document.getElementById('btn-scan');
-const output = document.getElementById('output-panel');
+    const input = document.getElementById('scan-input');
+    const charCount = document.getElementById('char-count');
+    const btnScan = document.getElementById('btn-scan');
+    const output = document.getElementById('output-panel');
 
-input.addEventListener('input', () => {
-  charCount.textContent = input.value.length + ' characters';
-});
-
-async function runScan() {
-  const text = input.value.trim();
-  if (!text) return;
-
-  const domain = document.getElementById('domain-select').value;
-
-  btnScan.disabled = true;
-  btnScan.innerHTML = '<span class="spinner"></span> Scanning...';
-  output.innerHTML = '<div class="output-empty">Scanning...</div>';
-
-  try {
-    const res = await fetch('/scan', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, domain, mode: 'local' })
+    input.addEventListener('input', () => {
+      charCount.textContent = input.value.length + ' characters';
     });
-    const data = await res.json();
-    renderResult(data);
-  } catch (e) {
-    output.innerHTML = '<div class="output-empty" style="color:var(--red)">Scan failed: ' + e.message + '</div>';
-  } finally {
-    btnScan.disabled = false;
-    btnScan.textContent = 'Scan Text';
-  }
-}
 
-function renderResult(data) {
-  const score = data.truth_score ?? 100;
-  const flags = data.flags ?? [];
-  const knowledgeType = data.knowledge_type ?? 'neutral';
-  const scanMode = data.scan_mode ?? 'local';
+    async function runScan() {
+      const text = input.value.trim();
+      if (!text) return;
 
-  const scoreClass = score >= 80 ? 'score-high' : score >= 50 ? 'score-mid' : 'score-low';
+      const domain = document.getElementById('domain-select').value;
 
-  let html = '<div class="result-header">';
-  html += '<div class="score-label">Truth Score</div>';
-  html += '<div class="truth-score ' + scoreClass + '">' + score + '</div>';
-  html += '<div class="result-meta">';
-  html += '<span class="meta-tag">Mode: ' + scanMode + '</span>';
-  html += '<span class="meta-tag">Knowledge: ' + knowledgeType + '</span>';
-  html += '<span class="meta-tag">Flags: ' + flags.length + '</span>';
-  html += '</div></div>';
+      btnScan.disabled = true;
+      btnScan.innerHTML = '<span class="spinner"></span> Scanning...';
+      output.innerHTML = '<div class="output-empty">Scanning...</div>';
 
-  if (flags.length === 0) {
-    html += '<div class="output-empty" style="color:var(--green)">✓ No structural bias detected</div>';
-  } else {
-    html += '<div class="flags-list">';
-    for (const f of flags) {
-      const sevClass = 'sev-' + (f.severity || 'moderate');
-      html += '<div class="flag-item">';
-      html += '<div class="flag-header">';
-      html += '<span class="flag-id">' + f.pattern_id + '</span>';
-      html += '<span class="flag-severity ' + sevClass + '">' + (f.severity || 'moderate') + '</span>';
-      html += '</div>';
-      if (f.matched_text) {
-        html += '<div class="flag-match">Matched: <em>"' + escapeHtml(f.matched_text) + '"</em></div>';
+      try {
+        const res = await fetch('/scan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text, domain, mode: 'local' })
+        });
+        const data = await res.json();
+        renderResult(data);
+      } catch (e) {
+        output.innerHTML = '<div class="output-empty" style="color:var(--red)">Scan failed: ' + e.message + '</div>';
+      } finally {
+        btnScan.disabled = false;
+        btnScan.textContent = 'Scan Text';
       }
-      html += '</div>';
     }
-    html += '</div>';
-  }
 
-  output.innerHTML = html;
-}
+    function renderResult(data) {
+      const score = data.truth_score ?? 100;
+      const flags = data.flags ?? [];
+      const knowledgeType = data.knowledge_type ?? 'neutral';
+      const scanMode = data.scan_mode ?? 'local';
 
-function escapeHtml(s) {
-  const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' };
-  return s.replace(/[&<>"]/g, c => map[c]);
-}
+      const scoreClass = score >= 80 ? 'score-high' : score >= 50 ? 'score-mid' : 'score-low';
+
+      let html = '<div class="result-header">';
+      html += '<div class="score-label">Truth Score</div>';
+      html += '<div class="truth-score ' + scoreClass + '">' + score + '</div>';
+      html += '<div class="result-meta">';
+      html += '<span class="meta-tag">Mode: ' + scanMode + '</span>';
+      html += '<span class="meta-tag">Knowledge: ' + knowledgeType + '</span>';
+      html += '<span class="meta-tag">Flags: ' + flags.length + '</span>';
+      html += '</div></div>';
+
+      if (flags.length === 0) {
+        html += '<div class="output-empty" style="color:var(--green)">✓ No structural bias detected</div>';
+      } else {
+        html += '<div class="flags-list">';
+        for (const f of flags) {
+          const sevClass = 'sev-' + (f.severity || 'moderate');
+          html += '<div class="flag-item">';
+          html += '<div class="flag-header">';
+          html += '<span class="flag-id">' + f.pattern_id + '</span>';
+          html += '<span class="flag-severity ' + sevClass + '">' + (f.severity || 'moderate') + '</span>';
+          html += '</div>';
+          if (f.matched_text) {
+            html += '<div class="flag-match">Matched: <em>"' + escapeHtml(f.matched_text) + '"</em></div>';
+          }
+          html += '</div>';
+        }
+        html += '</div>';
+      }
+
+      output.innerHTML = html;
+    }
+
+    function escapeHtml(s) {
+      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' };
+      return s.replace(/[&<>"]/g, c => map[c]);
+    }
   </script>
 </body>
 
