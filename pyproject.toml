@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "biasclear-api"
-version = "1.0.0"
+version = "1.1.0"
 description = "Bias detection engine built on Persistent Influence Theory (PIT)"
 requires-python = ">=3.10"
 dependencies = [
