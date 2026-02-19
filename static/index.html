@@ -1,14 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BiasClear — Structural Bias Detection Engine</title>
-  <meta name="description" content="BiasClear scans text for structural rhetorical manipulation — framing, manufactured consensus, authority substitution, false urgency — and explains exactly how the text manipulates the reader.">
+  <meta name="description"
+    content="BiasClear scans text for structural rhetorical manipulation — framing, manufactured consensus, authority substitution, false urgency — and explains exactly how the text manipulates the reader.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
     :root {
       --bg: #0a0a0f;
@@ -35,354 +44,763 @@
 
     /* NAV */
     nav {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-      backdrop-filter: blur(20px); background: rgba(10,10,15,0.8);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      backdrop-filter: blur(20px);
+      background: rgba(10, 10, 15, 0.8);
       border-bottom: 1px solid var(--border);
-      padding: 0 2rem; height: 64px;
-      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
-    .logo { font-weight: 800; font-size: 1.25rem; letter-spacing: -0.02em; }
-    .logo span { color: var(--accent); }
-    .nav-links { display: flex; gap: 2rem; align-items: center; }
+
+    .logo {
+      font-weight: 800;
+      font-size: 1.25rem;
+      letter-spacing: -0.02em;
+    }
+
+    .logo span {
+      color: var(--accent);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+    }
+
     .nav-links a {
-      color: var(--text-muted); text-decoration: none; font-size: 0.875rem;
-      font-weight: 500; transition: color 0.2s;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: color 0.2s;
     }
-    .nav-links a:hover { color: var(--text); }
+
+    .nav-links a:hover {
+      color: var(--text);
+    }
+
     .nav-links .btn-nav {
-      background: var(--accent); color: #fff; padding: 0.5rem 1.25rem;
-      border-radius: 8px; font-weight: 600;
+      background: var(--accent);
+      color: #fff;
+      padding: 0.5rem 1.25rem;
+      border-radius: 8px;
+      font-weight: 600;
     }
-    .nav-links .btn-nav:hover { background: #5254e0; color: #fff; }
+
+    .nav-links .btn-nav:hover {
+      background: #5254e0;
+      color: #fff;
+    }
 
     /* HERO */
     .hero {
-      padding: 10rem 2rem 6rem; text-align: center;
-      max-width: 900px; margin: 0 auto;
+      padding: 10rem 2rem 6rem;
+      text-align: center;
+      max-width: 900px;
+      margin: 0 auto;
       position: relative;
     }
+
     .hero::before {
-      content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-      width: 600px; height: 600px;
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 600px;
       background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
       pointer-events: none;
     }
+
     .badge {
-      display: inline-flex; align-items: center; gap: 0.5rem;
-      background: var(--surface-2); border: 1px solid var(--border);
-      padding: 0.375rem 1rem; border-radius: 100px; font-size: 0.8rem;
-      color: var(--text-muted); margin-bottom: 1.5rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      padding: 0.375rem 1rem;
+      border-radius: 100px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
     }
-    .badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+
+    .badge .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+
     h1 {
-      font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 800;
-      letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 1.5rem;
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      margin-bottom: 1.5rem;
     }
+
     h1 .gradient {
       background: linear-gradient(135deg, var(--accent), #a78bfa, #ec4899);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
+
     .hero p {
-      font-size: 1.2rem; color: var(--text-muted); max-width: 640px;
-      margin: 0 auto 2.5rem; line-height: 1.7;
+      font-size: 1.2rem;
+      color: var(--text-muted);
+      max-width: 640px;
+      margin: 0 auto 2.5rem;
+      line-height: 1.7;
     }
-    .hero-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+    .hero-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
     .btn {
-      padding: 0.875rem 2rem; border-radius: 10px; font-weight: 600;
-      font-size: 0.95rem; text-decoration: none; cursor: pointer;
-      border: none; transition: all 0.2s;
+      padding: 0.875rem 2rem;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
     }
+
     .btn-primary {
-      background: var(--accent); color: #fff;
+      background: var(--accent);
+      color: #fff;
       box-shadow: 0 0 30px var(--accent-glow);
     }
-    .btn-primary:hover { background: #5254e0; transform: translateY(-1px); }
+
+    .btn-primary:hover {
+      background: #5254e0;
+      transform: translateY(-1px);
+    }
+
     .btn-outline {
-      background: transparent; color: var(--text);
+      background: transparent;
+      color: var(--text);
       border: 1px solid var(--border);
     }
-    .btn-outline:hover { border-color: var(--accent); background: var(--accent-glow); }
+
+    .btn-outline:hover {
+      border-color: var(--accent);
+      background: var(--accent-glow);
+    }
 
     /* STATS */
     .stats {
-      display: grid; grid-template-columns: repeat(4, 1fr);
-      max-width: 800px; margin: 0 auto 6rem; gap: 1px;
-      background: var(--border); border-radius: var(--radius); overflow: hidden;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      max-width: 800px;
+      margin: 0 auto 6rem;
+      gap: 1px;
+      background: var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
     }
+
     .stat {
-      background: var(--surface); padding: 1.75rem 1rem; text-align: center;
+      background: var(--surface);
+      padding: 1.75rem 1rem;
+      text-align: center;
     }
+
     .stat-num {
-      font-size: 1.75rem; font-weight: 800; letter-spacing: -0.02em;
+      font-size: 1.75rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
       background: linear-gradient(135deg, var(--accent), #a78bfa);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
-    .stat-label { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
 
     /* SECTIONS */
-    section { padding: 5rem 2rem; max-width: 1100px; margin: 0 auto; }
-    section h2 {
-      font-size: 2rem; font-weight: 700; letter-spacing: -0.02em;
-      margin-bottom: 1rem; text-align: center;
+    section {
+      padding: 5rem 2rem;
+      max-width: 1100px;
+      margin: 0 auto;
     }
+
+    section h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
     section .subtitle {
-      color: var(--text-muted); text-align: center; max-width: 600px;
-      margin: 0 auto 3rem; font-size: 1.05rem;
+      color: var(--text-muted);
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto 3rem;
+      font-size: 1.05rem;
     }
 
     /* PLAYGROUND */
-    #playground { background: var(--surface); border-radius: 16px; border: 1px solid var(--border); overflow: hidden; }
+    #playground {
+      background: var(--surface);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
     .playground-header {
-      padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
-    .playground-header h3 { font-size: 1rem; font-weight: 600; }
+
+    .playground-header h3 {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
     .domain-select {
-      background: var(--surface-2); border: 1px solid var(--border);
-      color: var(--text); padding: 0.4rem 0.75rem; border-radius: 6px;
-      font-size: 0.85rem; cursor: pointer;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.4rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      cursor: pointer;
     }
-    .playground-body { display: grid; grid-template-columns: 1fr 1fr; min-height: 350px; }
-    .input-panel, .output-panel { padding: 1.5rem; }
-    .input-panel { border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+
+    .playground-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 350px;
+    }
+
+    .input-panel,
+    .output-panel {
+      padding: 1.5rem;
+    }
+
+    .input-panel {
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+    }
+
     #scan-input {
-      width: 100%; flex: 1; background: transparent; border: none;
-      color: var(--text); font-family: 'Inter', sans-serif; font-size: 0.9rem;
-      resize: none; line-height: 1.7; outline: none;
+      width: 100%;
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      resize: none;
+      line-height: 1.7;
+      outline: none;
     }
-    #scan-input::placeholder { color: var(--text-muted); }
-    .input-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; }
-    .char-count { font-size: 0.75rem; color: var(--text-muted); }
+
+    #scan-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .input-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 1rem;
+    }
+
+    .char-count {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
     .btn-scan {
-      background: var(--accent); color: #fff; padding: 0.6rem 1.5rem;
-      border-radius: 8px; font-weight: 600; font-size: 0.85rem;
-      border: none; cursor: pointer; transition: all 0.2s;
+      background: var(--accent);
+      color: #fff;
+      padding: 0.6rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
     }
-    .btn-scan:hover { background: #5254e0; }
-    .btn-scan:disabled { opacity: 0.5; cursor: not-allowed; }
-    .output-panel { overflow-y: auto; }
-    .output-empty { color: var(--text-muted); font-size: 0.9rem; padding: 2rem 0; text-align: center; }
+
+    .btn-scan:hover {
+      background: #5254e0;
+    }
+
+    .btn-scan:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .output-panel {
+      overflow-y: auto;
+    }
+
+    .output-empty {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      padding: 2rem 0;
+      text-align: center;
+    }
 
     /* RESULTS */
-    .result-header { margin-bottom: 1.5rem; }
+    .result-header {
+      margin-bottom: 1.5rem;
+    }
+
     .truth-score {
-      font-size: 3rem; font-weight: 800; letter-spacing: -0.03em;
+      font-size: 3rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
     }
-    .score-high { color: var(--green); }
-    .score-mid { color: var(--amber); }
-    .score-low { color: var(--red); }
-    .score-label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
-    .result-meta { display: flex; gap: 1rem; margin-top: 0.75rem; flex-wrap: wrap; }
+
+    .score-high {
+      color: var(--green);
+    }
+
+    .score-mid {
+      color: var(--amber);
+    }
+
+    .score-low {
+      color: var(--red);
+    }
+
+    .score-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .result-meta {
+      display: flex;
+      gap: 1rem;
+      margin-top: 0.75rem;
+      flex-wrap: wrap;
+    }
+
     .meta-tag {
-      font-size: 0.7rem; padding: 0.25rem 0.6rem; border-radius: 4px;
-      background: var(--surface-2); color: var(--text-muted); border: 1px solid var(--border);
+      font-size: 0.7rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 4px;
+      background: var(--surface-2);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
     }
-    .flags-list { display: flex; flex-direction: column; gap: 0.75rem; }
+
+    .flags-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
     .flag-item {
-      background: var(--surface-2); border: 1px solid var(--border);
-      border-radius: 8px; padding: 0.875rem 1rem;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.875rem 1rem;
     }
-    .flag-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem; }
-    .flag-id { font-size: 0.75rem; font-weight: 700; color: var(--accent); letter-spacing: 0.02em; }
+
+    .flag-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.35rem;
+    }
+
+    .flag-id {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.02em;
+    }
+
     .flag-severity {
-      font-size: 0.65rem; padding: 0.15rem 0.5rem; border-radius: 4px;
-      text-transform: uppercase; font-weight: 600; letter-spacing: 0.03em;
+      font-size: 0.65rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.03em;
     }
-    .sev-critical { background: rgba(239,68,68,0.15); color: var(--red); }
-    .sev-high { background: rgba(239,68,68,0.1); color: #f87171; }
-    .sev-moderate { background: rgba(245,158,11,0.15); color: var(--amber); }
-    .sev-low { background: rgba(34,197,94,0.1); color: var(--green); }
-    .flag-match { font-size: 0.8rem; color: var(--text-muted); }
+
+    .sev-critical {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--red);
+    }
+
+    .sev-high {
+      background: rgba(239, 68, 68, 0.1);
+      color: #f87171;
+    }
+
+    .sev-moderate {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--amber);
+    }
+
+    .sev-low {
+      background: rgba(34, 197, 94, 0.1);
+      color: var(--green);
+    }
+
+    .flag-match {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
     .flag-match em {
-      color: var(--red); font-style: normal; font-weight: 600;
-      background: rgba(239,68,68,0.1); padding: 0.1rem 0.3rem; border-radius: 3px;
+      color: var(--red);
+      font-style: normal;
+      font-weight: 600;
+      background: rgba(239, 68, 68, 0.1);
+      padding: 0.1rem 0.3rem;
+      border-radius: 3px;
     }
 
     /* HOW IT WORKS */
-    .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+
     .feature-card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 2rem 1.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem 1.5rem;
       transition: border-color 0.2s;
     }
-    .feature-card:hover { border-color: var(--accent); }
-    .feature-icon {
-      width: 40px; height: 40px; border-radius: 10px;
-      background: var(--accent-glow); display: flex; align-items: center;
-      justify-content: center; margin-bottom: 1rem; font-size: 1.2rem;
+
+    .feature-card:hover {
+      border-color: var(--accent);
     }
-    .feature-card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; }
-    .feature-card p { font-size: 0.875rem; color: var(--text-muted); line-height: 1.6; }
+
+    .feature-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: var(--accent-glow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+      font-size: 1.2rem;
+    }
+
+    .feature-card h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .feature-card p {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
 
     /* DOMAINS */
-    .domains-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.25rem; }
-    .domain-card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 1.75rem;
+    .domains-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.25rem;
     }
-    .domain-card h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; }
-    .domain-card .count { color: var(--accent); font-size: 0.8rem; font-weight: 600; margin-bottom: 0.75rem; }
-    .domain-card p { font-size: 0.85rem; color: var(--text-muted); }
+
+    .domain-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+    }
+
+    .domain-card h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .domain-card .count {
+      color: var(--accent);
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+    }
+
+    .domain-card p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
 
     /* FOOTER */
     footer {
-      border-top: 1px solid var(--border); padding: 3rem 2rem;
-      text-align: center; color: var(--text-muted); font-size: 0.85rem;
+      border-top: 1px solid var(--border);
+      padding: 3rem 2rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
     }
-    footer a { color: var(--accent); text-decoration: none; }
-    footer .links { display: flex; gap: 2rem; justify-content: center; margin-bottom: 1rem; }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    footer .links {
+      display: flex;
+      gap: 2rem;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
 
     /* LOADING */
     .spinner {
-      display: inline-block; width: 16px; height: 16px;
-      border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff;
-      border-radius: 50%; animation: spin 0.6s linear infinite;
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
 
     /* RESPONSIVE */
     @media (max-width: 768px) {
-      .playground-body { grid-template-columns: 1fr; }
-      .input-panel { border-right: none; border-bottom: 1px solid var(--border); min-height: 200px; }
-      .features-grid, .domains-grid { grid-template-columns: 1fr; }
-      .stats { grid-template-columns: repeat(2, 1fr); }
-      .nav-links { display: none; }
+      .playground-body {
+        grid-template-columns: 1fr;
+      }
+
+      .input-panel {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        min-height: 200px;
+      }
+
+      .features-grid,
+      .domains-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .nav-links {
+        display: none;
+      }
     }
   </style>
 </head>
+
 <body>
 
-<nav>
-  <div class="logo">Bias<span>Clear</span></div>
-  <div class="nav-links">
-    <a href="#playground">Playground</a>
-    <a href="#how-it-works">How It Works</a>
-    <a href="#domains">Domains</a>
-    <a href="https://github.com/bws82/biasclear" target="_blank">GitHub</a>
-    <a href="/docs" class="btn-nav">API Docs</a>
-  </div>
-</nav>
-
-<div class="hero">
-  <div class="badge"><span class="dot"></span> v1.1.0 — 34 patterns active</div>
-  <h1>Detect structural bias<br><span class="gradient">before it shapes opinion</span></h1>
-  <p>BiasClear scans text for rhetorical manipulation — manufactured consensus, authority substitution, false urgency — and shows exactly how the text is engineered to influence the reader.</p>
-  <div class="hero-actions">
-    <a href="#playground" class="btn btn-primary">Try the Playground</a>
-    <a href="https://doi.org/10.5281/zenodo.18676405" class="btn btn-outline" target="_blank">Read the Paper</a>
-  </div>
-</div>
-
-<div class="stats">
-  <div class="stat"><div class="stat-num">34</div><div class="stat-label">Detection Patterns</div></div>
-  <div class="stat"><div class="stat-num">98.6%</div><div class="stat-label">F1 Score</div></div>
-  <div class="stat"><div class="stat-num">100%</div><div class="stat-label">Recall</div></div>
-  <div class="stat"><div class="stat-num">4</div><div class="stat-label">Domains</div></div>
-</div>
-
-<section id="playground">
-  <h2>Live Playground</h2>
-  <p class="subtitle">Paste any text — legal brief, news article, financial report — and see what BiasClear finds.</p>
-  <div id="playground">
-    <div class="playground-header">
-      <h3>Bias Scanner</h3>
-      <select class="domain-select" id="domain-select">
-        <option value="general">General</option>
-        <option value="legal" selected>Legal</option>
-        <option value="media">Media</option>
-        <option value="financial">Financial</option>
-      </select>
+  <nav>
+    <div class="logo">
+      <img src="/static/logo.jpeg" alt="BiasClear" style="height:36px;border-radius:6px;vertical-align:middle;">
     </div>
-    <div class="playground-body">
-      <div class="input-panel">
-        <textarea id="scan-input" placeholder="Paste text here to scan for structural bias...&#10;&#10;Example: &quot;It is well-settled law that these claims are plainly meritless. The overwhelming weight of authority supports dismissal, and filing sanctions should be considered for this vexatious litigation.&quot;"></textarea>
-        <div class="input-actions">
-          <span class="char-count" id="char-count">0 characters</span>
-          <button class="btn-scan" id="btn-scan" onclick="runScan()">Scan Text</button>
+    <div class="nav-links">
+      <a href="#playground">Playground</a>
+      <a href="#how-it-works">How It Works</a>
+      <a href="#domains">Domains</a>
+      <a href="https://github.com/bws82/biasclear" target="_blank">GitHub</a>
+      <a href="/docs" class="btn-nav">API Docs</a>
+    </div>
+  </nav>
+
+  <div class="hero">
+    <div class="badge"><span class="dot"></span> v1.1.0 — 34 patterns active</div>
+    <h1>Detect structural bias<br><span class="gradient">before it shapes opinion</span></h1>
+    <p>BiasClear scans text for rhetorical manipulation — manufactured consensus, authority substitution, false urgency
+      — and shows exactly how the text is engineered to influence the reader.</p>
+    <div class="hero-actions">
+      <a href="#playground" class="btn btn-primary">Try the Playground</a>
+      <a href="https://doi.org/10.5281/zenodo.18676405" class="btn btn-outline" target="_blank">Read the Paper</a>
+    </div>
+    <div style="margin-top:1.5rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+      <a href="https://pypi.org/project/biasclear" target="_blank" style="opacity:0.8;"><img
+          src="https://img.shields.io/pypi/v/biasclear?label=PyPI&color=6366f1&labelColor=1a1a26" alt="PyPI"></a>
+      <a href="https://github.com/bws82/biasclear" target="_blank" style="opacity:0.8;"><img
+          src="https://img.shields.io/github/license/bws82/biasclear?color=6366f1&labelColor=1a1a26" alt="License"></a>
+    </div>
+  </div>
+
+  <!-- DEMO SECTION -->
+  <div style="max-width:900px;margin:0 auto 4rem;padding:0 2rem;text-align:center;">
+    <p
+      style="color:var(--text-muted);font-size:0.85rem;margin-bottom:1rem;text-transform:uppercase;letter-spacing:0.05em;">
+      See It In Action</p>
+    <img src="/static/demo.gif" alt="BiasClear live demo"
+      style="width:100%;border-radius:16px;border:1px solid var(--border);" onerror="this.src='/static/demo.webp'">
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-num">34</div>
+      <div class="stat-label">Detection Patterns</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">98.6%</div>
+      <div class="stat-label">F1 Score</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">100%</div>
+      <div class="stat-label">Recall</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">4</div>
+      <div class="stat-label">Domains</div>
+    </div>
+  </div>
+
+  <section id="playground">
+    <h2>Live Playground</h2>
+    <p class="subtitle">Paste any text — legal brief, news article, financial report — and see what BiasClear finds.</p>
+    <div id="playground">
+      <div class="playground-header">
+        <h3>Bias Scanner</h3>
+        <select class="domain-select" id="domain-select">
+          <option value="general">General</option>
+          <option value="legal" selected>Legal</option>
+          <option value="media">Media</option>
+          <option value="financial">Financial</option>
+        </select>
+      </div>
+      <div class="playground-body">
+        <div class="input-panel">
+          <textarea id="scan-input"
+            placeholder="Paste text here to scan for structural bias...&#10;&#10;Example: &quot;It is well-settled law that these claims are plainly meritless. The overwhelming weight of authority supports dismissal, and filing sanctions should be considered for this vexatious litigation.&quot;"></textarea>
+          <div class="input-actions">
+            <span class="char-count" id="char-count">0 characters</span>
+            <button class="btn-scan" id="btn-scan" onclick="runScan()">Scan Text</button>
+          </div>
+        </div>
+        <div class="output-panel" id="output-panel">
+          <div class="output-empty">Results will appear here after scanning.</div>
         </div>
       </div>
-      <div class="output-panel" id="output-panel">
-        <div class="output-empty">Results will appear here after scanning.</div>
+    </div>
+  </section>
+
+  <section id="how-it-works">
+    <h2>How It Works</h2>
+    <p class="subtitle">Three layers working together — deterministic core, governed learning, cryptographic proof.</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🔒</div>
+        <h3>Frozen Core</h3>
+        <p>34 structural patterns encoded as deterministic code — not ML weights. Can't be prompt-injected. Can't drift.
+          Same input, same output, every time.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🧠</div>
+        <h3>Learning Ring</h3>
+        <p>LLM-proposed patterns go through a governed lifecycle — staged, confirmed, activated — under strict rules.
+          The core expands without compromising integrity.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⛓️</div>
+        <h3>Audit Chain</h3>
+        <p>Every scan, correction, and governance decision is SHA-256 hash-chained. Tamper-evident. Provable. What
+          regulators need.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚖️</div>
+        <h3>PIT Framework</h3>
+        <p>Built on Persistent Influence Theory — a three-tiered model of ideological, psychological, and institutional
+          manipulation grounded in five principles.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3>Truth Score</h3>
+        <p>Every scan produces a 0-100 Truth Score — penalties applied for each detected manipulation pattern, weighted
+          by severity and PIT tier.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔧</div>
+        <h3>Calibration Framework</h3>
+        <p>73-sample corpus with precision, recall, and F1 per pattern. Regression guards. Weight optimizer. The engine
+          tests itself.</p>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<section id="how-it-works">
-  <h2>How It Works</h2>
-  <p class="subtitle">Three layers working together — deterministic core, governed learning, cryptographic proof.</p>
-  <div class="features-grid">
-    <div class="feature-card">
-      <div class="feature-icon">🔒</div>
-      <h3>Frozen Core</h3>
-      <p>34 structural patterns encoded as deterministic code — not ML weights. Can't be prompt-injected. Can't drift. Same input, same output, every time.</p>
+  <section id="domains">
+    <h2>Detection Domains</h2>
+    <p class="subtitle">Purpose-built patterns for the text that matters most.</p>
+    <div class="domains-grid">
+      <div class="domain-card">
+        <h3>⚖️ Legal</h3>
+        <div class="count">6 specialized patterns</div>
+        <p>Settled-law dismissals, merit attacks, sanctions threats, straw man arguments, procedural gatekeeping, weight
+          stacking. Built from real opposing counsel briefs.</p>
+      </div>
+      <div class="domain-card">
+        <h3>📰 Media</h3>
+        <div class="count">9 specialized patterns</div>
+        <p>Editorial-as-news framing, anonymous attribution, weasel quantifiers, false balance, emotional leads, buried
+          qualifiers, selective quotation.</p>
+      </div>
+      <div class="domain-card">
+        <h3>💰 Financial</h3>
+        <div class="count">5 specialized patterns</div>
+        <p>Survivorship bias, anchoring, cherry-picked timeframes, projection-as-fact, recency extrapolation. Catches
+          the rhetoric behind the numbers.</p>
+      </div>
+      <div class="domain-card">
+        <h3>🌐 General</h3>
+        <div class="count">14 base patterns</div>
+        <p>Consensus-as-evidence, claims without citation, dissent dismissal, false binaries, fear urgency, shame
+          levers, credential-as-proof, and more.</p>
+      </div>
     </div>
-    <div class="feature-card">
-      <div class="feature-icon">🧠</div>
-      <h3>Learning Ring</h3>
-      <p>LLM-proposed patterns go through a governed lifecycle — staged, confirmed, activated — under strict rules. The core expands without compromising integrity.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">⛓️</div>
-      <h3>Audit Chain</h3>
-      <p>Every scan, correction, and governance decision is SHA-256 hash-chained. Tamper-evident. Provable. What regulators need.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">⚖️</div>
-      <h3>PIT Framework</h3>
-      <p>Built on Persistent Influence Theory — a three-tiered model of ideological, psychological, and institutional manipulation grounded in five principles.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">📊</div>
-      <h3>Truth Score</h3>
-      <p>Every scan produces a 0-100 Truth Score — penalties applied for each detected manipulation pattern, weighted by severity and PIT tier.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">🔧</div>
-      <h3>Calibration Framework</h3>
-      <p>73-sample corpus with precision, recall, and F1 per pattern. Regression guards. Weight optimizer. The engine tests itself.</p>
-    </div>
-  </div>
-</section>
+  </section>
 
-<section id="domains">
-  <h2>Detection Domains</h2>
-  <p class="subtitle">Purpose-built patterns for the text that matters most.</p>
-  <div class="domains-grid">
-    <div class="domain-card">
-      <h3>⚖️ Legal</h3>
-      <div class="count">6 specialized patterns</div>
-      <p>Settled-law dismissals, merit attacks, sanctions threats, straw man arguments, procedural gatekeeping, weight stacking. Built from real opposing counsel briefs.</p>
+  <footer>
+    <div class="links">
+      <a href="https://github.com/bws82/biasclear">GitHub</a>
+      <a href="https://doi.org/10.5281/zenodo.18676405">Zenodo</a>
+      <a href="/docs">API Reference</a>
     </div>
-    <div class="domain-card">
-      <h3>📰 Media</h3>
-      <div class="count">9 specialized patterns</div>
-      <p>Editorial-as-news framing, anonymous attribution, weasel quantifiers, false balance, emotional leads, buried qualifiers, selective quotation.</p>
-    </div>
-    <div class="domain-card">
-      <h3>💰 Financial</h3>
-      <div class="count">5 specialized patterns</div>
-      <p>Survivorship bias, anchoring, cherry-picked timeframes, projection-as-fact, recency extrapolation. Catches the rhetoric behind the numbers.</p>
-    </div>
-    <div class="domain-card">
-      <h3>🌐 General</h3>
-      <div class="count">14 base patterns</div>
-      <p>Consensus-as-evidence, claims without citation, dissent dismissal, false binaries, fear urgency, shame levers, credential-as-proof, and more.</p>
-    </div>
-  </div>
-</section>
+    <p>BiasClear v1.1.0 · Built on Persistent Influence Theory · AGPL-3.0<br>
+      © 2025 Brad Slimp</p>
+  </footer>
 
-<footer>
-  <div class="links">
-    <a href="https://github.com/bws82/biasclear">GitHub</a>
-    <a href="https://doi.org/10.5281/zenodo.18676405">Zenodo</a>
-    <a href="/docs">API Reference</a>
-  </div>
-  <p>BiasClear v1.1.0 · Built on Persistent Influence Theory · AGPL-3.0<br>
-  © 2025 Brad Slimp</p>
-</footer>
-
-<script>
+  <script>
 const input = document.getElementById('scan-input');
 const charCount = document.getElementById('char-count');
 const btnScan = document.getElementById('btn-scan');
@@ -461,6 +879,7 @@ function escapeHtml(s) {
   const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' };
   return s.replace(/[&<>"]/g, c => map[c]);
 }
-</script>
+  </script>
 </body>
+
 </html>
