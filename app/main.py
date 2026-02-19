@@ -19,8 +19,10 @@ from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Query, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from starlette.requests import Request
+from pathlib import Path
 
 import os
 
@@ -79,6 +81,20 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Static assets
+_static_dir = Path(__file__).resolve().parent.parent / "static"
+if _static_dir.is_dir():
+    app.mount("/static", StaticFiles(directory=str(_static_dir)), name="static")
+
+
+@app.get("/", include_in_schema=False)
+async def root():
+    """Serve the landing page."""
+    index = _static_dir / "index.html"
+    if index.exists():
+        return FileResponse(str(index), media_type="text/html")
+    return JSONResponse({"message": "BiasClear API", "docs": "/docs"})
 
 
 # ============================================================
