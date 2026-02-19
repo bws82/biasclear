@@ -1,0 +1,519 @@
+# BiasClear Calibration Corpus — Legal Domain (Seed + Expanded)
+#
+# TAGS (use one or more, comma-separated):
+#   clean                    — no bias, legitimate legal argument
+#   settled_law_dismissal    — "well-settled" used to dismiss without engaging
+#   merit_dismissal          — "frivolous/meritless" without substantive rebuttal
+#   weight_stacking          — piling on authority citations to substitute for reasoning
+#   sanctions_threat         — sanctions used to intimidate, not enforce standards
+#   consensus_as_evidence    — "everyone agrees" substituted for evidence
+#   claim_without_citation   — authority claim with no source
+#   dissent_dismissal        — opposing view dismissed by label
+#   false_binary             — forced either/or when more options exist
+#   fear_urgency             — fear/catastrophe to bypass critical thinking
+#   shame_lever              — social pressure to coerce agreement
+#   credential_as_proof      — credentials substituted for argument
+#   institutional_neutrality — institutional position framed as neutral fact
+#   emotional_substitution   — emotion replaces analysis
+#   bureaucratic_obscurity   — bureaucratic language obscures meaning
+#
+# SEVERITY: none | low | moderate | high | critical
+# ============================================================
+
+# =====================
+# CLEAN SAMPLES (10)
+# =====================
+
+---
+tags: clean
+severity: none
+source: synthetic — clean legal argument
+notes: Factual recitation with statutory citation. No distortion.
+
+On March 15, 2024, Defendant sent the disputed letter to the three major
+credit reporting agencies. See 15 U.S.C. § 1681s-2(a)(1). Plaintiff
+received notice of the resulting inquiry on March 22, 2024 (Ex. A).
+
+---
+tags: clean
+severity: none
+source: synthetic — clean legal argument
+notes: Substantive legal reasoning with case citation
+
+The Fourth Circuit held in Johnson v. Commonwealth, 482 F.3d 217, 223
+(4th Cir. 2007) that a plaintiff must demonstrate actual damages to
+sustain a claim under this provision. Here, Plaintiff has produced bank
+statements showing a measurable decline in credit score following the
+disputed reporting.
+
+---
+tags: clean
+severity: none
+source: synthetic — clean factual statement
+notes: Academic text with proper citations — should trigger citation suppression
+
+Recent studies show that algorithmic bias in lending decisions
+disproportionately affects minority borrowers (Johnson et al., 2023).
+The Federal Reserve's 2024 report confirmed these findings across 47
+institutions (Fed. Reserve Bull. 110, at 34-38).
+
+---
+tags: clean
+severity: none
+source: synthetic — clean analysis
+notes: Uses analytical language without distortion packaging
+
+The contract's liquidated damages clause sets compensation at $500 per
+day of delay, which the court must evaluate under the two-part test
+established in this jurisdiction: whether damages were difficult to
+estimate at contracting, and whether the amount is a reasonable forecast
+of likely harm.
+
+---
+tags: clean
+severity: none
+source: synthetic — clean legal motion
+notes: Direct legal argument, no authority stacking or dismissal language
+
+Defendant's motion should be denied because the evidence creates a
+genuine dispute of material fact. The deposition testimony of three
+witnesses directly contradicts Defendant's version of events regarding
+the timeline of the transaction.
+
+---
+tags: clean
+severity: none
+source: synthetic — clean legal memorandum
+notes: Technical legal analysis with proper case law support
+
+Under the three-factor test established in Mathews v. Eldridge, 424
+U.S. 319 (1976), the Court must weigh: (1) the private interest
+affected by the official action; (2) the risk of an erroneous
+deprivation through the procedures used; and (3) the Government's
+interest. Each factor favors Plaintiff here.
+
+---
+tags: clean
+severity: none
+source: synthetic — clean defense brief
+notes: Legitimate defense argument with substantive reasoning
+
+Defendant respectfully submits that summary judgment is appropriate
+because the undisputed material facts establish that the statute of
+limitations had run prior to the filing of this action. Plaintiff
+filed suit on June 3, 2024, more than four years after the alleged
+breach, exceeding the limitation period set by Tex. Civ. Prac. &
+Rem. Code Ann. § 16.004.
+
+---
+tags: clean
+severity: none
+source: synthetic — clean reply brief
+notes: Direct engagement with opposing argument, no dismissal language
+
+Plaintiff's reliance on Williams v. Carter is misplaced. That case
+involved a commercial lease dispute where the tenant had provided
+written notice of the defect, a factual predicate entirely absent
+here. The record contains no evidence that Defendant received any
+pre-suit notification as required under Section 12(a).
+
+---
+tags: clean
+severity: none
+source: synthetic — clean expert discussion
+notes: Expert reference with proper citation, no credential-as-proof
+
+Dr. Sarah Chen, the plaintiff's vocational rehabilitation expert,
+testified at deposition that Plaintiff's injury reduced her earning
+capacity by approximately 35%. (Chen Dep. 47:12-48:3). Defendant's
+expert, Dr. Mark Torres, estimated the reduction at 22%. (Torres
+Dep. 91:5-92:14). The parties thus agree that some reduction occurred
+but dispute its magnitude.
+
+---
+tags: clean
+severity: none
+source: synthetic — clean policy argument
+notes: Uses "research" language near proper citations — citation suppression test
+
+Research indicates that early intervention programs reduce recidivism
+by 18-24% across jurisdictions (Nat'l Inst. of Justice, Report No.
+2023-47, at 15). The data suggests that structured re-entry services
+yield the highest compliance rates when implemented within the first
+90 days (Id. at 22-23).
+
+# =====================
+# BIASED SAMPLES — LEGAL PATTERNS
+# =====================
+
+---
+tags: settled_law_dismissal, merit_dismissal
+severity: high
+source: synthetic — opposing counsel MTD
+notes: Classic double dismissal — settled law + frivolous without engaging
+
+It is well-settled law in this Circuit that claims of the type asserted
+by Plaintiff are plainly meritless. No reasonable court has ever
+entertained such arguments, and this Court should not be the first to
+dignify this frivolous filing with extended analysis.
+
+---
+tags: merit_dismissal
+severity: moderate
+source: synthetic — opposing counsel response
+notes: Meritless label used to avoid engaging with the substance
+
+Plaintiff's argument is frivolous and fails as a matter of law. The
+motion should be denied on its face without further consideration.
+
+---
+tags: settled_law_dismissal
+severity: moderate
+source: synthetic — defense brief
+notes: Well-settled used without citing what makes it settled
+
+It is well-settled that employers retain broad discretion in these
+matters. Plaintiff's attempt to challenge this established principle
+is without merit and should be rejected.
+
+---
+tags: sanctions_threat, merit_dismissal
+severity: high
+source: synthetic — defense filing
+notes: Sanctions as intimidation + merit dismissal via "baseless" and "vexatious"
+
+Counsel for Plaintiff is hereby put on notice that continued pursuit of
+these baseless claims may result in sanctions under Rule 11. Filing
+sanctions should be considered for this vexatious litigation, and the
+Court should impose appropriate penalties for wasting judicial resources.
+
+---
+tags: weight_stacking
+severity: moderate
+source: synthetic — defense brief
+notes: Authority pile-on substituting for reasoning
+
+See Smith v. Jones, 123 F.3d 456 (5th Cir. 2019); Brown v. Davis, 789
+F.2d 101 (5th Cir. 2018); Wilson v. Green, 456 F.3d 789 (5th Cir.
+2017); Taylor v. White, 234 F.3d 567 (5th Cir. 2016); Miller v. Black,
+678 F.3d 234 (5th Cir. 2015); Anderson v. Clark, 345 F.3d 678 (5th
+Cir. 2014). The weight of authority is clear and overwhelming.
+
+---
+tags: settled_law_dismissal, sanctions_threat, merit_dismissal
+severity: critical
+source: synthetic — aggressive defense filing
+notes: Triple stack — settled + sanctions + frivolous in escalation pattern
+
+This Court should recognize that Plaintiff's claims are based on
+well-settled law that this Circuit resolved decades ago. Continued
+prosecution of these claims constitutes vexatious litigation warranting
+sanctions. The Court should not only dismiss but should consider
+referring counsel to the disciplinary committee for pursuing such
+frivolous theories.
+
+# =====================
+# BIASED SAMPLES — CROSS-DOMAIN
+# =====================
+
+---
+tags: consensus_as_evidence
+severity: moderate
+source: synthetic — general argument
+notes: Consensus claim substituted for evidence
+
+Everyone agrees that this approach is the correct one. The consensus
+among experts is clear, and most people in the field would confirm that
+this position is undeniably correct.
+
+---
+tags: claim_without_citation
+severity: moderate
+source: synthetic — general authority claim
+notes: Authority invoked with zero sourcing
+
+Experts say that the current approach is fundamentally flawed. Research
+indicates that alternative methods produce better outcomes. Leading
+authorities confirm that a paradigm shift is overdue.
+
+---
+tags: dissent_dismissal
+severity: high
+source: synthetic — dismissal by label
+notes: Opposing view dismissed by labeling rather than engaging
+
+These so-called alternative theories have been thoroughly debunked by
+mainstream scholarship. Only fringe elements continue to advance such
+discredited positions, and serious analysts have long since moved past
+these outdated arguments.
+
+---
+tags: fear_urgency
+severity: moderate
+source: synthetic — urgency framing
+notes: Catastrophe language to bypass analysis
+
+If we do not act immediately, the consequences will be catastrophic and
+irreversible. Every day of delay brings us closer to a point of no
+return. The window for action is closing rapidly and failure to respond
+now would be devastating.
+
+---
+tags: false_binary
+severity: moderate
+source: synthetic — forced choice
+notes: Either/or framing when more options exist
+
+We face a simple choice: either we accept the proposed restructuring
+in its entirety, or we face certain insolvency. There is no middle
+ground and no alternative path forward.
+
+---
+tags: credential_as_proof
+severity: moderate
+source: synthetic — credential substitution
+notes: Credentials used in place of actual argument
+
+As a Harvard-trained economist with thirty years of experience and
+numerous peer-reviewed publications, my assessment should carry
+decisive weight. My credentials speak for themselves, and opposing
+views from less qualified analysts can be safely disregarded.
+
+---
+tags: institutional_neutrality
+severity: moderate
+source: synthetic — false neutrality
+notes: Institutional position framed as neutral fact
+
+The Department's official position reflects a careful, balanced
+assessment of the evidence. As a neutral regulatory body, our
+findings represent the objective truth of the matter, free from
+the advocacy that characterizes outside commentary.
+
+---
+tags: shame_lever, dissent_dismissal, moral_high_ground
+severity: moderate
+source: synthetic — social pressure
+notes: Shame + dissent dismissal + moral authority — triple overlap
+
+Any reasonable person would recognize the validity of this position.
+To argue otherwise would be to align oneself with a discredited
+minority that has embarrassed the profession. No serious professional
+wants to be associated with such views.
+
+---
+tags: emotional_substitution
+severity: moderate
+source: synthetic — emotion replacing analysis
+notes: Emotional appeal substituted for substantive argument
+
+The devastation wrought upon these hardworking families is simply
+heartbreaking. No decent person could look at these innocent victims
+and conclude that the defendant's actions were acceptable. The suffering
+speaks for itself, and this Court must respond with compassion.
+
+---
+tags: bureaucratic_obscurity
+severity: moderate
+source: synthetic — obscuring language
+notes: Bureaucratic jargon used to obscure a straightforward point
+
+Pursuant to the operationalization of the multi-stakeholder engagement
+framework, the implementing entity shall effectuate a phased
+realignment of resource allocation paradigms in accordance with the
+cross-functional optimization metrics established under the revised
+governance protocol.
+
+# =====================
+# MULTI-BIAS STACKED SAMPLES
+# =====================
+
+---
+tags: consensus_as_evidence, claim_without_citation, credential_as_proof
+severity: high
+source: synthetic — triple-stacked general bias
+notes: Three distortion types layered together
+
+Leading experts unanimously agree that this methodology is the gold
+standard. Research indicates it outperforms all alternatives, and the
+scientific consensus is clear. The authorities in this field, with
+their extensive credentials and institutional backing, have spoken
+definitively on this matter.
+
+---
+tags: settled_law_dismissal, merit_dismissal, weight_stacking
+severity: critical
+source: synthetic — heavy legal stacking
+notes: Settled law + frivolous + authority stacking in single passage
+
+The weight of authority conclusively demonstrates that this issue is
+well-settled. See Anderson, 234 F.3d at 567; Brown, 789 F.2d at 101;
+Clark, 345 F.3d at 678; Davis, 456 F.3d at 789; Evans, 678 F.3d at
+234; Franklin, 123 F.3d at 456. Plaintiff's plainly meritless position
+has been rejected by every court to consider it, and this Court should
+summarily dismiss these frivolous claims.
+
+---
+tags: fear_urgency, false_binary, shame_lever, inevitability_frame
+severity: high
+source: synthetic — emotional manipulation stack
+notes: Dense 4-pattern overlap — fear, binary, shame, inevitability
+
+We have reached a critical juncture: either the board approves this
+measure today, or we face irreversible financial collapse. Anyone who
+votes against this proposal is choosing personal comfort over the
+survival of this organization. History will judge harshly those who
+failed to act when action was still possible.
+
+---
+tags: dissent_dismissal, consensus_as_evidence, institutional_neutrality
+severity: high
+source: synthetic — institutional dismissal combo
+notes: Dissent dismissed via consensus + institutional authority
+
+The scientific community has universally recognized these findings as
+definitive. Fringe objectors who continue to raise discredited
+concerns are operating outside the bounds of legitimate discourse.
+The institutional consensus, as confirmed by every major regulatory
+body, speaks with one authoritative voice on this matter.
+
+---
+tags: claim_without_citation, fear_urgency
+severity: moderate
+source: synthetic — unsourced urgency
+notes: Uncited authority claim combined with urgency pressure
+
+Studies show that without immediate intervention, the projected
+decline will accelerate beyond any hope of recovery. The data suggests
+we have months, not years, to implement corrective measures. Experts
+say that delay at this stage would be catastrophic.
+
+---
+tags: inevitability_frame, shame_lever
+severity: moderate
+source: synthetic — inevitability + shame
+notes: Inevitability narrative + "History will judge" = shame pressure
+
+This is the direction the entire industry is heading, and there is no
+stopping this trend. History will judge those who resisted this change
+harshly. The future belongs to those who adapt, and the inevitable
+march of progress cannot be halted.
+
+---
+tags: appeal_to_tradition, fear_urgency
+severity: moderate
+source: synthetic — tradition + fear
+notes: Tradition appeal reinforced with catastrophe language
+
+We have always done it this way and the time-tested practice has served
+us well for decades. Departing from established practice would be unwise
+and potentially catastrophic. The age-old wisdom dictates that stability
+comes from maintaining proven approaches.
+
+---
+tags: false_equivalence
+severity: moderate
+source: synthetic — false balance
+notes: Unequal positions treated as equal
+
+Both sides have valid points in this debate, and the truth lies
+somewhere in the middle. While one side presents peer-reviewed data and
+the other relies on anecdotal claims, there are valid arguments on both
+sides and we should give equal weight to each perspective.
+
+---
+tags: moral_high_ground, shame_lever
+severity: moderate
+source: synthetic — moral authority + shame
+notes: Moral authority claim inherently uses shame — legitimate overlap
+
+Any decent person would recognize the importance of this issue. It is
+simply a matter of basic human decency, and those who disagree are on
+the wrong side of morality. No ethical professional would take the
+opposing position.
+
+---
+tags: procedural_gatekeeping
+severity: moderate
+source: synthetic — legal procedural avoidance
+notes: Procedural argument used to avoid substance entirely
+domain: legal
+
+Plaintiff failed to properly preserve this argument at the trial level
+and has therefore waived this claim on appeal. Because Plaintiff did
+not timely raise this objection, it is procedurally barred and this
+Court need not reach the merits.
+
+---
+tags: straw_man
+severity: high
+source: synthetic — legal mischaracterization
+notes: Opposing argument distorted before being attacked
+domain: legal
+
+Plaintiff argues that all employers should be held strictly liable
+without any exception for every workplace incident. This extreme
+position would essentially be asking this Court to impose unlimited
+liability on every business in the state, a result that no reasonable
+court would countenance.
+
+---
+tags: procedural_gatekeeping, merit_dismissal
+severity: high
+source: synthetic — legal combo gatekeep + dismiss
+notes: Procedural bar paired with merit dismissal — avoids substance twice
+domain: legal
+
+Not only has Plaintiff waived this argument by failing to raise it in
+the proceedings below, but the claim is also plainly meritless and
+fails as a matter of law. The Court lacks jurisdiction to entertain
+this untimely filing.
+
+---
+tags: straw_man, settled_law_dismissal
+severity: critical
+source: synthetic — legal straw man + settled law
+notes: Mischaracterize then invoke settled law to dismiss
+domain: legal
+
+Plaintiff is essentially arguing that this Court should overturn decades
+of well-settled precedent and hold that every contract term is
+unconscionable. No court in this jurisdiction has ever entertained such
+an extreme reading of the statute.
+
+---
+tags: clean
+severity: none
+source: synthetic — legitimate procedural argument
+notes: Real procedural objection with substance — should NOT trigger gatekeeping
+domain: legal
+
+Plaintiff's third cause of action was not raised in the complaint or
+any amended pleading. Under Fed. R. Civ. P. 15(a)(2), leave to amend
+is required after a responsive pleading has been filed. Because no
+motion to amend was made, the Court should disregard this claim.
+However, even on the merits, the claim fails because the statute
+requires notice within 30 days, and Plaintiff waited 47 days.
+
+---
+tags: clean
+severity: none
+source: synthetic — legitimate tradition reference
+notes: References historical practice but evaluates it — not blind appeal
+
+The common law rule dating to the 19th century required privity of
+contract for product liability claims. However, as the court recognized
+in MacPherson v. Buick Motor Co., 217 N.Y. 382 (1916), this rule
+no longer served its original purpose and was properly abandoned.
+
+---
+tags: clean
+severity: none
+source: synthetic — balanced analysis
+notes: Genuine balance between positions — not false equivalence
+
+The parties present different interpretations of the contract's force
+majeure clause. Plaintiff reads "act of God" narrowly, limited to
+natural disasters. Defendant reads it broadly to include pandemics.
+The court must examine the text, context, and industry custom to
+determine which reading controls.

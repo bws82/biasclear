@@ -1,0 +1,172 @@
+# BiasClear Calibration Corpus — Financial Domain (Seed Samples)
+#
+# Synthetic examples for financial pattern validation.
+# Replace with real analyst reports, news, pitches as encountered.
+#
+# ============================================================
+
+---
+tags: clean
+severity: none
+source: synthetic — clean financial reporting
+notes: Factual reporting with specific numbers and attribution
+domain: financial
+
+The S&P 500 rose 1.2% on Tuesday, closing at 5,842. Trading volume
+was below the 30-day average. Goldman Sachs analysts attributed the
+move to better-than-expected earnings from the technology sector,
+with 78% of reporting companies exceeding consensus estimates.
+
+---
+tags: clean
+severity: none
+source: synthetic — clean investment analysis
+notes: Qualified projections with appropriate uncertainty language
+domain: financial
+
+Based on current revenue growth of 15% year-over-year and assuming
+stable margins, our model estimates earnings per share of $4.50-$5.00
+for fiscal 2026. This estimate is subject to change based on
+macroeconomic conditions and competitive dynamics.
+
+---
+tags: clean
+severity: none
+source: synthetic — clean risk disclosure
+notes: Straightforward risk language
+domain: financial
+
+Past performance does not guarantee future results. The fund's returns
+over the past five years have averaged 8.3% annually, compared to 9.1%
+for the benchmark index. Investors should consider their risk tolerance
+and investment horizon before making decisions.
+
+---
+tags: survivorship_bias
+severity: high
+source: synthetic — survivor-only analysis
+notes: Only examines winners, ignores the funds that closed or underperformed
+domain: financial
+
+Every successful fund manager we studied has followed a disciplined
+value investing approach without exception. All top performers share
+a common philosophy of buying undervalued assets and holding for the
+long term. This proves that value investing is the superior strategy.
+
+---
+tags: survivorship_bias
+severity: high
+source: synthetic — hypothetical past investment
+notes: Classic "if you had invested" framing that ignores alternatives
+domain: financial
+
+If you had invested a $10,000 investment in Amazon in 1997, it would
+now be worth over $20 million. This demonstrates the incredible power
+of identifying high-growth companies early and holding through volatility.
+
+---
+tags: anchoring
+severity: moderate
+source: synthetic — high-anchor bias
+notes: Down from highs framing to imply bargain
+domain: financial
+
+The stock is down 65% from its all-time high reached last January,
+suggesting significant upside potential for patient investors. At
+current levels, the shares are trading at just a fraction of their
+peak value, representing a compelling entry point.
+
+---
+tags: anchoring
+severity: moderate
+source: synthetic — low-anchor bias
+notes: Up from lows framing to imply momentum
+domain: financial
+
+Shares have surged 340% from their pandemic low in March 2020,
+demonstrating remarkable resilience and growth. The company has
+rallied 85% from its 52-week low and shows no signs of slowing.
+
+---
+tags: cherry_picked_timeframe
+severity: high
+source: synthetic — timeframe selection bias
+notes: Starts from market bottom to inflate returns
+domain: financial
+
+Since March 2020, the portfolio has returned an annualized 45%,
+dramatically outperforming the broader market. Over the past three
+years it has beaten every major index by a wide margin.
+
+---
+tags: cherry_picked_timeframe
+severity: high
+source: synthetic — selective period comparison
+notes: Picks specific starting year to show outperformance
+domain: financial
+
+Starting in 2009, our strategy delivered an annualized 18% return,
+more than doubling what passive index funds generated over the same
+period. In the last five years, we have consistently beaten our
+benchmark by 400 basis points annually.
+
+---
+tags: projection_as_fact
+severity: moderate
+source: synthetic — forecasts as certainty
+notes: "Will reach" language without qualification
+domain: financial
+
+Revenue will reach $5 billion by the end of 2026 as the company
+captures market share from legacy competitors. The stock is destined
+to double from current levels once the market recognizes the
+company's true growth potential. Guaranteed returns of 12% annually
+make this an unmissable opportunity.
+
+---
+tags: projection_as_fact
+severity: moderate
+source: synthetic — inevitable outcome framing
+notes: Projection language masquerading as analysis
+domain: financial
+
+The market will reach new highs by year-end as corporate earnings
+continue to expand. Growth is set to accelerate in the second half,
+and profits will exceed analyst expectations by a wide margin.
+
+---
+tags: recency_extrapolation
+severity: moderate
+source: synthetic — trend extrapolation
+notes: Recent performance projected indefinitely
+domain: financial
+
+The fund has consistently outperformed its benchmark year after year,
+delivering above-average returns in every market environment. There
+is no reason to think this trend will stop or reverse given the
+team's proven track record. The strategy continues its winning streak
+with no sign of change.
+
+---
+tags: survivorship_bias, projection_as_fact
+severity: high
+source: synthetic — stacked financial bias
+notes: Survivorship + projection combined
+domain: financial
+
+Every successful tech investor we've studied bought early and held.
+Based on this pattern, investing in emerging AI companies today will
+reach returns of 500% or more over the next decade. The stock is
+going to surge as adoption accelerates.
+
+---
+tags: clean
+severity: none
+source: synthetic — clean analyst note with timeframe
+notes: Uses timeframe but with appropriate context and qualification
+domain: financial
+
+Over the trailing 12-month period ending December 2025, the fund
+returned 11.4% compared to the benchmark's 10.8%. However, over
+the full five-year period, the fund has lagged the benchmark by
+approximately 60 basis points annually, net of fees.

@@ -1,0 +1,28 @@
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Environment
+.env
+.venv/
+venv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Database files
+*.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Calibration reports (regenerated on demand)
+calibration/reports/

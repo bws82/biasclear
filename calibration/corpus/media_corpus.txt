@@ -1,0 +1,223 @@
+# BiasClear Calibration Corpus — Media Domain (Seed Samples)
+#
+# Synthetic examples for media pattern validation.
+# Replace with real article excerpts as encountered.
+#
+# ============================================================
+
+---
+tags: clean
+severity: none
+source: synthetic — clean news reporting
+notes: Straight factual reporting with attribution
+domain: media
+
+The Federal Reserve announced a quarter-point interest rate increase on
+Wednesday, bringing the benchmark rate to 5.25%. Chair Powell said in a
+press conference that the decision reflected ongoing concerns about
+inflation, which remains above the 2% target.
+
+---
+tags: clean
+severity: none
+source: synthetic — clean investigative lead
+notes: Uses "reveal" but it's attributed to a specific report
+domain: media
+
+A report by the Inspector General released Tuesday found that the agency
+had failed to conduct required safety inspections at 14 facilities over
+the past three years. The report recommended immediate remedial action
+and increased oversight.
+
+---
+tags: clean
+severity: none
+source: synthetic — clean opinion piece
+notes: This is explicitly labeled as opinion, not disguised as news
+domain: media
+
+In an editorial published Thursday, the board argued that the proposed
+zoning changes would disproportionately affect small businesses in the
+downtown corridor. The editorial cited property tax data from the city
+assessor's office.
+
+---
+tags: editorial_as_news
+severity: moderate
+source: synthetic — editorializing in news
+notes: Loaded adjectives in straight reporting frame
+domain: media
+
+The controversial policy, which critics have called misguided, was
+announced by the embattled agency director at a tense press conference.
+The divisive proposal would restructure the entire department.
+
+---
+tags: anonymous_attribution
+severity: moderate
+source: synthetic — unnamed sources
+notes: Multiple anonymous attributions with no named sources
+domain: media
+
+Sources close to the matter say the CEO is planning to step down within
+weeks. People familiar with the deliberations confirmed that the board
+has already begun succession planning. Insiders say the decision was
+driven by mounting pressure from institutional investors.
+
+---
+tags: weasel_quantifiers
+severity: low
+source: synthetic — vague quantifiers stacked
+notes: Multiple weasel words creating impression of consensus
+domain: media
+
+Many experts believe the new regulation will backfire. There is growing
+concern among industry observers that the approach lacks sufficient
+safeguards. It is widely believed that the timeline is unrealistic,
+and numerous analysts have raised similar objections.
+
+---
+tags: false_balance
+severity: high
+source: synthetic — false balance on settled science
+notes: Fringe position given equal weight to scientific consensus
+domain: media
+
+Some say that cellphone towers cause cancer and chronic illness, while
+scientists at major research institutions disagree, citing decades of
+peer-reviewed studies finding no causal link. The debate continues to
+divide communities across the country.
+
+---
+tags: emotional_lead
+severity: low
+source: synthetic — emotional opening
+notes: Emotionally charged opener colors subsequent facts
+domain: media
+
+Shocking new allegations have emerged against the pharmaceutical giant,
+as internal documents reveal a pattern of concealing adverse drug
+reactions from regulators. The company denied wrongdoing.
+
+---
+tags: editorial_as_news, anonymous_attribution
+severity: moderate
+source: synthetic — stacked media bias
+notes: Editorial framing combined with anonymous sources
+domain: media
+
+The troubled company's ill-conceived expansion strategy is now under
+fire, according to sources familiar with the board's private
+discussions. Critics say the CEO's self-styled leadership approach
+has alienated key investors and partners.
+
+---
+tags: clean
+severity: none
+source: synthetic — legitimate use of anonymous source
+notes: Single anonymous source with context justifying anonymity
+domain: media
+
+A senior administration official, speaking on condition of anonymity
+because the decision had not yet been publicly announced, said the
+President would sign the executive order on Friday. The White House
+confirmed the timeline later that evening.
+
+---
+tags: buried_qualifier
+severity: moderate
+source: synthetic — buried denial
+notes: Key qualifying info (no evidence of harm) buried after 200+ chars of alarming framing
+domain: media
+
+A new study has linked the popular food additive to increased rates of
+chronic inflammation in laboratory settings, raising urgent questions
+about its safety in consumer products. The findings have prompted calls
+for regulatory review and renewed scrutiny of industry practices.
+However, the study also found that no evidence of harm was observed at
+the dosage levels typical of human consumption, and the results could
+not be confirmed in follow-up trials.
+
+---
+tags: buried_qualifier
+severity: moderate
+source: synthetic — buried correction
+notes: Retraction language buried deep in article
+domain: media
+
+The viral social media post, shared over 200,000 times, claimed that
+the new education policy would eliminate arts programs from all public
+schools in the state. Parents flooded school board meetings with angry
+testimony, and a petition gathered 50,000 signatures within 48 hours.
+The governor's office condemned what it called "fear-mongering."
+However, the department later clarified that the policy not confirmed
+to apply to existing programs, and the original claim was based on a
+draft document that had since been substantially revised.
+
+---
+tags: selective_quotation
+severity: low
+source: synthetic — scare quotes editorializing
+notes: Multiple scare quotes used to delegitimize without argument
+domain: media
+
+The governor's so-called "reform" package would restructure the entire
+department. Their "balanced" approach has drawn criticism from advocates
+who say the "expert" panel was hand-picked to support a predetermined
+outcome. The "voluntary" compliance program has no enforcement mechanism.
+
+---
+tags: asymmetric_attribution
+severity: moderate
+source: synthetic — loaded vs neutral verbs
+notes: One side gets "said/stated", other side gets "claimed/insisted/fired back"
+domain: media
+
+Senator Martinez said the legislation would create jobs and stated that
+early economic projections were promising. Representatives from the
+opposing party claimed the projections were inflated and insisted the
+bill was a giveaway to corporations. When pressed on specific provisions,
+the minority leader fired back at reporters and alleged that the process
+had been rushed to avoid scrutiny.
+
+---
+tags: speculative_framing
+severity: low
+source: synthetic — speculation as near-certainty
+notes: Multiple speculative constructions create impression of inevitability
+domain: media
+
+The central bank is widely expected to cut rates at its November meeting,
+a decision that could soon lead to significant volatility in housing
+markets. Signs point to a broader shift in monetary policy, fueling
+speculation that the era of high rates may be ending. The move is likely
+to trigger a wave of refinancing activity, raising the prospect of
+renewed pressure on mortgage lenders.
+
+---
+tags: speculative_framing, anonymous_attribution
+severity: moderate
+source: synthetic — stacked speculation + anonymous sources
+notes: Speculation amplified by anonymous attribution
+domain: media
+
+Sources close to the negotiations say a deal is expected to be announced
+within days, a development that could soon reshape the competitive
+landscape in the sector. People familiar with the deliberations suggest
+that the terms are likely to include significant concessions from both
+sides. The merger raises the prospect of widespread layoffs, fueling
+fears that thousands of jobs may be at risk.
+
+---
+tags: clean
+severity: none
+source: synthetic — legitimate speculation with attribution
+notes: Speculation clearly attributed and qualified
+domain: media
+
+Federal Reserve officials have signaled that a rate cut is possible at
+the November meeting, though Chair Powell emphasized that any decision
+would depend on incoming data. Economists at Goldman Sachs estimate a
+65% probability of a quarter-point reduction, while Morgan Stanley
+analysts put the odds at 50%.
+

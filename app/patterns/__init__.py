@@ -1,0 +1,1 @@
+# BiasClear — Pattern Detection System
