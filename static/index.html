@@ -826,7 +826,7 @@
         const res = await fetch('/scan', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text, domain, mode: 'local' })
+          body: JSON.stringify({ text, domain, mode: 'deep' })
         });
         const data = await res.json();
         renderResult(data);
