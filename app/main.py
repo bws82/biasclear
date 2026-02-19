@@ -19,7 +19,7 @@ from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Query, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, FileResponse
+from fastapi.responses import JSONResponse, FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.requests import Request
 from pathlib import Path
@@ -95,6 +95,12 @@ async def root():
     if index.exists():
         return FileResponse(str(index), media_type="text/html")
     return JSONResponse({"message": "BiasClear API", "docs": "/docs"})
+
+
+@app.get("/demo", include_in_schema=False)
+async def demo_redirect():
+    """Redirect /demo to the playground section of the landing page."""
+    return RedirectResponse(url="/#playground")
 
 
 # ============================================================
