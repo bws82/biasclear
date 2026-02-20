@@ -31,6 +31,10 @@ from calibration.optimizer import optimize_weights, format_optimization_report
 from biasclear.frozen_core import frozen_core
 from biasclear.scorer import calculate_truth_score
 
+# Absolute path to the seed corpus (works regardless of CWD)
+REPO_ROOT = Path(__file__).resolve().parent.parent
+SEED_CORPUS = REPO_ROOT / "calibration" / "corpus"
+
 
 # ============================================================
 # Corpus Parser Tests
@@ -235,14 +239,14 @@ class TestBenchmark:
 
     def test_benchmark_runs_on_seed_corpus(self):
         """Full benchmark should run on the seed corpus."""
-        result = run_benchmark(corpus_dir="calibration/corpus", domain="legal")
+        result = run_benchmark(corpus_dir=SEED_CORPUS, domain="legal")
         assert result.total_samples >= 30  # Grows as we add samples
         assert result.clean_samples >= 8
         assert result.biased_samples >= 15
 
     def test_benchmark_metrics_ranges(self):
         """All metrics should be in valid ranges."""
-        result = run_benchmark(corpus_dir="calibration/corpus", domain="legal")
+        result = run_benchmark(corpus_dir=SEED_CORPUS, domain="legal")
         assert 0 <= result.overall_accuracy <= 1
         assert 0 <= result.overall_precision <= 1
         assert 0 <= result.overall_recall <= 1
@@ -252,13 +256,13 @@ class TestBenchmark:
 
     def test_clean_scores_higher_than_biased(self):
         """Clean samples should score higher than biased samples."""
-        result = run_benchmark(corpus_dir="calibration/corpus", domain="legal")
+        result = run_benchmark(corpus_dir=SEED_CORPUS, domain="legal")
         assert result.avg_truth_score_clean > result.avg_truth_score_biased
         assert result.truth_score_separation > 0
 
     def test_report_format(self):
         """format_report should return a non-empty string."""
-        result = run_benchmark(corpus_dir="calibration/corpus", domain="legal")
+        result = run_benchmark(corpus_dir=SEED_CORPUS, domain="legal")
         report = format_report(result)
         assert "BIASCLEAR CALIBRATION REPORT" in report
         assert "OVERALL METRICS" in report
@@ -266,7 +270,7 @@ class TestBenchmark:
 
     def test_save_report(self, tmp_path):
         """save_report should create both txt and json files."""
-        result = run_benchmark(corpus_dir="calibration/corpus", domain="legal")
+        result = run_benchmark(corpus_dir=SEED_CORPUS, domain="legal")
         txt_path, json_path = save_report(result, tmp_path)
         assert txt_path.exists()
         assert json_path.exists()
@@ -314,7 +318,7 @@ class TestOptimizer:
 
     def test_optimizer_runs(self):
         """Optimizer should produce a report on seed data."""
-        result = run_benchmark(corpus_dir="calibration/corpus", domain="legal")
+        result = run_benchmark(corpus_dir=SEED_CORPUS, domain="legal")
         opt = optimize_weights(result)
         assert opt.current_separation > 0
         assert isinstance(opt.recommendations, list)
@@ -322,14 +326,14 @@ class TestOptimizer:
 
     def test_optimizer_report_format(self):
         """format_optimization_report should return non-empty string."""
-        result = run_benchmark(corpus_dir="calibration/corpus", domain="legal")
+        result = run_benchmark(corpus_dir=SEED_CORPUS, domain="legal")
         opt = optimize_weights(result)
         text = format_optimization_report(opt)
         assert "WEIGHT OPTIMIZATION REPORT" in text
 
     def test_optimizer_detects_biased_avg_too_high(self):
         """When biased avg > 60, optimizer should recommend penalties."""
-        result = run_benchmark(corpus_dir="calibration/corpus", domain="legal")
+        result = run_benchmark(corpus_dir=SEED_CORPUS, domain="legal")
         # Seed data biased avg is ~75 (above 60 target)
         if result.avg_truth_score_biased > 60:
             opt = optimize_weights(result)
@@ -410,14 +414,14 @@ class TestCalibrationIntegration:
 
     def test_seed_corpus_f1_baseline(self):
         """Seed corpus should achieve F1 > 0.90 as a regression guard."""
-        result = run_benchmark(corpus_dir="calibration/corpus", domain="legal")
+        result = run_benchmark(corpus_dir=SEED_CORPUS, domain="legal")
         assert result.overall_f1 > 0.90, (
             f"F1 regression: {result.overall_f1:.2%} (expected > 90%)"
         )
 
     def test_seed_corpus_clean_separation(self):
         """Clean samples should score meaningfully higher than biased."""
-        result = run_benchmark(corpus_dir="calibration/corpus", domain="legal")
+        result = run_benchmark(corpus_dir=SEED_CORPUS, domain="legal")
         assert result.truth_score_separation > 25, (
             f"Separation regression: {result.truth_score_separation:.0f} "
             f"(expected > 25 points)"
@@ -425,7 +429,7 @@ class TestCalibrationIntegration:
 
     def test_seed_corpus_no_clean_false_positives(self):
         """Clean samples should have zero structural false positives."""
-        result = run_benchmark(corpus_dir="calibration/corpus", domain="legal")
+        result = run_benchmark(corpus_dir=SEED_CORPUS, domain="legal")
         clean_fps = [fp for fp in result.false_positives if fp.get("source", "").startswith("synthetic")]
         assert result.avg_truth_score_clean >= 95, (
             f"Clean avg {result.avg_truth_score_clean:.0f} suggests FP problem "
@@ -434,7 +438,7 @@ class TestCalibrationIntegration:
 
     def test_seed_corpus_biased_avg_below_threshold(self):
         """Biased samples should average below 70 Truth Score."""
-        result = run_benchmark(corpus_dir="calibration/corpus", domain="legal")
+        result = run_benchmark(corpus_dir=SEED_CORPUS, domain="legal")
         assert result.avg_truth_score_biased <= 70, (
             f"Biased avg {result.avg_truth_score_biased:.0f} too high "
             f"(expected <= 70)"
@@ -442,7 +446,7 @@ class TestCalibrationIntegration:
 
     def test_seed_corpus_100_percent_recall(self):
         """All 14 patterns with labeled samples should achieve 100% recall."""
-        result = run_benchmark(corpus_dir="calibration/corpus", domain="legal")
+        result = run_benchmark(corpus_dir=SEED_CORPUS, domain="legal")
         for pid, m in result.pattern_metrics.items():
             if m.support > 0:
                 assert m.recall == 1.0, (

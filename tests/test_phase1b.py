@@ -5,9 +5,7 @@ Tests for Phase 1B features:
 - Pattern proposer validation logic
 """
 
-import os
 import pytest
-import tempfile
 from unittest.mock import AsyncMock, MagicMock
 
 from biasclear.frozen_core import frozen_core
@@ -97,18 +95,18 @@ class TestLearningRing:
     """Test the governed pattern lifecycle."""
 
     @pytest.fixture
-    def ring(self):
-        """Create a fresh learning ring with temp database."""
+    def ring(self, tmp_path):
+        """Create a fresh learning ring with temp database and temp JSON."""
         from biasclear.patterns.learned import LearningRing
-        fd, path = tempfile.mkstemp(suffix=".db")
-        os.close(fd)
+        db_file = tmp_path / "test_patterns.db"
+        json_file = tmp_path / "test_patterns.json"
         ring = LearningRing(
-            db_path=path,
+            db_path=str(db_file),
             activation_threshold=3,  # Lower threshold for testing
             fp_limit=0.20,
+            json_path=str(json_file),
         )
         yield ring
-        os.unlink(path)
 
     def test_propose_new_pattern(self, ring):
         """Proposing a new pattern should stage it with 1 confirmation."""

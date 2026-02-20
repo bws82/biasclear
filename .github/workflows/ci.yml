@@ -24,12 +24,4 @@ jobs:
           pip install -e ".[dev,api]"
 
       - name: Run tests
-        run: |
-          pytest tests/test_frozen_core.py \
-                 tests/test_infra.py \
-                 tests/test_api.py \
-                 tests/test_corrector.py \
-                 tests/test_calibration.py::TestCorpusParser \
-                 tests/test_calibration.py::TestScorerCalibration \
-                 tests/test_calibration.py::TestCitationSuppression \
-                 -v --tb=short
+        run: pytest tests/ -v --tb=short
