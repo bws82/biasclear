@@ -963,6 +963,148 @@
       margin-bottom: 1rem;
     }
 
+    /* CORRECTION UI */
+    .btn-correct {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: linear-gradient(135deg, #6366f1, #a78bfa);
+      color: #fff;
+      padding: 0.6rem 1.25rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.8rem;
+      border: none;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      margin-top: 1rem;
+    }
+
+    .btn-correct:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 20px rgba(99, 102, 241, 0.35);
+    }
+
+    .btn-correct:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .correction-panel {
+      margin-top: 1.25rem;
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      border-radius: 10px;
+      overflow: hidden;
+      animation: fadeInUp 0.4s ease-out;
+    }
+
+    .correction-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+      background: rgba(99, 102, 241, 0.08);
+      border-bottom: 1px solid rgba(99, 102, 241, 0.15);
+    }
+
+    .correction-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .correction-meta {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .verification-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+    }
+
+    .verification-pass {
+      background: rgba(34, 197, 94, 0.12);
+      color: var(--green);
+    }
+
+    .verification-partial {
+      background: rgba(245, 158, 11, 0.12);
+      color: var(--amber);
+    }
+
+    .correction-body {
+      padding: 1rem;
+    }
+
+    .diff-view {
+      font-size: 0.85rem;
+      line-height: 1.75;
+      color: var(--text);
+    }
+
+    .diff-view .diff-del {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      text-decoration: line-through;
+      padding: 0.1rem 0.2rem;
+      border-radius: 3px;
+    }
+
+    .diff-view .diff-ins {
+      background: rgba(34, 197, 94, 0.15);
+      color: #4ade80;
+      padding: 0.1rem 0.2rem;
+      border-radius: 3px;
+    }
+
+    .correction-changes {
+      margin-top: 0.75rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .correction-changes .label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+    }
+
+    .change-item {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      padding: 0.15rem 0;
+      padding-left: 0.75rem;
+      border-left: 2px solid rgba(99, 102, 241, 0.3);
+      margin-bottom: 0.35rem;
+    }
+
+    .correction-score-flow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .correction-score-flow .arrow {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+    }
+
     /* LOADING */
     .spinner {
       display: inline-block;
@@ -1342,6 +1484,11 @@
     const btnScan = document.getElementById('btn-scan');
     const output = document.getElementById('output-panel');
 
+    // Store last scan for correction
+    let lastScanText = '';
+    let lastScanResult = null;
+    let lastScanDomain = 'general';
+
     input.addEventListener('input', () => {
       charCount.textContent = input.value.length + ' characters';
     });
@@ -1373,7 +1520,7 @@
           if (stepEl) {
             stepEl.textContent = scanSteps[stepIdx];
             stepEl.style.animation = 'none';
-            stepEl.offsetHeight; // trigger reflow
+            stepEl.offsetHeight;
             stepEl.style.animation = 'fadeInUp 0.3s ease-out';
           }
         }
@@ -1396,6 +1543,9 @@
         }
 
         const data = await res.json();
+        lastScanText = text;
+        lastScanResult = data;
+        lastScanDomain = domain;
         renderResult(data);
       } catch (e) {
         clearInterval(stepInterval);
@@ -1430,7 +1580,6 @@
       html += '<span class="meta-tag">Flags: ' + flags.length + '</span>';
       html += '</div></div>';
 
-      // Show Gemini explanation
       if (explanation) {
         html += '<div class="result-explanation">';
         html += '<div class="label">Analysis</div>';
@@ -1462,6 +1611,11 @@
         html += '</div>';
       }
 
+      // Correct button — shown when bias is detected
+      if (data.bias_detected && flags.length > 0) {
+        html += '<button class="btn-correct" id="btn-correct" onclick="runCorrection()">✨ Correct This</button>';
+      }
+
       // Learning indicator
       const proposals = data.learning_proposals || [];
       if (proposals.length > 0) {
@@ -1480,7 +1634,134 @@
         html += '</div>';
       }
 
+      // Correction result container
+      html += '<div id="correction-container"></div>';
+
       output.innerHTML = html;
+    }
+
+    // ============================================================
+    // CORRECTION
+    // ============================================================
+
+    async function runCorrection() {
+      if (!lastScanResult || !lastScanText) return;
+
+      const btn = document.getElementById('btn-correct');
+      const container = document.getElementById('correction-container');
+      if (!btn || !container) return;
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Correcting...';
+      container.innerHTML = '<div class="scan-progress" style="padding:1rem 0;"><div class="spinner-lg"></div><div class="scan-step">Removing bias while preserving facts...</div></div>';
+
+      try {
+        const res = await fetch('/correct', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text: lastScanText,
+            scan_result: lastScanResult,
+            domain: lastScanDomain,
+          })
+        });
+
+        if (!res.ok) {
+          const errBody = await res.json().catch(() => null);
+          const errMsg = errBody?.detail?.[0]?.msg || errBody?.detail || `Server error (${res.status})`;
+          container.innerHTML = '<div class="output-empty" style="color:var(--red)">⚠ Correction failed: ' + escapeHtml(String(errMsg)) + '</div>';
+          return;
+        }
+
+        const data = await res.json();
+        btn.style.display = 'none';
+        renderCorrection(container, data);
+      } catch (e) {
+        container.innerHTML = '<div class="output-empty" style="color:var(--red)">⚠ Correction failed: ' + escapeHtml(e.message) + '</div>';
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '✨ Correct This';
+        }
+      }
+    }
+
+    function renderCorrection(container, data) {
+      if (!data.correction_triggered) {
+        container.innerHTML = '<div class="output-empty" style="color:var(--green);margin-top:1rem;">✓ Text is below correction threshold — no changes needed</div>';
+        return;
+      }
+
+      const v = data.verification || {};
+      const scoreBefore = v.truth_score_before ?? lastScanResult?.truth_score ?? '?';
+      const scoreAfter = v.truth_score_after ?? '?';
+      const passed = v.passed ?? v.aligned ?? false;
+      const flagsRemaining = v.flags_remaining ?? '?';
+
+      let html = '<div class="correction-panel">';
+
+      // Header with verification badge
+      html += '<div class="correction-header">';
+      html += '<div class="correction-title">✨ Corrected Text</div>';
+      html += '<div class="correction-meta">';
+
+      // Score flow: 41 → 100
+      html += '<span class="correction-score-flow">';
+      const beforeClass = scoreBefore >= 80 ? 'score-high' : scoreBefore >= 50 ? 'score-mid' : 'score-low';
+      const afterClass = scoreAfter >= 80 ? 'score-high' : scoreAfter >= 50 ? 'score-mid' : 'score-low';
+      html += '<span class="' + beforeClass + '">' + scoreBefore + '</span>';
+      html += '<span class="arrow">→</span>';
+      html += '<span class="' + afterClass + '">' + scoreAfter + '</span>';
+      html += '</span>';
+
+      if (passed) {
+        html += '<span class="verification-badge verification-pass">✓ Verified</span>';
+      } else {
+        html += '<span class="verification-badge verification-partial">⚠ ' + flagsRemaining + ' flags remain</span>';
+      }
+      html += '</div></div>';
+
+      // Diff view
+      html += '<div class="correction-body">';
+      html += '<div class="diff-view">';
+
+      if (data.diff_spans && data.diff_spans.length > 0) {
+        for (const span of data.diff_spans) {
+          if (span.type === 'equal') {
+            html += escapeHtml(span.text);
+          } else if (span.type === 'delete') {
+            html += '<span class="diff-del">' + escapeHtml(span.text) + '</span>';
+          } else if (span.type === 'insert') {
+            html += '<span class="diff-ins">' + escapeHtml(span.text) + '</span>';
+          }
+        }
+      } else {
+        html += escapeHtml(data.corrected || data.original);
+      }
+
+      html += '</div>';
+
+      // Changes list
+      if (data.changes_made && data.changes_made.length > 0) {
+        html += '<div class="correction-changes">';
+        html += '<div class="label">Changes Made</div>';
+        for (const c of data.changes_made) {
+          html += '<div class="change-item">' + escapeHtml(c) + '</div>';
+        }
+        html += '</div>';
+      }
+
+      // Iteration info
+      if (data.iteration_count) {
+        html += '<div style="margin-top:0.5rem;font-size:0.7rem;color:var(--text-muted);">';
+        html += data.converged ? '✓ Converged' : '○ Partial convergence';
+        html += ' in ' + data.iteration_count + ' iteration' + (data.iteration_count > 1 ? 's' : '');
+        html += ' · Confidence: ' + ((data.confidence || 0) * 100).toFixed(0) + '%';
+        html += '</div>';
+      }
+
+      html += '</div></div>';
+      container.innerHTML = html;
     }
 
     function escapeHtml(s) {
