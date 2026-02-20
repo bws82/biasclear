@@ -176,6 +176,7 @@ async def scan_text(
     elif request.mode == "deep":
         result = await scan_deep(
             request.text, llm=_get_llm(), domain=request.domain,
+            learning_ring=learning_ring, audit_chain=audit_chain,
         )
     elif request.mode == "full":
         result = await scan_full(
@@ -241,6 +242,7 @@ async def scan_batch(
         elif item.mode == "deep":
             return await scan_deep(
                 item.text, llm=_get_llm(), domain=item.domain,
+                learning_ring=learning_ring, audit_chain=audit_chain,
             )
         else:
             return await scan_full(
@@ -363,16 +365,19 @@ async def verify_audit(
     return result
 
 
-@app.get("/health", response_model=HealthResponse)
+@app.get("/health")
 async def health():
     """Health check — no auth required."""
+    all_learned = learning_ring.get_all_patterns()
     return {
         "status": "operational",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "core_version": CORE_VERSION,
         "llm_provider": settings.LLM_PROVIDER,
         "audit_entries": audit_chain.get_count(),
-        "learned_patterns": len(learning_ring.get_active_patterns()),
+        "learned_patterns_active": len([p for p in all_learned if p["status"] == "active"]),
+        "learned_patterns_staging": len([p for p in all_learned if p["status"] == "staging"]),
+        "learning_enabled": True,
     }
 
 
@@ -413,6 +418,28 @@ async def get_patterns(
         "learned_patterns": len(learned_dicts),
         "total_patterns": len(patterns) + len(learned_dicts),
         "patterns": patterns + learned_dicts,
+    }
+
+
+@app.get("/patterns/learned")
+async def get_learned_patterns(
+    key_id: Optional[str] = Depends(require_api_key),
+):
+    """Return all learned patterns with full governance metadata."""
+    all_patterns = learning_ring.get_all_patterns()
+    active = [p for p in all_patterns if p["status"] == "active"]
+    staging = [p for p in all_patterns if p["status"] == "staging"]
+    deactivated = [p for p in all_patterns if p["status"] == "deactivated"]
+
+    return {
+        "core_version": CORE_VERSION,
+        "total": len(all_patterns),
+        "active": len(active),
+        "staging": len(staging),
+        "deactivated": len(deactivated),
+        "activation_threshold": learning_ring.activation_threshold,
+        "fp_limit": learning_ring.fp_limit,
+        "patterns": all_patterns,
     }
 
 

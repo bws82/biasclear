@@ -1462,6 +1462,24 @@
         html += '</div>';
       }
 
+      // Learning indicator
+      const proposals = data.learning_proposals || [];
+      if (proposals.length > 0) {
+        html += '<div style="margin-top:1rem;padding:0.75rem 1rem;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);border-radius:8px;font-size:0.8rem;">';
+        html += '<span style="font-weight:700;color:var(--accent);">🧠 Learning Ring</span><br>';
+        for (const p of proposals) {
+          if (p.accepted) {
+            const action = p.action === 'proposed' ? 'Novel pattern staged' : p.action === 'confirmed' ? 'Pattern confirmed' : 'Pattern activated';
+            html += '<span style="color:var(--text-muted);">' + action;
+            if (p.confirmations && p.threshold) {
+              html += ' (' + p.confirmations + '/' + p.threshold + ' confirmations)';
+            }
+            html += '</span><br>';
+          }
+        }
+        html += '</div>';
+      }
+
       output.innerHTML = html;
     }
 
