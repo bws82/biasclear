@@ -103,6 +103,25 @@ async def demo_redirect():
     return RedirectResponse(url="/#playground")
 
 
+@app.post("/beta-signup", include_in_schema=False)
+async def beta_signup(request: Request):
+    """Log beta signup interest. Emails are stored in the audit chain."""
+    try:
+        body = await request.json()
+        email = body.get("email", "").strip()
+        if not email or "@" not in email:
+            return JSONResponse({"status": "error", "message": "Invalid email"}, status_code=400)
+        audit_chain.log(
+            event_type="beta_signup",
+            data={"email": email, "source": "website"},
+            core_version=CORE_VERSION,
+        )
+        logger.info(f"Beta signup: {email}")
+        return JSONResponse({"status": "ok", "message": "Signup recorded"})
+    except Exception:
+        return JSONResponse({"status": "ok", "message": "Signup recorded"})
+
+
 # ============================================================
 # GLOBAL ERROR HANDLER
 # ============================================================

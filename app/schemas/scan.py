@@ -32,6 +32,7 @@ class FlagResponse(BaseModel):
     matched_text: str
     pit_tier: int
     severity: str
+    description: str = ""
 
 
 class ImpactPath(BaseModel):

@@ -294,6 +294,7 @@ def _build_result(
                 "matched_text": f.matched_text,
                 "pit_tier": f.pit_tier,
                 "severity": f.severity,
+                "description": f.description,
             }
             for f in core_eval.flags
         ],
