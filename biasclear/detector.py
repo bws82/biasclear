@@ -210,6 +210,9 @@ async def scan_deep(
         score_breakdown=score_breakdown,
     )
 
+    # Self-scan — check Gemini's own explanation for bias
+    result["self_scan"] = _self_scan(result.get("explanation", ""))
+
     # Self-learning loop — propose novel patterns
     if learning_ring and deep_result and audit_chain:
         try:
@@ -304,7 +307,10 @@ async def scan_full(
         score_breakdown=score_breakdown,
     )
 
-    # Phase 5: Self-learning loop — propose novel patterns
+    # Phase 5: Self-scan — check Gemini's own explanation for bias
+    result["self_scan"] = _self_scan(result.get("explanation", ""))
+
+    # Phase 6: Self-learning loop — propose novel patterns
     if learning_ring and deep_result and audit_chain:
         try:
             from biasclear.patterns.proposer import PatternProposer
@@ -323,6 +329,45 @@ async def scan_full(
         result["learning_proposals"] = []
 
     return result
+
+
+def _self_scan(explanation: str) -> Optional[dict]:
+    """
+    Self-scan: run the frozen core on Gemini's own explanation.
+
+    Detects bias in BiasClear's AI output before it reaches the user.
+    Uses local scan only (zero API cost, deterministic, ~5ms).
+    Returns None if the explanation is clean or on any error.
+    """
+    if not explanation or len(explanation) < 20:
+        return None
+
+    try:
+        core_eval = frozen_core.evaluate(explanation)
+        if not core_eval.flags:
+            return None
+
+        truth_score, breakdown = calculate_truth_score(core_eval)
+
+        return {
+            "bias_detected": True,
+            "truth_score": truth_score,
+            "flags": [
+                {
+                    "pattern_id": f.pattern_id,
+                    "matched_text": f.matched_text,
+                    "severity": f.severity,
+                }
+                for f in core_eval.flags
+            ],
+            "warning": (
+                "BiasClear's own AI explanation contains detectable bias patterns. "
+                "Review the explanation critically."
+            ),
+        }
+    except Exception as e:
+        logger.debug("Self-scan failed: %s", e)
+        return None
 
 
 def _extract_ai_flags(

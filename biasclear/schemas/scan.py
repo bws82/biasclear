@@ -66,6 +66,7 @@ class ScanResponse(BaseModel):
     audit_hash: Optional[str] = None
     learning_proposals: Optional[list[dict]] = None
     score_breakdown: Optional[dict] = None
+    self_scan: Optional[dict] = None
 
 
 class ScanBatchResponse(BaseModel):
