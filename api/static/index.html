@@ -1105,6 +1105,106 @@
       font-size: 0.75rem;
     }
 
+    /* SELF-SCAN TOAST */
+    .self-scan-toast {
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      min-width: 260px;
+      max-width: 340px;
+      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+      z-index: 200;
+      animation: fadeInDown 0.4s ease-out;
+    }
+
+    .self-scan-toast .toast-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.4rem;
+    }
+
+    .self-scan-toast .toast-score {
+      font-size: 1.75rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .self-scan-toast .toast-detail {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.3rem;
+    }
+
+    .self-scan-toast .toast-close {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.75rem;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    /* EXAMPLE BUTTONS */
+    .example-buttons {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-example {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.3rem 0.75rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .btn-example:hover {
+      border-color: var(--accent);
+      color: var(--text);
+      background: var(--accent-glow);
+    }
+
+    .btn-self-scan {
+      background: transparent;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: var(--accent);
+      padding: 0.5rem 1.25rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.25s;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .btn-self-scan:hover {
+      background: var(--accent-glow);
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .btn-self-scan:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
     /* LOADING */
     .spinner {
       display: inline-block;
@@ -1213,6 +1313,7 @@
     <div class="hero-actions">
       <a href="#playground" class="btn btn-primary">Try the Playground</a>
       <a href="https://doi.org/10.5281/zenodo.18676405" class="btn btn-outline" target="_blank">Read the Paper</a>
+      <button class="btn-self-scan" id="btn-self-scan" onclick="selfScan()">⚡ Scan This Page</button>
     </div>
     <div style="margin-top:1.5rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
       <a href="https://pypi.org/project/biasclear" target="_blank" style="opacity:0.8;"><img
@@ -1265,8 +1366,13 @@
       </div>
       <div class="playground-body">
         <div class="input-panel">
-          <textarea id="scan-input"
-            placeholder="Paste text here to scan for structural bias...&#10;&#10;Example: &quot;It is well-settled law that these claims are plainly meritless. The overwhelming weight of authority supports dismissal, and filing sanctions should be considered for this vexatious litigation.&quot;"></textarea>
+          <div class="example-buttons">
+            <span style="font-size:0.7rem;color:var(--text-muted);font-weight:600;line-height:1.8;">TRY:</span>
+            <button class="btn-example" onclick="loadExample('legal')">⚖️ Legal</button>
+            <button class="btn-example" onclick="loadExample('media')">📰 Media</button>
+            <button class="btn-example" onclick="loadExample('financial')">💰 Financial</button>
+          </div>
+          <textarea id="scan-input" placeholder="Paste text here to scan for structural bias..."></textarea>
           <div class="input-actions">
             <span class="char-count" id="char-count">0 characters</span>
             <button class="btn-scan" id="btn-scan" onclick="runScan()">Scan Text</button>
@@ -1500,6 +1606,68 @@
       'Calculating integrity score...',
       'Logging to audit chain...',
     ];
+
+    // ---- Domain example texts ----
+    const DOMAIN_EXAMPLES = {
+      legal: `It is well-settled law that these claims are plainly meritless. The overwhelming weight of authority supports dismissal, and filing sanctions should be considered for this vexatious litigation.`,
+      media: `Sources close to the investigation confirm that the controversial policy has been widely condemned by experts. Critics say the move will inevitably lead to devastating consequences for vulnerable communities.`,
+      financial: `This once-in-a-generation opportunity offers guaranteed returns in a rapidly growing market. Early investors who act now will secure their position before the window closes permanently.`,
+    };
+
+    function loadExample(domain) {
+      input.value = DOMAIN_EXAMPLES[domain] || '';
+      charCount.textContent = input.value.length + ' characters';
+      document.getElementById('domain-select').value = domain;
+      input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => runScan(), 300);
+    }
+
+    // ---- Self-scan: BiasClear scans its own page ----
+    async function selfScan() {
+      const btn = document.getElementById('btn-self-scan');
+      btn.disabled = true;
+      btn.textContent = '⚡ Scanning...';
+
+      try {
+        // Grab visible page text, truncated
+        const pageText = document.body.innerText.substring(0, 5000);
+        const res = await fetch('/scan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: pageText, mode: 'local', domain: 'general' }),
+        });
+        const data = await res.json();
+
+        // Remove any existing toast
+        const old = document.querySelector('.self-scan-toast');
+        if (old) old.remove();
+
+        const scoreColor = data.truth_score >= 90 ? '#4ade80' :
+          data.truth_score >= 70 ? '#facc15' : '#ef4444';
+        const flagCount = (data.flags || []).length;
+        const flagText = flagCount === 0
+          ? 'No structural bias detected in our own copy.'
+          : `${flagCount} flag${flagCount > 1 ? 's' : ''} found — we show what we find, even on ourselves.`;
+
+        const toast = document.createElement('div');
+        toast.className = 'self-scan-toast';
+        toast.innerHTML = `
+          <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+          <div class="toast-title">⚡ Self-Scan Result</div>
+          <div class="toast-score" style="color:${scoreColor}">${data.truth_score} / 100</div>
+          <div class="toast-detail">${flagText}</div>
+        `;
+        document.body.appendChild(toast);
+
+        // Auto-dismiss after 8 seconds
+        setTimeout(() => { if (toast.parentElement) toast.remove(); }, 8000);
+      } catch (e) {
+        console.error('Self-scan failed:', e);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '⚡ Scan This Page';
+      }
+    }
 
     async function runScan() {
       const text = input.value.trim();
