@@ -1205,6 +1205,53 @@
       transform: none;
     }
 
+    /* AUDIT FEED */
+    .audit-feed {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    .audit-feed h3 {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+    }
+
+    .audit-entry {
+      display: flex;
+      gap: 1rem;
+      align-items: baseline;
+      padding: 0.35rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      font-size: 0.72rem;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    }
+
+    .audit-entry .hash {
+      color: var(--accent);
+      min-width: 90px;
+    }
+
+    .audit-entry .event {
+      color: var(--text);
+      min-width: 80px;
+    }
+
+    .audit-entry .time {
+      color: var(--text-muted);
+      margin-left: auto;
+    }
+
+    .audit-empty {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
     /* LOADING */
     .spinner {
       display: inline-block;
@@ -1384,6 +1431,12 @@
       </div>
     </div>
   </section>
+
+  <!-- AUDIT CHAIN FEED -->
+  <div class="audit-feed" id="audit-feed">
+    <h3>🔗 Live Audit Chain</h3>
+    <div id="audit-entries"><span class="audit-empty">Run a scan to see the chain in action.</span></div>
+  </div>
 
   <!-- ARCHITECTURE PIPELINE -->
   <div class="pipeline-section">
@@ -1629,8 +1682,12 @@
       btn.textContent = '⚡ Scanning...';
 
       try {
-        // Grab visible page text, truncated
-        const pageText = document.body.innerText.substring(0, 5000);
+        // Grab visible marketing content only (not footer/license text)
+        const sections = document.querySelectorAll('.hero, .stats, .compliance-bar, .pipeline-section, [id="domains"]');
+        let pageText = '';
+        sections.forEach(s => pageText += s.innerText + ' ');
+        if (!pageText.trim()) pageText = document.body.innerText;
+        pageText = pageText.substring(0, 5000);
         const res = await fetch('/scan', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1715,6 +1772,7 @@
         lastScanResult = data;
         lastScanDomain = domain;
         renderResult(data);
+        refreshAuditFeed();
       } catch (e) {
         clearInterval(stepInterval);
         output.innerHTML = '<div class="output-empty" style="color:var(--red)">⚠ Scan failed: ' + escapeHtml(e.message) + '</div>';
@@ -1949,6 +2007,38 @@
       document.getElementById('signup-form').style.display = 'none';
       document.getElementById('signup-confirm').style.display = 'block';
     }
+    // ---- Audit chain feed ----
+    async function refreshAuditFeed() {
+      try {
+        const res = await fetch('/audit?limit=5');
+        const data = await res.json();
+        const container = document.getElementById('audit-entries');
+        if (!data.entries || data.entries.length === 0) {
+          container.innerHTML = '<span class="audit-empty">No audit entries yet.</span>';
+          return;
+        }
+        container.innerHTML = data.entries.map(e => {
+          const shortHash = e.hash.substring(0, 12) + '...';
+          const ago = timeAgo(e.timestamp);
+          return `<div class="audit-entry">
+            <span class="hash">${shortHash}</span>
+            <span class="event">${e.event_type}</span>
+            <span class="time">${ago}</span>
+          </div>`;
+        }).join('');
+      } catch (e) { /* silent */ }
+    }
+
+    function timeAgo(ts) {
+      const diff = (Date.now() - new Date(ts).getTime()) / 1000;
+      if (diff < 60) return 'just now';
+      if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+      if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+      return Math.floor(diff / 86400) + 'd ago';
+    }
+
+    // Load audit feed on page load
+    refreshAuditFeed();
   </script>
 </body>
 
