@@ -191,6 +191,7 @@
     h1 .gradient {
       background: linear-gradient(135deg, var(--accent), #a78bfa, #ec4899);
       -webkit-background-clip: text;
+      background-clip: text;
       -webkit-text-fill-color: transparent;
       background-size: 200% 200%;
       animation: gradientShift 6s ease-in-out infinite;
@@ -289,7 +290,9 @@
       letter-spacing: -0.02em;
       background: linear-gradient(135deg, var(--accent), #a78bfa);
       -webkit-background-clip: text;
+      background-clip: text;
       -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 40px rgba(99, 102, 241, 0.3);
     }
 
     .stat-label {
@@ -626,6 +629,8 @@
       border-color: var(--accent);
       transform: translateY(-4px);
       box-shadow: 0 8px 30px rgba(99, 102, 241, 0.1);
+      background: rgba(18, 18, 26, 0.9);
+      backdrop-filter: blur(10px);
     }
 
     .feature-icon {
@@ -670,6 +675,8 @@
     .domain-card:hover {
       border-color: var(--accent);
       transform: translateY(-2px);
+      box-shadow: 0 4px 20px rgba(99, 102, 241, 0.08);
+      border-left: 3px solid var(--accent);
     }
 
     .domain-card h3 {
@@ -704,7 +711,7 @@
 
     /* PIPELINE */
     .pipeline-section {
-      padding: 5rem 2rem;
+      padding: 3rem 2rem 5rem;
       max-width: 900px;
       margin: 0 auto;
     }
@@ -1208,8 +1215,8 @@
     /* AUDIT FEED */
     .audit-feed {
       max-width: 800px;
-      margin: 2rem auto;
-      padding: 0 1rem;
+      margin: 0 auto 1rem;
+      padding: 1.5rem 1rem 0;
     }
 
     .audit-feed h3 {
@@ -2039,6 +2046,31 @@
 
     // Load audit feed on page load
     refreshAuditFeed();
+
+    // ---- Animated stat counters ----
+    const statObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          document.querySelectorAll('.stat-num').forEach(el => {
+            const target = parseInt(el.textContent, 10);
+            if (isNaN(target)) return;
+            const duration = 1200;
+            const start = performance.now();
+            el.textContent = '0';
+            function tick(now) {
+              const t = Math.min((now - start) / duration, 1);
+              const ease = 1 - Math.pow(1 - t, 4); // easeOutQuart
+              el.textContent = Math.round(ease * target);
+              if (t < 1) requestAnimationFrame(tick);
+            }
+            requestAnimationFrame(tick);
+          });
+          statObserver.disconnect();
+        }
+      });
+    }, { threshold: 0.3 });
+    const statsEl = document.querySelector('.stats');
+    if (statsEl) statObserver.observe(statsEl);
   </script>
 </body>
 
