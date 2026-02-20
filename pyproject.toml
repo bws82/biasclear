@@ -21,6 +21,7 @@ classifiers = [
 dependencies = [
     "python-dotenv",
     "google-genai>=1.0.0",
+    "diff-match-patch>=20230430",
 ]
 
 [project.urls]
@@ -36,6 +37,7 @@ api = [
 dev = [
     "pytest",
     "pytest-asyncio",
+    "httpx",
 ]
 
 [build-system]
