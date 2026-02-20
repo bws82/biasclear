@@ -12,11 +12,70 @@ the scorer, and the learning ring.
 
 from __future__ import annotations
 
+import logging
+
 from typing import Optional
 
 from app.frozen_core import frozen_core, CoreEvaluation, CORE_VERSION
 from app.scorer import calculate_truth_score
 from app.llm import LLMProvider
+
+logger = logging.getLogger(__name__)
+
+
+# ============================================================
+# DOMAIN-SPECIFIC PROMPT OVERLAYS
+# ============================================================
+
+DOMAIN_CONTEXT: dict[str, str] = {
+    "legal": (
+        "## Domain: Legal\n"
+        "You are analyzing text from a legal context (filings, briefs, motions, opinions).\n"
+        "Weight these manipulation patterns HIGHER:\n"
+        "- Procedural manipulation disguised as legal standard\n"
+        "- Weight-of-authority stacking without specific citations\n"
+        "- Sanctions threats used as intimidation rather than legitimate remedy\n"
+        "- \"Well-settled\" / \"plainly meritless\" dismissals that substitute rhetoric for argument\n"
+        "- Characterization of opposing position as frivolous without engagement\n"
+        "Flag any attempt to weaponize procedural language to avoid substantive argument."
+    ),
+    "media": (
+        "## Domain: Media\n"
+        "You are analyzing media content (news articles, editorials, reports).\n"
+        "Weight these manipulation patterns HIGHER:\n"
+        "- Narrative framing that pre-loads conclusions\n"
+        "- Selective sourcing and manufactured consensus\n"
+        "- Emotional anchoring through strategic word choice\n"
+        "- False balance or false binary presentation\n"
+        "- Headline-body disconnect (if detectable from text)\n"
+        "- Institutional authority cited without specific evidence\n"
+        "Flag language designed to manufacture consent rather than inform."
+    ),
+    "financial": (
+        "## Domain: Financial\n"
+        "You are analyzing financial content (reports, analyses, prospectuses).\n"
+        "Weight these manipulation patterns HIGHER:\n"
+        "- Survivorship bias in performance reporting\n"
+        "- Cherry-picked timeframes for data presentation\n"
+        "- Risk minimization through euphemism ('adjustment' for crash)\n"
+        "- Authority bias via credential stacking\n"
+        "- False precision creating illusion of certainty\n"
+        "- FOMO/urgency language in investment context\n"
+        "Flag language designed to manufacture confidence rather than convey risk."
+    ),
+    "political": (
+        "## Domain: Political\n"
+        "You are analyzing political content (speeches, policy, campaigns).\n"
+        "Weight these manipulation patterns HIGHER:\n"
+        "- In-group/out-group framing\n"
+        "- Aspirational deflection (goals stated as achievements)\n"
+        "- Scope intimidation (problem made too big to question)\n"
+        "- Manufactured urgency and false deadlines\n"
+        "- Moral framing used to prevent cost-benefit analysis\n"
+        "- Consensus language substituting for evidence\n"
+        "Flag rhetoric designed to mobilize rather than inform."
+    ),
+}
 
 
 # ============================================================
@@ -27,19 +86,32 @@ DEEP_ANALYSIS_PROMPT = """You are BiasClear, a bias detection engine operating u
 
 {principles}
 
+{domain_context}
+
 ## Your Task
-Analyze the following text for bias and distortion. Classify it according to the PIT framework.
+Analyze the following text for bias, distortion, and rhetorical manipulation. Be thorough — detect ALL distortions, not just obvious ones. Institutional rhetoric, moral framing, aspirational language used to prevent scrutiny, and consensus manufacturing all count.
+
+## Already Detected (by the deterministic engine)
+These patterns were already found — do NOT duplicate them:
+{local_flags}
 
 ## Analysis Requirements
 Return a JSON object with:
 1. "knowledge_type" — "sense" | "revelation" | "mixed" | "neutral"
 2. "bias_detected" — boolean
-3. "bias_types" — array from: ["authority_bias", "groupthink", "confirmation_bias", "framing_bias", "appeal_to_consensus", "false_urgency", "institutional_bias", "false_binary", "emotional_manipulation", "credential_appeal", "none"]
+3. "bias_types" — array from: ["authority_bias", "groupthink", "confirmation_bias", "framing_bias", "appeal_to_consensus", "false_urgency", "institutional_bias", "false_binary", "emotional_manipulation", "credential_appeal", "moral_framing", "aspirational_deflection", "manufactured_consensus", "scope_intimidation", "none"]
 4. "pit_tier" — "tier_1_ideological" | "tier_2_psychological" | "tier_3_institutional" | "none"
 5. "pit_tier_detail" — specific distortion pattern identified
 6. "confidence" — float 0.0 to 1.0
 7. "explanation" — 2-3 sentences on what was detected and why it matters
 8. "severity" — "none" | "low" | "moderate" | "high" | "critical"
+9. "flags" — array of NEW distortions not already detected. Each object:
+   - "pattern_id": short_snake_case name (e.g. "moral_authority_framing", "manufactured_urgency")
+   - "matched_text": the EXACT substring from the input text
+   - "severity": "low" | "moderate" | "high" | "critical"
+   - "pit_tier": 1 | 2 | 3
+   - "category": "structural"
+   Only include patterns NOT in the already-detected list above.
 
 ## Text to Analyze
 {text}
@@ -84,13 +156,14 @@ async def scan_local(
     core_eval = frozen_core.evaluate(
         text, domain=domain, external_patterns=external_patterns,
     )
-    truth_score = calculate_truth_score(core_eval)
+    truth_score, score_breakdown = calculate_truth_score(core_eval)
 
     return _build_result(
         text=text,
         core_eval=core_eval,
         truth_score=truth_score,
         scan_mode="local",
+        score_breakdown=score_breakdown,
     )
 
 
@@ -107,7 +180,9 @@ async def scan_deep(
     """
     prompt = DEEP_ANALYSIS_PROMPT.format(
         principles=frozen_core.get_principles_prompt(),
+        domain_context=DOMAIN_CONTEXT.get(domain, ""),
         text=text,
+        local_flags="(none)",
     )
 
     try:
@@ -121,9 +196,9 @@ async def scan_deep(
         }
 
     # Calculate truth score from deep result only
-    # Create a minimal core eval for the scorer
     core_eval = frozen_core.evaluate(text, domain=domain)
-    truth_score = calculate_truth_score(core_eval, deep_result)
+    ai_flags = _extract_ai_flags(deep_result, [])
+    truth_score, score_breakdown = calculate_truth_score(core_eval, deep_result, ai_flags)
 
     result = _build_result(
         text=text,
@@ -131,6 +206,8 @@ async def scan_deep(
         truth_score=truth_score,
         scan_mode="deep",
         deep_result=deep_result,
+        ai_flags=ai_flags,
+        score_breakdown=score_breakdown,
     )
 
     # Self-learning loop — propose novel patterns
@@ -175,20 +252,27 @@ async def scan_full(
         text, domain=domain, external_patterns=external_patterns,
     )
 
-    # Phase 2: Deep
+    # Build local flag summary for Gemini deduplication
+    local_flag_ids = [f.pattern_id for f in core_eval.flags]
+    local_flags_str = ", ".join(local_flag_ids) if local_flag_ids else "(none)"
+
+    # Phase 2: Deep — Gemini as co-detector
     prompt = DEEP_ANALYSIS_PROMPT.format(
         principles=frozen_core.get_principles_prompt(),
+        domain_context=DOMAIN_CONTEXT.get(domain, ""),
         text=text,
+        local_flags=local_flags_str,
     )
 
     deep_result = None
     try:
         deep_result = await llm.generate_json(prompt, temperature=0.2)
-    except Exception:
-        pass  # Fall back to local-only if LLM fails
+    except Exception as e:
+        logger.warning("Gemini co-detection failed: %s", e)
 
-    # Phase 3: Score
-    truth_score = calculate_truth_score(core_eval, deep_result)
+    # Phase 3: Score (includes AI flag penalties)
+    ai_flags = _extract_ai_flags(deep_result, local_flag_ids)
+    truth_score, score_breakdown = calculate_truth_score(core_eval, deep_result, ai_flags)
 
     # Phase 4: Impact projection (only if truth_score < 80)
     impact = None
@@ -216,6 +300,8 @@ async def scan_full(
         scan_mode="full",
         deep_result=deep_result,
         impact_projection=impact,
+        ai_flags=ai_flags,
+        score_breakdown=score_breakdown,
     )
 
     # Phase 5: Self-learning loop — propose novel patterns
@@ -239,6 +325,63 @@ async def scan_full(
     return result
 
 
+def _extract_ai_flags(
+    deep_result: Optional[dict],
+    local_flag_ids: list[str],
+) -> list[dict]:
+    """Extract and validate AI-detected flags from Gemini response."""
+    if not deep_result:
+        return []
+
+    raw_flags = deep_result.get("flags", [])
+    if not isinstance(raw_flags, list):
+        return []
+
+    ai_flags = []
+    seen_ids = set(f.lower() for f in local_flag_ids)
+
+    for f in raw_flags:
+        if not isinstance(f, dict):
+            continue
+
+        pattern_id = f.get("pattern_id", "").strip()
+        matched_text = f.get("matched_text", "").strip()
+        severity = f.get("severity", "moderate").lower()
+        pit_tier = f.get("pit_tier", 2)
+
+        # Skip if missing required fields
+        if not pattern_id or not matched_text:
+            continue
+
+        # Skip duplicates of local flags
+        if pattern_id.lower() in seen_ids:
+            continue
+
+        # Normalize severity
+        if severity not in ("low", "moderate", "high", "critical"):
+            severity = "moderate"
+
+        # Normalize pit_tier
+        try:
+            pit_tier = int(pit_tier)
+        except (TypeError, ValueError):
+            pit_tier = 2
+        pit_tier = max(1, min(3, pit_tier))
+
+        ai_flags.append({
+            "category": f.get("category", "structural"),
+            "pattern_id": pattern_id,
+            "matched_text": matched_text,
+            "pit_tier": pit_tier,
+            "severity": severity,
+            "description": f.get("description", ""),
+            "source": "ai",
+        })
+        seen_ids.add(pattern_id.lower())
+
+    return ai_flags
+
+
 # ============================================================
 # RESULT BUILDER
 # ============================================================
@@ -250,8 +393,12 @@ def _build_result(
     scan_mode: str,
     deep_result: Optional[dict] = None,
     impact_projection: Optional[dict] = None,
+    ai_flags: Optional[list[dict]] = None,
+    score_breakdown: Optional[dict] = None,
 ) -> dict:
-    """Build a unified scan result from local + deep components."""
+    """Build a unified scan result from local + deep + AI flags."""
+    ai_flags = ai_flags or []
+
     # Merge bias types from both sources
     local_bias_types = list(set(f.pattern_id for f in core_eval.flags))
     deep_bias_types = []
@@ -260,17 +407,18 @@ def _build_result(
             b for b in deep_result.get("bias_types", []) if b != "none"
         ]
 
-    # Determine overall severity
+    # Determine overall severity — worst of core, AI, and deep
+    all_severities = [f.severity for f in core_eval.flags]
+    all_severities.extend(f["severity"] for f in ai_flags)
     if deep_result and deep_result.get("severity"):
-        severity = deep_result["severity"]
-    else:
-        severities = [f.severity for f in core_eval.flags]
-        severity_order = ["critical", "high", "moderate", "low", "none"]
-        severity = "none"
-        for s in severity_order:
-            if s in severities:
-                severity = s
-                break
+        all_severities.append(deep_result["severity"])
+
+    severity_order = ["critical", "high", "moderate", "low", "none"]
+    severity = "none"
+    for s in severity_order:
+        if s in all_severities:
+            severity = s
+            break
 
     # Merge explanation
     explanation = core_eval.summary
@@ -296,11 +444,26 @@ def _build_result(
     if deep_result and deep_result.get("knowledge_type"):
         knowledge_type = deep_result["knowledge_type"]
 
+    # Build merged flags: core flags (source: core) + AI flags (source: ai)
+    core_flags = [
+        {
+            "category": f.category,
+            "pattern_id": f.pattern_id,
+            "matched_text": f.matched_text,
+            "pit_tier": f.pit_tier,
+            "severity": f.severity,
+            "description": f.description,
+            "source": "core",
+        }
+        for f in core_eval.flags
+    ]
+    merged_flags = core_flags + ai_flags
+
     return {
         "text": text,
         "truth_score": truth_score,
         "knowledge_type": knowledge_type,
-        "bias_detected": len(core_eval.flags) > 0 or (
+        "bias_detected": len(merged_flags) > 0 or (
             deep_result.get("bias_detected", False) if deep_result else False
         ),
         "bias_types": list(set(local_bias_types + deep_bias_types)),
@@ -309,17 +472,7 @@ def _build_result(
         "severity": severity,
         "confidence": round(confidence, 3),
         "explanation": explanation,
-        "flags": [
-            {
-                "category": f.category,
-                "pattern_id": f.pattern_id,
-                "matched_text": f.matched_text,
-                "pit_tier": f.pit_tier,
-                "severity": f.severity,
-                "description": f.description,
-            }
-            for f in core_eval.flags
-        ],
+        "flags": merged_flags,
         "impact_projection": (
             {
                 "path_a": {
@@ -339,4 +492,5 @@ def _build_result(
             "gemini+local" if deep_result else "local_fallback"
         ),
         "core_version": CORE_VERSION,
+        "score_breakdown": score_breakdown,
     }

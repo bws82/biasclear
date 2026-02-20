@@ -266,7 +266,7 @@ class TestTruthScore:
     def test_clean_text_high_score(self):
         from app.scorer import calculate_truth_score
         result = frozen_core.evaluate("The meeting is at 3pm.")
-        score = calculate_truth_score(result)
+        score, _ = calculate_truth_score(result)
         assert score >= 90
 
     def test_biased_text_low_score(self):
@@ -276,13 +276,13 @@ class TestTruthScore:
             "Everyone agrees this is widely accepted common knowledge. "
             "Only conspiracy theorists would disagree.",
         )
-        score = calculate_truth_score(result)
+        score, _ = calculate_truth_score(result)
         assert score < 60
 
     def test_score_bounds(self):
         from app.scorer import calculate_truth_score
         result = frozen_core.evaluate("Hi")
-        score = calculate_truth_score(result)
+        score, _ = calculate_truth_score(result)
         assert 0 <= score <= 100
 
 
