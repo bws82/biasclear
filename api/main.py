@@ -335,6 +335,7 @@ async def correct_text(
         text=request.text,
         scan_result=request.scan_result,
         llm=_get_llm(),
+        domain=request.domain,
     )
 
     audit_chain.log(

@@ -84,6 +84,7 @@ class CorrectRequest(BaseModel):
     """POST /correct request body."""
     text: str = Field(..., min_length=1, max_length=50_000)
     scan_result: dict  # The output from /scan
+    domain: str = Field("general", pattern="^(general|legal|media|financial|auto)$")
 
 
 class CorrectResponse(BaseModel):
@@ -93,8 +94,14 @@ class CorrectResponse(BaseModel):
     changes_made: list[str]
     bias_removed: list[str]
     confidence: float
+    correction_triggered: bool = True
     note: Optional[str] = None
     error: Optional[str] = None
+    verification: Optional[dict] = None
+    iteration_count: Optional[int] = None
+    iterations: Optional[list[dict]] = None
+    converged: Optional[bool] = None
+    diff_spans: Optional[list[dict]] = None
 
 
 # ============================================================
