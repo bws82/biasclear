@@ -98,9 +98,12 @@ async def scan_deep(
     text: str,
     llm: LLMProvider,
     domain: str = "general",
+    learning_ring=None,
+    audit_chain=None,
 ) -> dict:
     """
     Deep scan. LLM-powered analysis with frozen principles as context.
+    When learning_ring is provided, novel patterns are proposed for learning.
     """
     prompt = DEEP_ANALYSIS_PROMPT.format(
         principles=frozen_core.get_principles_prompt(),
@@ -129,6 +132,25 @@ async def scan_deep(
         scan_mode="deep",
         deep_result=deep_result,
     )
+
+    # Self-learning loop — propose novel patterns
+    if learning_ring and deep_result and audit_chain:
+        try:
+            from app.patterns.proposer import PatternProposer
+            proposer = PatternProposer(learning_ring)
+            proposals = await proposer.extract_and_propose(
+                text=text,
+                local_flags=result["flags"],
+                deep_result=deep_result,
+                llm=llm,
+                scan_audit_hash=result.get("audit_hash", "unknown"),
+            )
+            result["learning_proposals"] = proposals
+        except Exception:
+            result["learning_proposals"] = []
+    else:
+        result["learning_proposals"] = []
+
     return result
 
 

@@ -23,10 +23,12 @@ This module holds the expanding DETECTION CAPABILITY.
 from __future__ import annotations
 
 import json
+import os
 import sqlite3
 import threading
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Optional
 
 from app.frozen_core import StructuralPattern, PIT_TIERS
@@ -70,13 +72,16 @@ class LearningRing:
         db_path: str = "biasclear_patterns.db",
         activation_threshold: int = 5,
         fp_limit: float = 0.15,
+        json_path: str = "data/learned_patterns.json",
     ):
         self.db_path = db_path
         self.activation_threshold = activation_threshold
         self.fp_limit = fp_limit
+        self.json_path = json_path
         self._lock = threading.Lock()
         self._audit_fn = None  # Set by app startup to wire in audit logger
         self._init_db()
+        self._load_from_json()
 
     def set_audit_logger(self, audit_fn):
         """Wire in the audit logger function: fn(event_type, data) -> hash."""
@@ -113,6 +118,53 @@ class LearningRing:
         if self._audit_fn:
             return self._audit_fn(event_type, data)
         return None
+
+    # --- JSON Persistence ---
+
+    def _load_from_json(self):
+        """Load patterns from JSON file on startup (survives Render deploys)."""
+        if not os.path.exists(self.json_path):
+            return
+        try:
+            with open(self.json_path, "r") as f:
+                patterns = json.load(f)
+            with self._get_conn() as conn:
+                for p in patterns:
+                    existing = conn.execute(
+                        "SELECT pattern_id FROM learned_patterns WHERE pattern_id = ?",
+                        (p["pattern_id"],),
+                    ).fetchone()
+                    if not existing:
+                        conn.execute(
+                            """INSERT INTO learned_patterns
+                               (pattern_id, name, description, pit_tier, severity,
+                                principle, regex, status, confirmations,
+                                false_positives, total_evaluations,
+                                proposed_at, activated_at, deactivated_at,
+                                source_scan_hash)
+                               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                            (
+                                p["pattern_id"], p["name"], p["description"],
+                                p["pit_tier"], p["severity"], p["principle"],
+                                p["regex"], p["status"], p["confirmations"],
+                                p["false_positives"], p["total_evaluations"],
+                                p["proposed_at"], p.get("activated_at"),
+                                p.get("deactivated_at"), p.get("source_scan_hash", "imported"),
+                            ),
+                        )
+                conn.commit()
+        except Exception:
+            pass  # JSON load failure is non-fatal
+
+    def _persist_to_json(self):
+        """Write all patterns to JSON file for cross-deploy persistence."""
+        try:
+            os.makedirs(os.path.dirname(self.json_path), exist_ok=True)
+            patterns = self.get_all_patterns()
+            with open(self.json_path, "w") as f:
+                json.dump(patterns, f, indent=2)
+        except Exception:
+            pass  # JSON write failure is non-fatal
 
     def propose(
         self,
@@ -207,6 +259,8 @@ class LearningRing:
                         "source_scan_hash": source_scan_hash,
                     })
 
+                    self._persist_to_json()
+
                     return {
                         "accepted": True,
                         "action": "proposed",
@@ -227,6 +281,8 @@ class LearningRing:
             "pattern_id": pattern_id,
             "activated_at": now,
         })
+
+        self._persist_to_json()
 
         return {
             "accepted": True,
