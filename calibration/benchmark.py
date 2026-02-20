@@ -20,8 +20,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
-from app.frozen_core import frozen_core, CoreEvaluation
-from app.scorer import calculate_truth_score
+from biasclear.frozen_core import frozen_core, CoreEvaluation
+from biasclear.scorer import calculate_truth_score
 from calibration.corpus_parser import (
     CalibrationSample,
     TAG_TO_PATTERN_ID,

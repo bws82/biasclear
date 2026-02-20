@@ -10,7 +10,7 @@ import pytest
 import tempfile
 from unittest.mock import AsyncMock, MagicMock
 
-from app.frozen_core import frozen_core
+from biasclear.frozen_core import frozen_core
 
 
 # ============================================================
@@ -99,7 +99,7 @@ class TestLearningRing:
     @pytest.fixture
     def ring(self):
         """Create a fresh learning ring with temp database."""
-        from app.patterns.learned import LearningRing
+        from biasclear.patterns.learned import LearningRing
         fd, path = tempfile.mkstemp(suffix=".db")
         os.close(fd)
         ring = LearningRing(
@@ -245,60 +245,60 @@ class TestPatternProposer:
 
     @pytest.fixture
     def proposer(self):
-        from app.patterns.proposer import PatternProposer
+        from biasclear.patterns.proposer import PatternProposer
         mock_ring = MagicMock()
         mock_ring.propose.return_value = {"accepted": True, "action": "proposed"}
         return PatternProposer(mock_ring), mock_ring
 
     def test_validate_regex_valid(self):
-        from app.patterns.proposer import PatternProposer
+        from biasclear.patterns.proposer import PatternProposer
         p = PatternProposer(MagicMock())
         assert p._validate_regex(r"\btest\s+pattern\b") is True
 
     def test_validate_regex_invalid(self):
-        from app.patterns.proposer import PatternProposer
+        from biasclear.patterns.proposer import PatternProposer
         p = PatternProposer(MagicMock())
         assert p._validate_regex(r"[invalid") is False
 
     def test_validate_regex_too_broad(self):
-        from app.patterns.proposer import PatternProposer
+        from biasclear.patterns.proposer import PatternProposer
         p = PatternProposer(MagicMock())
         # Matches everything — should be rejected
         assert p._validate_regex(r".*") is False
 
     def test_validate_regex_too_short(self):
-        from app.patterns.proposer import PatternProposer
+        from biasclear.patterns.proposer import PatternProposer
         p = PatternProposer(MagicMock())
         assert p._validate_regex(r"\b") is False
 
     def test_validate_regex_too_long(self):
-        from app.patterns.proposer import PatternProposer
+        from biasclear.patterns.proposer import PatternProposer
         p = PatternProposer(MagicMock())
         assert p._validate_regex("a" * 1001) is False
 
     def test_parse_tier_valid(self):
-        from app.patterns.proposer import PatternProposer
+        from biasclear.patterns.proposer import PatternProposer
         p = PatternProposer(MagicMock())
         assert p._parse_tier("tier_1_ideological") == 1
         assert p._parse_tier("tier_2_psychological") == 2
         assert p._parse_tier("tier_3_institutional") == 3
 
     def test_parse_tier_invalid(self):
-        from app.patterns.proposer import PatternProposer
+        from biasclear.patterns.proposer import PatternProposer
         p = PatternProposer(MagicMock())
         assert p._parse_tier("none") is None
         assert p._parse_tier("tier_99_fake") is None
         assert p._parse_tier("garbage") is None
 
     def test_generate_pattern_id_deterministic(self):
-        from app.patterns.proposer import PatternProposer
+        from biasclear.patterns.proposer import PatternProposer
         p = PatternProposer(MagicMock())
         id1 = p._generate_pattern_id("TEST_ID", r"\btest\b")
         id2 = p._generate_pattern_id("TEST_ID", r"\btest\b")
         assert id1 == id2  # Same inputs → same ID
 
     def test_generate_pattern_id_different_regex(self):
-        from app.patterns.proposer import PatternProposer
+        from biasclear.patterns.proposer import PatternProposer
         p = PatternProposer(MagicMock())
         id1 = p._generate_pattern_id("TEST_ID", r"\btest\b")
         id2 = p._generate_pattern_id("TEST_ID", r"\bother\b")

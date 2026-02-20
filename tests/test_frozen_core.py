@@ -5,7 +5,7 @@ If the frozen core doesn't detect correctly, nothing else matters.
 """
 
 import pytest
-from app.frozen_core import frozen_core, CORE_VERSION, FrozenCore
+from biasclear.frozen_core import frozen_core, CORE_VERSION, FrozenCore
 
 
 class TestCoreVersion:
@@ -264,13 +264,13 @@ class TestTruthScore:
     """Truth score calculation."""
 
     def test_clean_text_high_score(self):
-        from app.scorer import calculate_truth_score
+        from biasclear.scorer import calculate_truth_score
         result = frozen_core.evaluate("The meeting is at 3pm.")
         score, _ = calculate_truth_score(result)
         assert score >= 90
 
     def test_biased_text_low_score(self):
-        from app.scorer import calculate_truth_score
+        from biasclear.scorer import calculate_truth_score
         result = frozen_core.evaluate(
             "Studies show that experts say the consensus is clear. "
             "Everyone agrees this is widely accepted common knowledge. "
@@ -280,7 +280,7 @@ class TestTruthScore:
         assert score < 60
 
     def test_score_bounds(self):
-        from app.scorer import calculate_truth_score
+        from biasclear.scorer import calculate_truth_score
         result = frozen_core.evaluate("Hi")
         score, _ = calculate_truth_score(result)
         assert 0 <= score <= 100
@@ -345,7 +345,7 @@ class TestImmutability:
     """The core must be immutable."""
 
     def test_singleton_identity(self):
-        from app.frozen_core import frozen_core as core2
+        from biasclear.frozen_core import frozen_core as core2
         assert frozen_core is core2
 
     def test_principles_not_modifiable(self):

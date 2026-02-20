@@ -16,9 +16,9 @@ import logging
 
 from typing import Optional
 
-from app.frozen_core import frozen_core, CoreEvaluation, CORE_VERSION
-from app.scorer import calculate_truth_score
-from app.llm import LLMProvider
+from biasclear.frozen_core import frozen_core, CoreEvaluation, CORE_VERSION
+from biasclear.scorer import calculate_truth_score
+from biasclear.llm import LLMProvider
 
 logger = logging.getLogger(__name__)
 
@@ -213,7 +213,7 @@ async def scan_deep(
     # Self-learning loop — propose novel patterns
     if learning_ring and deep_result and audit_chain:
         try:
-            from app.patterns.proposer import PatternProposer
+            from biasclear.patterns.proposer import PatternProposer
             proposer = PatternProposer(learning_ring)
             proposals = await proposer.extract_and_propose(
                 text=text,
@@ -307,7 +307,7 @@ async def scan_full(
     # Phase 5: Self-learning loop — propose novel patterns
     if learning_ring and deep_result and audit_chain:
         try:
-            from app.patterns.proposer import PatternProposer
+            from biasclear.patterns.proposer import PatternProposer
             proposer = PatternProposer(learning_ring)
             proposals = await proposer.extract_and_propose(
                 text=text,

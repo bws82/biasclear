@@ -28,8 +28,8 @@ from calibration.benchmark import (
     BenchmarkResult,
 )
 from calibration.optimizer import optimize_weights, format_optimization_report
-from app.frozen_core import frozen_core
-from app.scorer import calculate_truth_score
+from biasclear.frozen_core import frozen_core
+from biasclear.scorer import calculate_truth_score
 
 
 # ============================================================

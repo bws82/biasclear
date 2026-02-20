@@ -6,7 +6,7 @@ Each log entry includes timestamp, level, module, and
 any additional context fields.
 
 Usage:
-    from app.logging import get_logger
+    from biasclear.logging import get_logger
     logger = get_logger("detector")
     logger.info("Scan complete", extra={"truth_score": 72, "domain": "legal"})
 """
