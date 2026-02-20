@@ -460,7 +460,7 @@ class TestScorerCalibration:
             "The court entered judgment on March 15, 2024. See Dkt. 45.",
             domain="legal",
         )
-        score = calculate_truth_score(eval_result)
+        score, _ = calculate_truth_score(eval_result)
         assert score == 100
 
     def test_single_moderate_flag_scores_below_80(self):
@@ -470,7 +470,7 @@ class TestScorerCalibration:
             "There is no middle ground.",
             domain="legal",
         )
-        score = calculate_truth_score(eval_result)
+        score, _ = calculate_truth_score(eval_result)
         assert score < 80, f"Single moderate flag scored {score} (expected < 80)"
 
     def test_multi_flag_scores_below_50(self):
@@ -481,7 +481,7 @@ class TestScorerCalibration:
             "litigation. The weight of authority is overwhelming.",
             domain="legal",
         )
-        score = calculate_truth_score(eval_result)
+        score, _ = calculate_truth_score(eval_result)
         assert score < 50, f"Multi-flag stacked scored {score} (expected < 50)"
 
     def test_multi_tier_penalty_applies(self):
@@ -491,7 +491,7 @@ class TestScorerCalibration:
             "Everyone agrees this is correct. The consensus is clear.",
             domain="general",
         )
-        score_t1 = calculate_truth_score(eval_t1)
+        score_t1, _ = calculate_truth_score(eval_t1)
 
         # Tier 1 + Tier 2 (consensus + fear)
         eval_multi = frozen_core.evaluate(
@@ -499,7 +499,7 @@ class TestScorerCalibration:
             "immediately, the consequences will be catastrophic.",
             domain="general",
         )
-        score_multi = calculate_truth_score(eval_multi)
+        score_multi, _ = calculate_truth_score(eval_multi)
 
         # Multi-tier should score lower than single-tier (beyond just the extra flag penalty)
         assert score_multi < score_t1, (

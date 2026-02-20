@@ -126,7 +126,7 @@ def run_benchmark(
     for sample in samples:
         # Run through engine
         core_eval = frozen_core.evaluate(sample.text, domain=sample.domain or domain)
-        truth_score = calculate_truth_score(core_eval)
+        truth_score, _ = calculate_truth_score(core_eval)
 
         # Store result on sample
         sample.engine_result = {

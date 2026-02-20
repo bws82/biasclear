@@ -33,6 +33,7 @@ class FlagResponse(BaseModel):
     pit_tier: int
     severity: str
     description: str = ""
+    source: str = "core"
 
 
 class ImpactPath(BaseModel):
@@ -64,6 +65,7 @@ class ScanResponse(BaseModel):
     core_version: str
     audit_hash: Optional[str] = None
     learning_proposals: Optional[list[dict]] = None
+    score_breakdown: Optional[dict] = None
 
 
 class ScanBatchResponse(BaseModel):
