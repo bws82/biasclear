@@ -12,7 +12,12 @@ load_dotenv()
 
 # Render sets RENDER=true automatically
 _ON_RENDER = os.getenv("RENDER", "").lower() == "true"
-_DEFAULT_AUDIT_PATH = "/data/biasclear_audit.db" if _ON_RENDER else "biasclear_audit.db"
+# Use persistent disk path ONLY if the disk is actually mounted
+_DEFAULT_AUDIT_PATH = (
+    "/data/biasclear_audit.db"
+    if _ON_RENDER and os.path.isdir("/data")
+    else "biasclear_audit.db"
+)
 
 
 @dataclass(frozen=True)
