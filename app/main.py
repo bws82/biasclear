@@ -122,6 +122,21 @@ async def beta_signup(request: Request):
         return JSONResponse({"status": "ok", "message": "Signup recorded"})
 
 
+@app.get("/beta-signups", include_in_schema=False)
+async def get_beta_signups():
+    """Retrieve all beta signup emails from the audit chain."""
+    entries = audit_chain.get_recent(limit=500, event_type="beta_signup")
+    emails = [
+        {
+            "email": e["data"].get("email", "unknown"),
+            "timestamp": e["timestamp"],
+            "source": e["data"].get("source", "unknown"),
+        }
+        for e in entries
+    ]
+    return {"total": len(emails), "signups": emails}
+
+
 # ============================================================
 # GLOBAL ERROR HANDLER
 # ============================================================
