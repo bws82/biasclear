@@ -123,7 +123,9 @@ async def beta_signup(request: Request):
 
 
 @app.get("/beta-signups", include_in_schema=False)
-async def get_beta_signups():
+async def get_beta_signups(
+    key_id: Optional[str] = Depends(require_api_key),
+):
     """Retrieve all beta signup emails from the audit chain."""
     entries = audit_chain.get_recent(limit=500, event_type="beta_signup")
     emails = [
