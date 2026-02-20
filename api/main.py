@@ -73,11 +73,10 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS — tighten BIASCLEAR_CORS_ORIGINS in production
-_cors_origins = os.getenv("BIASCLEAR_CORS_ORIGINS", "*").split(",")
+# CORS — set BIASCLEAR_CORS_ORIGINS in production (e.g. "https://biasclear.com")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=_cors_origins,
+    allow_origins=[o.strip() for o in settings.CORS_ORIGINS.split(",")],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -466,6 +465,31 @@ async def get_learned_patterns(
 async def add_version_headers(request: Request, call_next):
     """Add BiasClear version headers to all responses."""
     response = await call_next(request)
-    response.headers["X-BiasClear-Version"] = "1.0.0"
+    response.headers["X-BiasClear-Version"] = "1.1.0"
     response.headers["X-Core-Version"] = CORE_VERSION
+    return response
+
+
+# --- Request Logging Middleware ---
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    """Log every API request with method, path, status, duration."""
+    path = request.url.path
+    # Skip noise: static assets and health checks
+    if path.startswith("/static") or path == "/health":
+        return await call_next(request)
+
+    start = time.time()
+    response = await call_next(request)
+    duration_ms = round((time.time() - start) * 1000, 1)
+
+    logger.info(
+        f"{request.method} {path} → {response.status_code} ({duration_ms}ms)",
+        extra={
+            "method": request.method,
+            "path": path,
+            "status_code": response.status_code,
+            "duration_ms": duration_ms,
+        },
+    )
     return response

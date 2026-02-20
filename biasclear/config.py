@@ -10,6 +10,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Render sets RENDER=true automatically
+_ON_RENDER = os.getenv("RENDER", "").lower() == "true"
+_DEFAULT_AUDIT_PATH = "/data/biasclear_audit.db" if _ON_RENDER else "biasclear_audit.db"
+
 
 @dataclass(frozen=True)
 class Settings:
@@ -25,7 +29,7 @@ class Settings:
     GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 
     # --- Audit ---
-    AUDIT_DB_PATH: str = os.getenv("BIASCLEAR_AUDIT_DB", "biasclear_audit.db")
+    AUDIT_DB_PATH: str = os.getenv("BIASCLEAR_AUDIT_DB", _DEFAULT_AUDIT_PATH)
 
     # --- Learning Ring ---
     PATTERN_AUTO_ACTIVATE_THRESHOLD: int = int(
@@ -39,5 +43,9 @@ class Settings:
     HOST: str = os.getenv("BIASCLEAR_HOST", "0.0.0.0")
     PORT: int = int(os.getenv("BIASCLEAR_PORT", "8000"))
 
+    # --- CORS ---
+    CORS_ORIGINS: str = os.getenv("BIASCLEAR_CORS_ORIGINS", "*")
+
 
 settings = Settings()
+
