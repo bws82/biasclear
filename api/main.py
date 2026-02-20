@@ -26,17 +26,17 @@ from pathlib import Path
 
 import os
 
-from app.config import settings
-from app.frozen_core import CORE_VERSION
-from app.audit import audit_chain
-from app.detector import scan_local, scan_deep, scan_full
-from app.corrector import correct_bias
-from app.patterns.learned import learning_ring
-from app.llm.factory import get_provider
-from app.auth import require_api_key, AUTH_ENABLED
-from app.rate_limit import check_rate_limit
-from app.logging import setup_logging, get_logger
-from app.schemas.scan import (
+from biasclear.config import settings
+from biasclear.frozen_core import CORE_VERSION
+from biasclear.audit import audit_chain
+from biasclear.detector import scan_local, scan_deep, scan_full
+from biasclear.corrector import correct_bias
+from biasclear.patterns.learned import learning_ring
+from biasclear.llm.factory import get_provider
+from biasclear.auth import require_api_key, AUTH_ENABLED
+from biasclear.rate_limit import check_rate_limit
+from biasclear.logging import setup_logging, get_logger
+from biasclear.schemas.scan import (
     ScanRequest,
     ScanBatchRequest,
     ScanResponse,
@@ -83,7 +83,7 @@ app.add_middleware(
 )
 
 # Static assets
-_static_dir = Path(__file__).resolve().parent.parent / "static"
+_static_dir = Path(__file__).resolve().parent / "static"
 if _static_dir.is_dir():
     app.mount("/static", StaticFiles(directory=str(_static_dir)), name="static")
 
@@ -406,7 +406,7 @@ async def get_patterns(
 
     Use domain="auto" to see ALL patterns across all domains.
     """
-    from app.frozen_core import frozen_core
+    from biasclear.frozen_core import frozen_core
     check_rate_limit(key_id)
 
     patterns = frozen_core.get_patterns(domain=domain)

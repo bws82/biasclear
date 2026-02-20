@@ -169,7 +169,7 @@ class AuditChain:
 
 def _get_audit_chain() -> AuditChain:
     """Factory — reads db path from config."""
-    from app.config import settings
+    from biasclear.config import settings
     return AuditChain(db_path=settings.AUDIT_DB_PATH)
 
 

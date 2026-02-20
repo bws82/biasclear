@@ -7,8 +7,8 @@ with distortions removed while preserving factual content.
 
 from __future__ import annotations
 
-from app.frozen_core import frozen_core
-from app.llm import LLMProvider
+from biasclear.frozen_core import frozen_core
+from biasclear.llm import LLMProvider
 
 
 CORRECTION_PROMPT = """You are BiasClear's Correction Engine.

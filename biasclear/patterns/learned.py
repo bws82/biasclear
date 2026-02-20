@@ -31,7 +31,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
-from app.frozen_core import StructuralPattern, PIT_TIERS
+from biasclear.frozen_core import StructuralPattern, PIT_TIERS
 
 
 # ============================================================
@@ -400,7 +400,7 @@ class LearningRing:
 
 def _get_learning_ring() -> LearningRing:
     """Factory — reads thresholds from config."""
-    from app.config import settings
+    from biasclear.config import settings
     return LearningRing(
         db_path="biasclear_patterns.db",
         activation_threshold=settings.PATTERN_AUTO_ACTIVATE_THRESHOLD,

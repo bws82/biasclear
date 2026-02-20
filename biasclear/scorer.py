@@ -14,7 +14,7 @@ Score = 100 minus weighted penalties from:
 
 from __future__ import annotations
 
-from app.frozen_core import CoreEvaluation, Flag
+from biasclear.frozen_core import CoreEvaluation, Flag
 
 
 def calculate_truth_score(

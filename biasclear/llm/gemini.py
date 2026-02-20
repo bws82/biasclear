@@ -14,7 +14,7 @@ from typing import Optional
 from google import genai
 from google.genai import types
 
-from app.llm import LLMProvider
+from biasclear.llm import LLMProvider
 
 
 class GeminiProvider(LLMProvider):

@@ -24,8 +24,8 @@ import re
 import hashlib
 from typing import Optional
 
-from app.llm import LLMProvider
-from app.frozen_core import frozen_core, PIT_TIERS
+from biasclear.llm import LLMProvider
+from biasclear.frozen_core import frozen_core, PIT_TIERS
 
 
 PATTERN_EXTRACTION_PROMPT = """You are a pattern engineer for a bias detection system.
