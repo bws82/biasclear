@@ -36,16 +36,16 @@ class ScanCache:
         self._misses = 0
 
     @staticmethod
-    def _make_key(text: str, domain: str, mode: str) -> str:
-        """SHA-256 hash of text+domain+mode."""
-        raw = f"{text}||{domain}||{mode}"
+    def _make_key(text: str, domain: str, mode: str, extra: str = "") -> str:
+        """SHA-256 hash of text+domain+mode+extra (e.g., learning ring version)."""
+        raw = f"{text}||{domain}||{mode}||{extra}"
         return hashlib.sha256(raw.encode()).hexdigest()
 
     async def get(
-        self, text: str, domain: str, mode: str,
+        self, text: str, domain: str, mode: str, extra: str = "",
     ) -> Optional[dict]:
         """Return cached result if exists and not expired."""
-        key = self._make_key(text, domain, mode)
+        key = self._make_key(text, domain, mode, extra)
         async with self._lock:
             entry = self._cache.get(key)
             if entry is None:
@@ -62,10 +62,10 @@ class ScanCache:
             return {**result, "_cached": True}
 
     async def put(
-        self, text: str, domain: str, mode: str, result: dict,
+        self, text: str, domain: str, mode: str, result: dict, extra: str = "",
     ) -> None:
         """Store result in cache. Evicts oldest if over max."""
-        key = self._make_key(text, domain, mode)
+        key = self._make_key(text, domain, mode, extra)
         async with self._lock:
             # Evict oldest entries if at capacity
             if len(self._cache) >= self._max_entries:
@@ -77,10 +77,10 @@ class ScanCache:
             self._cache[key] = (time.monotonic(), result)
 
     async def invalidate(
-        self, text: str, domain: str, mode: str,
+        self, text: str, domain: str, mode: str, extra: str = "",
     ) -> None:
         """Remove a specific entry."""
-        key = self._make_key(text, domain, mode)
+        key = self._make_key(text, domain, mode, extra)
         async with self._lock:
             self._cache.pop(key, None)
 
