@@ -10,7 +10,7 @@ from biasclear.frozen_core import frozen_core, CORE_VERSION, FrozenCore
 
 class TestCoreVersion:
     def test_version_exists(self):
-        assert CORE_VERSION == "1.1.0"
+        assert CORE_VERSION == "1.2.0"
 
     def test_eval_stamps_version(self):
         result = frozen_core.evaluate("Hello world")
@@ -559,14 +559,14 @@ class TestPatternInventory:
     """Verify the full pattern inventory is as expected."""
 
     def test_base_pattern_count(self):
-        assert len(frozen_core._base_patterns) == 14
+        assert len(frozen_core._base_patterns) == 19
 
     def test_legal_pattern_count(self):
         assert len(frozen_core._legal_patterns) == 6
 
     def test_total_pattern_count(self):
         total = len(frozen_core._base_patterns) + len(frozen_core._legal_patterns)
-        assert total == 20
+        assert total == 25
 
     def test_all_tiers_covered(self):
         all_patterns = frozen_core._base_patterns + frozen_core._legal_patterns

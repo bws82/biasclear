@@ -268,14 +268,23 @@ async def scan_full(
     )
 
     deep_result = None
+    _llm_failed = False
     try:
         deep_result = await llm.generate_json(prompt, temperature=0.2)
     except Exception as e:
         logger.warning("Gemini co-detection failed: %s", e)
+        _llm_failed = True
 
     # Phase 3: Score (includes AI flag penalties)
     ai_flags = _extract_ai_flags(deep_result, local_flag_ids)
     truth_score, score_breakdown = calculate_truth_score(core_eval, deep_result, ai_flags)
+
+    # Cap truth_score when LLM was requested but unavailable — local-only
+    # can't detect subtle patterns, so a perfect score is misleading
+    if _llm_failed and truth_score > 85:
+        score_breakdown["local_fallback_cap"] = -(truth_score - 85)
+        truth_score = 85
+        score_breakdown["final_score"] = truth_score
 
     # Phase 4: Impact projection (only if truth_score < 80)
     impact = None
@@ -307,10 +316,19 @@ async def scan_full(
         score_breakdown=score_breakdown,
     )
 
-    # Phase 5: Self-scan — check Gemini's own explanation for bias
+    # Phase 5: Degradation warning when LLM failed
+    if _llm_failed:
+        result["_degraded"] = True
+        result["_degradation_warning"] = (
+            "LLM analysis was unavailable. Results are from the local deterministic "
+            "engine only. Some subtle bias patterns may not be detected. "
+            "Truth score has been capped at 85."
+        )
+
+    # Phase 6: Self-scan — check Gemini's own explanation for bias
     result["self_scan"] = _self_scan(result.get("explanation", ""))
 
-    # Phase 6: Self-learning loop — propose novel patterns
+    # Phase 7: Self-learning loop — propose novel patterns
     if learning_ring and deep_result and audit_chain:
         try:
             from biasclear.patterns.proposer import PatternProposer

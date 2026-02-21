@@ -25,7 +25,7 @@ class Settings:
     """Immutable application settings."""
 
     # --- Core Versioning ---
-    CORE_VERSION: str = "1.1.0"
+    CORE_VERSION: str = "1.2.0"
     API_VERSION: str = "1"
 
     # --- LLM Provider ---

@@ -72,6 +72,14 @@ async def lifespan(app: FastAPI):
             "Set BIASCLEAR_API_KEYS in Render environment variables to enable auth."
         )
 
+    # Warn if Gemini API key is missing — deep/full scans will degrade to local-only
+    if not settings.GEMINI_API_KEY:
+        logger.warning(
+            "⚠️  GEMINI_API_KEY not set — deep and full scan modes will fall back to "
+            "local-only analysis. Set GEMINI_API_KEY in environment variables for "
+            "full detection capability. Get a key: https://aistudio.google.com/apikey"
+        )
+
     learning_ring.set_audit_logger(audit_chain.log)
     logger.info("BiasClear API starting",
                 extra={"core_version": CORE_VERSION, "auth_enabled": AUTH_ENABLED})
@@ -223,8 +231,11 @@ async def scan_text(
     check_rate_limit(key_id)
     start = time.time()
 
+    learned = learning_ring.get_active_patterns()
+    lr_version = str(len(learned))  # Cache key includes learning ring state
+
     # Check cache first — identical scans return instantly
-    cached = await scan_cache.get(request.text, request.domain, request.mode)
+    cached = await scan_cache.get(request.text, request.domain, request.mode, extra=lr_version)
     if cached is not None:
         duration = int((time.time() - start) * 1000)
         logger.info(
@@ -238,8 +249,6 @@ async def scan_text(
             },
         )
         return cached
-
-    learned = learning_ring.get_active_patterns()
 
     # Circuit breaker: if LLM is down and mode requires it, fall back to local
     try:
@@ -273,6 +282,15 @@ async def scan_text(
             request.text, domain=request.domain, external_patterns=learned,
         )
         result["scan_mode"] = f"local (fallback from {request.mode})"
+        result["_degraded"] = True
+        result["_degradation_warning"] = (
+            "LLM circuit breaker is open due to repeated failures. Results are from "
+            "the local deterministic engine only. Some subtle bias patterns may not "
+            "be detected. Truth score has been capped at 85."
+        )
+        # Cap truth_score — local-only can't detect subtle patterns
+        if result["truth_score"] > 85:
+            result["truth_score"] = 85
 
     if "error" in result and not result.get("bias_detected"):
         logger.error(
@@ -297,7 +315,7 @@ async def scan_text(
     result["audit_hash"] = audit_hash
 
     # Store in cache for future identical scans
-    await scan_cache.put(request.text, request.domain, request.mode, result)
+    await scan_cache.put(request.text, request.domain, request.mode, result, extra=lr_version)
 
     duration = int((time.time() - start) * 1000)
     logger.info(

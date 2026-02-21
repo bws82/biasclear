@@ -30,7 +30,7 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 # --- Core Version (stamped on every scan result) ---
-CORE_VERSION = "1.1.0"
+CORE_VERSION = "1.2.0"
 
 
 # ============================================================
@@ -505,6 +505,164 @@ STRUCTURAL_PATTERNS: list[StructuralPattern] = [
             r"(?:moral(?:ly)?|ethic(?:al(?:ly)?)?)\s+(?:bankrupt|reprehensible|indefensible|"
             r"unconscionable|abhorrent|repugnant)\s+(?:to|for|that)|"
             r"(?:on\s+the\s+)?(?:right|wrong)\s+side\s+of\s+(?:morality|ethics|decency|justice|history))\b",
+        ],
+        min_matches=1,
+    ),
+
+    # --- Subtle Manipulation Patterns (v1.2.0 — closes detection gaps) ---
+
+    StructuralPattern(
+        id="SOFT_CONSENSUS",
+        name="Soft Consensus Manufacturing",
+        description=(
+            "Uses softer consensus language — 'the overwhelming majority', "
+            "'growing body of evidence', 'increasingly recognized' — to manufacture "
+            "the appearance of agreement without citing specific evidence or sources. "
+            "More subtle than explicit 'everyone agrees' but equally manipulative."
+        ),
+        pit_tier=1,
+        severity="moderate",
+        principle="Truth",
+        indicators=[
+            # "the overwhelming/vast/great majority of [group] agree/support"
+            r"\b(?:the\s+)?(?:overwhelming|vast|great|clear|strong)\s+"
+            r"(?:majority|bulk|preponderance)\s+of\s+"
+            r"(?:\w+\s+){0,3}?"
+            r"(?:agree|support|believe|recognize|acknowledge|accept|endorse|"
+            r"favor|advocate|concur|confirm)\b",
+            # "growing body of evidence/research/consensus suggests/shows"
+            r"\b(?:growing|mounting|increasing|expanding|emerging)\s+"
+            r"(?:body\s+of\s+)?(?:evidence|research|consensus|agreement|"
+            r"recognition|support|literature)\s+"
+            r"(?:suggests?|shows?|indicates?|supports?|points?\s+to|"
+            r"confirms?|demonstrates?)\b",
+            # "increasingly/widely recognized/accepted that"
+            r"\b(?:increasingly|now\s+widely|now\s+broadly)\s+"
+            r"(?:recognized|accepted|understood|acknowledged|adopted|embraced)\s+"
+            r"(?:that|as|by|among|across|in)\b",
+        ],
+        min_matches=1,
+        suppress_if_cited=True,
+    ),
+    StructuralPattern(
+        id="COMPETENCE_DISMISSAL",
+        name="Competence-Based Dismissal",
+        description=(
+            "Dismisses opposing views by questioning the competence, understanding, "
+            "or expertise of those who disagree, rather than addressing their arguments. "
+            "Substitutes an attack on the critic's qualifications for engagement "
+            "with their position."
+        ),
+        pit_tier=2,
+        severity="moderate",
+        principle="Justice",
+        indicators=[
+            # "those who oppose/disagree ... appear to misunderstand/fail to grasp"
+            r"\b(?:those\s+who\s+|(?:people|anyone|critics?|opponents?)\s+(?:who\s+)?)"
+            r"(?:oppose|disagree|object|resist|question|challenge|doubt|reject)"
+            r"(?:\s+\w+){0,5}\s+"
+            r"(?:(?:appear|seem)\s+to\s+)?"
+            r"(?:misunderstand|fail\s+to\s+(?:grasp|understand|appreciate|comprehend))\b",
+            # "simply don't understand the complexity/nuance"
+            r"\b(?:(?:simply|clearly|obviously|apparently)\s+)?"
+            r"(?:don(?:'t|ot)|do\s+not|fail(?:s)?\s+to)\s+"
+            r"(?:fully\s+)?(?:understand|grasp|appreciate|comprehend)\s+"
+            r"(?:the\s+)?(?:complexity|nuance|subtlet(?:y|ies)|intricac(?:y|ies)|"
+            r"reality|scope|implications?|challenges?|requirements?)\b",
+            # "lack the expertise/understanding to"
+            r"\b(?:lack(?:s|ing)?|without)\s+(?:the\s+)?"
+            r"(?:sufficient|adequate|necessary|proper|requisite|required|relevant)?\s*"
+            r"(?:expertise|understanding|knowledge|background|training|"
+            r"experience|qualifications?|competenc[ey])\s+"
+            r"(?:to|in|of|for|about|regarding)\b",
+        ],
+        min_matches=1,
+    ),
+    StructuralPattern(
+        id="VAGUE_INSTITUTIONAL_APPEAL",
+        name="Vague Institutional Appeal",
+        description=(
+            "References unnamed 'leading organizations', 'top institutions', or "
+            "'responsible bodies' to create an impression of institutional backing "
+            "without identifying specific institutions that can be verified."
+        ),
+        pit_tier=3,
+        severity="moderate",
+        principle="Truth",
+        indicators=[
+            # "leading/major/prominent organizations agree/support/recommend"
+            r"\b(?:leading|top|major|prominent|respected|responsible|"
+            r"relevant|key|important|significant)\s+"
+            r"(?:organizations?|institutions?|bodies|agencies|authorities|"
+            r"groups?|stakeholders?|voices?|figures?)\s+"
+            r"(?:have\s+)?(?:agree|support|recognize|endorse|confirm|recommend|"
+            r"advocate|call\s+for|emphasize|stress|urge|warn|advise|suggest)\b",
+            # "industry/professional leaders have long recognized"
+            r"\b(?:industry|sector|professional|regulatory|governing|oversight|"
+            r"scientific|academic|medical|expert)\s+"
+            r"(?:leaders?|bodies|authorities|groups?|organizations?|voices?|consensus)\s+"
+            r"(?:have\s+)?(?:long\s+)?(?:recognized|accepted|emphasized|stressed|"
+            r"warned|advocated|recommended|confirmed|supported|endorsed)\b",
+        ],
+        min_matches=1,
+        suppress_if_cited=True,
+    ),
+    StructuralPattern(
+        id="ASPIRATIONAL_DEFLECTION",
+        name="Aspirational Deflection",
+        description=(
+            "Uses aspirational language — 'we are committed to', 'our goal is to', "
+            "'we strive to' — as a substitute for evidence of actual achievement. "
+            "States intentions as if they were accomplishments, deflecting scrutiny "
+            "of actual outcomes."
+        ),
+        pit_tier=1,
+        severity="low",
+        principle="Truth",
+        indicators=[
+            # "our goal/mission/commitment is to"
+            r"\b(?:our|the)\s+"
+            r"(?:goal|mission|vision|commitment|pledge|promise|"
+            r"priority|objective|aspiration)\s+"
+            r"(?:is|remains|has\s+(?:always\s+)?been)\s+to\b",
+            # "we strive/aim/aspire/endeavor to ensure/build/create"
+            r"\bwe\s+(?:strive|aim|aspire|endeavor|seek|work)\s+to\s+"
+            r"(?:ensure|build|create|foster|promote|advance|achieve|deliver|"
+            r"provide|maintain|improve|uphold|protect|support)\b",
+            # "we are deeply/firmly committed to"
+            r"\b(?:we|our\s+(?:team|organization|company|institution))\s+"
+            r"(?:are\s+)?(?:deeply|fully|firmly|strongly|wholly)?\s*"
+            r"(?:committed|dedicated|devoted)\s+to\b",
+        ],
+        min_matches=2,  # Single aspirational statement is normal; pattern is accumulation
+    ),
+    StructuralPattern(
+        id="DISMISSAL_BY_REFRAMING",
+        name="Dismissal by Reframing",
+        description=(
+            "Reframes or recharacterizes an opposing argument into something different "
+            "than what was actually argued, then addresses the reframed version. "
+            "More subtle than a straw man — presents the reframing as clarification "
+            "or 'what they really mean.'"
+        ),
+        pit_tier=2,
+        severity="moderate",
+        principle="Justice",
+        indicators=[
+            # "what they're really saying/arguing/asking"
+            r"\bwhat\s+(?:they(?:'re|\s+are)|he(?:'s|\s+is)|she(?:'s|\s+is))\s+"
+            r"(?:really|actually|essentially|fundamentally|truly)\s+"
+            r"(?:saying|arguing|asking|suggesting|proposing|demanding|"
+            r"claiming|getting\s+at)\b",
+            # "this is really/actually/essentially about/just/merely"
+            r"\b(?:this|that|the\s+argument|their\s+(?:position|argument|claim))\s+"
+            r"(?:is\s+)?(?:really|actually|essentially|fundamentally)\s+"
+            r"(?:about|just|merely|nothing\s+more\s+than|"
+            r"an?\s+(?:attempt|effort)\s+to)\b",
+            # "boiled/stripped down to its core/essence"
+            r"\b(?:(?:stripped|boiled|reduced)|when\s+you\s+(?:strip|boil|reduce))\s+"
+            r"(?:it\s+)?(?:down\s+)?(?:to\s+)?(?:its?\s+)?"
+            r"(?:core|essence|basics?|fundamentals?)\b",
         ],
         min_matches=1,
     ),
