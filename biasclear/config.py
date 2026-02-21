@@ -49,7 +49,7 @@ class Settings:
     PORT: int = int(os.getenv("BIASCLEAR_PORT", "8000"))
 
     # --- CORS ---
-    CORS_ORIGINS: str = os.getenv("BIASCLEAR_CORS_ORIGINS", "*")
+    CORS_ORIGINS: str = os.getenv("BIASCLEAR_CORS_ORIGINS", "https://biasclear.com")
 
 
 settings = Settings()

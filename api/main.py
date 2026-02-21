@@ -59,6 +59,14 @@ logger = get_logger("api")
 async def lifespan(app: FastAPI):
     """Wire up dependencies on startup."""
     setup_logging()
+
+    # Production guard — warn loudly if auth is not configured on Render
+    if os.getenv("RENDER", "").lower() == "true" and not AUTH_ENABLED:
+        logger.warning(
+            "⚠️  RUNNING ON RENDER WITHOUT AUTH — all endpoints are public. "
+            "Set BIASCLEAR_API_KEYS in Render environment variables to enable auth."
+        )
+
     learning_ring.set_audit_logger(audit_chain.log)
     logger.info("BiasClear API starting",
                 extra={"core_version": CORE_VERSION, "auth_enabled": AUTH_ENABLED})
@@ -77,8 +85,9 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[o.strip() for o in settings.CORS_ORIGINS.split(",")],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["X-API-Key", "Content-Type", "Authorization"],
+    allow_credentials=False,
 )
 
 # Static assets
@@ -115,9 +124,10 @@ async def beta_signup(request: Request):
             data={"email": email, "source": "website"},
             core_version=CORE_VERSION,
         )
-        logger.info(f"Beta signup: {email}")
+        logger.info("Beta signup recorded", extra={"email": email})
         return JSONResponse({"status": "ok", "message": "Signup recorded"})
     except Exception:
+        logger.warning("Beta signup failed silently", exc_info=True)
         return JSONResponse({"status": "ok", "message": "Signup recorded"})
 
 
@@ -154,7 +164,6 @@ async def global_error_handler(request: Request, exc: Exception):
         status_code=500,
         content={
             "detail": "Internal server error. The scan could not be completed.",
-            "error_type": type(exc).__name__,
         },
     )
 
@@ -207,7 +216,11 @@ async def scan_text(
         raise HTTPException(400, f"Invalid mode: {request.mode}")
 
     if "error" in result and not result.get("bias_detected"):
-        raise HTTPException(502, f"LLM provider error: {result['error']}")
+        logger.error(
+            "LLM provider error during scan",
+            extra={"error": result["error"], "scan_mode": request.mode, "domain": request.domain},
+        )
+        raise HTTPException(502, "LLM provider temporarily unavailable. Please try again.")
 
     audit_hash = audit_chain.log(
         event_type=f"scan_{request.mode}",
@@ -292,6 +305,10 @@ async def scan_batch(
         if isinstance(r, dict):
             clean_results.append(r)
         else:
+            logger.warning(
+                "Batch scan item failed",
+                extra={"error": str(r), "error_type": type(r).__name__},
+            )
             clean_results.append({
                 "text": "",
                 "truth_score": 0,
@@ -302,7 +319,7 @@ async def scan_batch(
                 "pit_detail": "",
                 "severity": "none",
                 "confidence": 0.0,
-                "explanation": f"Scan failed: {type(r).__name__}",
+                "explanation": "Scan failed for this item.",
                 "flags": [],
                 "impact_projection": None,
                 "scan_mode": "error",
@@ -382,7 +399,7 @@ async def verify_audit(
     return result
 
 
-@app.get("/health")
+@app.get("/health", response_model=HealthResponse)
 async def health():
     """Health check — no auth required."""
     all_learned = learning_ring.get_all_patterns()
@@ -460,14 +477,52 @@ async def get_learned_patterns(
     }
 
 
-# --- Version Headers Middleware ---
+# --- Security + Version Headers Middleware ---
 @app.middleware("http")
-async def add_version_headers(request: Request, call_next):
-    """Add BiasClear version headers to all responses."""
+async def add_security_headers(request: Request, call_next):
+    """Add security and version headers to all responses."""
     response = await call_next(request)
+    # Version headers
     response.headers["X-BiasClear-Version"] = "1.1.0"
     response.headers["X-Core-Version"] = CORE_VERSION
+    # Security headers
+    response.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains; preload"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
     return response
+
+
+# --- Body Size Limit Middleware ---
+_MAX_BODY_BYTES = 1_048_576  # 1 MB
+
+
+@app.middleware("http")
+async def enforce_body_size_limit(request: Request, call_next):
+    """Reject requests exceeding 1MB — guards both Content-Length and chunked bodies."""
+    content_length = request.headers.get("content-length")
+    if content_length:
+        try:
+            if int(content_length) > _MAX_BODY_BYTES:
+                return JSONResponse(
+                    status_code=413,
+                    content={"detail": "Request body too large."},
+                )
+        except ValueError:
+            pass  # Malformed content-length; let the framework handle it
+
+    # For methods that carry a body, also check actual size
+    # (catches chunked transfer encoding with no Content-Length header)
+    if request.method in ("POST", "PUT", "PATCH"):
+        body = await request.body()
+        if len(body) > _MAX_BODY_BYTES:
+            return JSONResponse(
+                status_code=413,
+                content={"detail": "Request body too large."},
+            )
+
+    return await call_next(request)
 
 
 # --- Request Logging Middleware ---
