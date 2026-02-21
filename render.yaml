@@ -7,9 +7,11 @@ services:
     runtime: docker
     dockerfilePath: ./Dockerfile
     region: oregon
-    plan: free
-    # NOTE: Persistent disk requires starter plan ($7/mo).
-    # The app falls back to local audit DB if /data is not mounted.
+    plan: starter  # $7/mo — persistent disk for audit chain
+    disk:
+      name: biasclear-data
+      mountPath: /data
+      sizeGB: 1
     healthCheckPath: /health
     envVars:
       - key: RENDER
