@@ -99,10 +99,10 @@ dramatically outperforming the broader market. Over the past three
 years it has beaten every major index by a wide margin.
 
 ---
-tags: cherry_picked_timeframe
+tags: cherry_picked_timeframe, recency_extrapolation
 severity: high
 source: synthetic — selective period comparison
-notes: Picks specific starting year to show outperformance
+notes: Picks specific starting year to show outperformance; "last five years" is recency extrapolation
 domain: financial
 
 Starting in 2009, our strategy delivered an annualized 18% return,

@@ -227,10 +227,10 @@ among experts is clear, and most people in the field would confirm that
 this position is undeniably correct.
 
 ---
-tags: claim_without_citation
+tags: claim_without_citation, vague_institutional_appeal
 severity: moderate
 source: synthetic — general authority claim
-notes: Authority invoked with zero sourcing
+notes: Authority invoked with zero sourcing; "leading authorities" is vague institutional appeal
 
 Experts say that the current approach is fundamentally flawed. Research
 indicates that alternative methods produce better outcomes. Leading
