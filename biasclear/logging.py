@@ -38,7 +38,8 @@ class JSONFormatter(logging.Formatter):
         # Include extra fields
         for key in ("truth_score", "domain", "scan_mode", "flags_count",
                      "audit_hash", "key_id", "pattern_id", "error",
-                     "duration_ms", "status_code", "method", "path"):
+                     "duration_ms", "status_code", "method", "path",
+                     "email", "error_type"):
             val = getattr(record, key, None)
             if val is not None:
                 entry[key] = val

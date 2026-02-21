@@ -82,14 +82,22 @@ class AuditChain:
                 timestamp = datetime.now(timezone.utc).isoformat()
                 data_str = json.dumps(data, default=str)
 
-                chain_input = f"{prev_hash}{event_type}{data_str}{timestamp}{core_version}"
-                new_hash = hashlib.sha256(chain_input.encode()).hexdigest()
-
-                conn.execute(
+                # Insert with placeholder hash to get the auto-increment ID
+                cursor = conn.execute(
                     """INSERT INTO audit_chain
                        (prev_hash, hash, event_type, data, timestamp, core_version)
                        VALUES (?, ?, ?, ?, ?, ?)""",
-                    (prev_hash, new_hash, event_type, data_str, timestamp, core_version),
+                    (prev_hash, "pending", event_type, data_str, timestamp, core_version),
+                )
+                entry_id = cursor.lastrowid
+
+                # Compute hash WITH the entry ID — prevents tail truncation attacks
+                chain_input = f"{entry_id}{prev_hash}{event_type}{data_str}{timestamp}{core_version}"
+                new_hash = hashlib.sha256(chain_input.encode()).hexdigest()
+
+                conn.execute(
+                    "UPDATE audit_chain SET hash = ? WHERE id = ?",
+                    (new_hash, entry_id),
                 )
                 conn.commit()
                 return new_hash
@@ -136,7 +144,7 @@ class AuditChain:
         for i, row in enumerate(rows):
             entry_id, prev_hash, stored_hash, event_type, data_str, timestamp, core_version = row
 
-            chain_input = f"{prev_hash}{event_type}{data_str}{timestamp}{core_version}"
+            chain_input = f"{entry_id}{prev_hash}{event_type}{data_str}{timestamp}{core_version}"
             computed_hash = hashlib.sha256(chain_input.encode()).hexdigest()
 
             if computed_hash != stored_hash:

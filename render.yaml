@@ -1,0 +1,22 @@
+# Render Blueprint — BiasClear API
+# https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: biasclear-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    region: oregon
+    plan: free
+    # NOTE: Persistent disk requires starter plan ($7/mo).
+    # The app falls back to local audit DB if /data is not mounted.
+    healthCheckPath: /health
+    envVars:
+      - key: RENDER
+        value: "true"
+      - key: BIASCLEAR_CORS_ORIGINS
+        value: "https://biasclear.com"
+      - key: BIASCLEAR_API_KEYS
+        sync: false  # Must be set manually in dashboard
+      - key: GEMINI_API_KEY
+        sync: false  # Must be set manually in dashboard

@@ -15,10 +15,15 @@ from __future__ import annotations
 import os
 import time
 import threading
+from collections import OrderedDict
 from dataclasses import dataclass, field
 from typing import Optional
 
 from fastapi import HTTPException
+
+
+# Maximum number of unique keys tracked before LRU eviction
+MAX_RATE_LIMIT_KEYS = 5000
 
 
 @dataclass
@@ -50,8 +55,9 @@ DEFAULT_LIMITS = RateLimits(
     per_hour=int(os.getenv("BIASCLEAR_RATE_PER_HOUR", "1000")),
 )
 
-# In-memory store: key_hash → RateWindow
-_windows: dict[str, RateWindow] = {}
+# LRU-bounded store: key_hash → RateWindow
+# OrderedDict tracks access order for eviction
+_windows: OrderedDict[str, RateWindow] = OrderedDict()
 _lock = threading.Lock()
 
 # Whether rate limiting is active
@@ -81,7 +87,13 @@ def check_rate_limit(
 
     with _lock:
         if key_id not in _windows:
+            # Evict oldest entry if at capacity
+            if len(_windows) >= MAX_RATE_LIMIT_KEYS:
+                _windows.popitem(last=False)  # Remove least-recently-used
             _windows[key_id] = RateWindow()
+        else:
+            # Move to end (most recently used)
+            _windows.move_to_end(key_id)
 
         window = _windows[key_id]
 
@@ -130,3 +142,4 @@ def cleanup_stale_windows(max_age: float = 7200):
         ]
         for k in stale:
             del _windows[k]
+

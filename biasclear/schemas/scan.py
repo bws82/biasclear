@@ -139,4 +139,6 @@ class HealthResponse(BaseModel):
     core_version: str
     llm_provider: str
     audit_entries: int
-    learned_patterns: int
+    learned_patterns_active: int
+    learned_patterns_staging: int
+    learning_enabled: bool
