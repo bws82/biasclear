@@ -65,10 +65,10 @@ has already begun succession planning. Insiders say the decision was
 driven by mounting pressure from institutional investors.
 
 ---
-tags: weasel_quantifiers
+tags: weasel_quantifiers, claim_without_citation
 severity: low
 source: synthetic — vague quantifiers stacked
-notes: Multiple weasel words creating impression of consensus
+notes: Multiple weasel words creating impression of consensus; "experts believe" without citation
 domain: media
 
 Many experts believe the new regulation will backfire. There is growing

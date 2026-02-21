@@ -187,9 +187,10 @@ STRUCTURAL_PATTERNS: list[StructuralPattern] = [
         severity="high",
         principle="Truth",
         indicators=[
-            r"\b(?:everyone|everybody|all\s+(?:experts?|scientists?|researchers?)|"
+            r"\b(?:(?:everyone|everybody)\s+(?:knows?|agrees?|understands?|recognizes?|accepts?|sees?|can\s+see)|"
+            r"all\s+(?:\w+\s+)?(?:experts?|scientists?|researchers?)|"
             r"most\s+(?:people|experts?|scholars?)|"
-            r"the\s+(?:\w+\s+)?consensus|"
+            r"the\s+(?:\w+\s+)?consensus(?!\s+(?:forecast|estimate|projection|expectation|view|number|figure|range))|"
             r"(?:experts?|scientists?|researchers?|scholars?)\s+(?:unanimously|overwhelmingly)\s+"
             r"(?:agree|concur|confirm)|"
             r"unanimously\s+(?:agree|agreed|concur|accept|endorse)|"
@@ -257,6 +258,8 @@ STRUCTURAL_PATTERNS: list[StructuralPattern] = [
             r"you(?:'re|\s+are)\s+either\s+.{3,40}\s+or\b|"
             r"(?:only|just)\s+two\s+(?:options?|choices?|alternatives?|paths?)|"
             r"there(?:'s|\s+is)\s+(?:only|just)\s+(?:one\s+(?:way|option|choice))|"
+            r"(?:no|without\s+(?:any)?)\s+(?:middle\s+ground|third\s+(?:option|way|alternative|choice)|other\s+(?:option|choice|alternative)s?)|"
+            r"(?:a\s+)?(?:clear|stark|simple|binary)\s+choice\s*:.{3,60}\s+or\s+|"
             r"if\s+(?:you(?:'re|\s+are))\s+not\s+.{3,40}(?:then|,)\s+you(?:'re|\s+are))\b",
         ],
         min_matches=1,
@@ -272,7 +275,7 @@ STRUCTURAL_PATTERNS: list[StructuralPattern] = [
         severity="high",
         principle="Agency",
         indicators=[
-            r"\b(?:catastroph(?:e|ic)|devastating|irreversible|"
+            r"\b(?:catastroph(?:e|ic)|devastating|irreversibl[ey]|"
             r"point\s+of\s+no\s+return|too\s+late|"
             r"(?:act|decide|move)\s+(?:now|immediately|before\s+it(?:'s|\s+is)\s+too\s+late)|"
             r"(?:running\s+out\s+of|no)\s+time|"
@@ -280,6 +283,8 @@ STRUCTURAL_PATTERNS: list[StructuralPattern] = [
             r"(?:complete|total|utter|imminent)\s+(?:collapse|destruction|failure|ruin|disaster)|"
             r"(?:window|opportunity)\s+(?:is\s+)?(?:closing|narrowing|disappearing|running\s+out)|"
             r"(?:crisis|emergency)\s+(?:demands?|requires?|necessitates?)|"
+            r"(?:severe|permanent)\s+(?:and\s+)?(?:permanent|severe|irreversibl[ey]|lasting)|"
+            r"consequences\s+will\s+be\s+(?:severe|dire|catastrophic|devastating|permanent)|"
             r"if\s+(?:we|you)\s+(?:don(?:'t|ot)|fail\s+to)\s+act)\b",
         ],
         min_matches=1,
@@ -348,12 +353,15 @@ STRUCTURAL_PATTERNS: list[StructuralPattern] = [
             r"\b(?:(?:as\s+)?(?:a|the)\s+(?:leading|top|renowned|respected|"
             r"prominent|distinguished|eminent|preeminent)\s+"
             r"(?:expert|authority|scientist|researcher|professor|doctor|scholar)|"
-            r"with\s+(?:over\s+)?\d+\s+years?\s+(?:of\s+)?experience|"
+            r"with\s+(?:over\s+|combined\s+)?(?:\d+|twenty|thirty|forty|fifty|sixty)\s+years?\s+(?:of\s+)?experience|"
+            r"holders?\s+of\s+(?:advanced|doctoral|graduate|terminal|multiple)\s+degrees?|"
             r"(?:nobel|pulitzer|award)[- ]winning|"
             r"(?:harvard|stanford|mit|oxford|cambridge)[- ](?:trained|educated|based)|"
             r"(?:my|his|her|their|our|its)\s+(?:extensive|impressive|unparalleled|"
             r"unmatched|superior)\s+(?:credentials?|qualifications?|expertise|experience)|"
+            r"(?:our\s+)?qualifications?\s+(?:speak|stand)\s+for\s+(?:them|it)sel(?:f|ves)|"
             r"credentials?\s+(?:speak|stand)\s+for\s+(?:them|it)sel(?:f|ves)|"
+            r"(?:should\s+)?settle\s+this\s+debate|"
             r"less\s+qualified\s+(?:analysts?|experts?|researchers?|commentators?|"
             r"critics?|opponents?|voices?))\b",
         ],
@@ -378,6 +386,11 @@ STRUCTURAL_PATTERNS: list[StructuralPattern] = [
             r"organization|institution)|"
             r"speaks?\s+with\s+(?:one|a\s+single|a\s+unified)\s+"
             r"(?:authoritative|unified|clear)\s+voice|"
+            r"(?:as\s+)?(?:a|an)\s+(?:neutral|independent|impartial|objective|unbiased)\s+"
+            r"(?:third\s+party|observer|arbiter|assessor|evaluator|authority|organization|body)|"
+            r"(?:objectively|independently|impartially)\s+(?:and\s+)?(?:without|free\s+(?:from|of))\s+"
+            r"(?:preference|bias|prejudice|partiality|favor)|"
+            r"(?:reflects?|represents?)\s+the\s+evidence\s+(?:objectively|independently|impartially|neutrally)|"
             r"the\s+(?:CDC|WHO|FDA|NIH|AMA|ABA|SEC|EPA|DOJ|FBI)\s+"
             r"(?:has\s+)?(?:stated?|confirmed?|determined?|concluded?|established?))\b",
         ],
@@ -527,7 +540,7 @@ STRUCTURAL_PATTERNS: list[StructuralPattern] = [
             # "the overwhelming/vast/great majority of [group] agree/support"
             r"\b(?:the\s+)?(?:overwhelming|vast|great|clear|strong)\s+"
             r"(?:majority|bulk|preponderance)\s+of\s+"
-            r"(?:\w+\s+){0,3}?"
+            r"(?:\w+\s+){0,5}?"
             r"(?:agree|support|believe|recognize|acknowledge|accept|endorse|"
             r"favor|advocate|concur|confirm)\b",
             # "growing body of evidence/research/consensus suggests/shows"
@@ -567,7 +580,7 @@ STRUCTURAL_PATTERNS: list[StructuralPattern] = [
             r"\b(?:(?:simply|clearly|obviously|apparently)\s+)?"
             r"(?:don(?:'t|ot)|do\s+not|fail(?:s)?\s+to)\s+"
             r"(?:fully\s+)?(?:understand|grasp|appreciate|comprehend)\s+"
-            r"(?:the\s+)?(?:complexity|nuance|subtlet(?:y|ies)|intricac(?:y|ies)|"
+            r"(?:the\s+)?(?:\w+\s+)?(?:complexity|nuance|subtlet(?:y|ies)|intricac(?:y|ies)|"
             r"reality|scope|implications?|challenges?|requirements?)\b",
             # "lack the expertise/understanding to"
             r"\b(?:lack(?:s|ing)?|without)\s+(?:the\s+)?"
@@ -591,10 +604,12 @@ STRUCTURAL_PATTERNS: list[StructuralPattern] = [
         principle="Truth",
         indicators=[
             # "leading/major/prominent organizations agree/support/recommend"
+            # Allow up to 5 words between org noun and verb (e.g., "across the financial services sector")
             r"\b(?:leading|top|major|prominent|respected|responsible|"
             r"relevant|key|important|significant)\s+"
             r"(?:organizations?|institutions?|bodies|agencies|authorities|"
             r"groups?|stakeholders?|voices?|figures?)\s+"
+            r"(?:(?:\w+\s+){0,5}?)?"
             r"(?:have\s+)?(?:agree|support|recognize|endorse|confirm|recommend|"
             r"advocate|call\s+for|emphasize|stress|urge|warn|advise|suggest)\b",
             # "industry/professional leaders have long recognized"

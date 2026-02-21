@@ -80,6 +80,12 @@ TAG_TO_PATTERN_ID = {
     "cherry_picked_timeframe": "FIN_CHERRY_PICKED_TIMEFRAME",
     "projection_as_fact": "FIN_PROJECTION_AS_FACT",
     "recency_extrapolation": "FIN_RECENCY_EXTRAPOLATION",
+    # v1.2.0 subtle manipulation patterns
+    "soft_consensus": "SOFT_CONSENSUS",
+    "competence_dismissal": "COMPETENCE_DISMISSAL",
+    "vague_institutional_appeal": "VAGUE_INSTITUTIONAL_APPEAL",
+    "aspirational_deflection": "ASPIRATIONAL_DEFLECTION",
+    "dismissal_by_reframing": "DISMISSAL_BY_REFRAMING",
 }
 
 # Reverse map for reporting

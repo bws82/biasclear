@@ -1,0 +1,632 @@
+# BiasClear Calibration Corpus — General Domain
+#
+# Includes samples for both original and v1.2.0 patterns.
+# Mix of clean text and biased text across multiple categories.
+#
+# TAGS (v1.2.0 additions):
+#   soft_consensus           — "overwhelming majority" without citation
+#   competence_dismissal     — opposing views dismissed as misunderstanding
+#   vague_institutional_appeal — unnamed "leading organizations" backing
+#   aspirational_deflection  — aspirational language substituting for evidence
+#   dismissal_by_reframing   — recharacterizing opponent's argument
+#
+# SEVERITY: none | low | moderate | high | critical
+# ============================================================
+
+# =====================
+# CLEAN SAMPLES (12)
+# =====================
+
+---
+tags: clean
+severity: none
+source: realistic — neutral factual report
+notes: Straightforward reporting with specific data and named sources
+domain: general
+
+The Bureau of Labor Statistics reported that nonfarm payrolls increased
+by 256,000 in December 2025, exceeding the consensus forecast of
+155,000. The unemployment rate fell to 4.1 percent from 4.2 percent
+in November. Average hourly earnings rose 0.3 percent for the month
+and 3.9 percent year-over-year.
+
+---
+tags: clean
+severity: none
+source: realistic — balanced policy analysis
+notes: Presents multiple perspectives without manipulation
+domain: general
+
+The proposed zoning change would permit mixed-use development on parcels
+currently designated for single-family residential. Supporters argue this
+would increase housing supply and reduce commute times, while opponents
+express concerns about traffic congestion, school capacity, and
+changes to neighborhood character. The planning commission will hold
+three public hearings before making its recommendation.
+
+---
+tags: clean
+severity: none
+source: realistic — corporate earnings statement
+notes: Factual corporate communication with specific numbers
+domain: general
+
+Revenue for the fourth quarter was $14.2 billion, up 12 percent
+from the prior year period. Operating income was $3.1 billion,
+representing a 21.8 percent operating margin. Free cash flow for
+the full year was $8.7 billion. The company repurchased 15 million
+shares during the quarter at an average price of $142.
+
+---
+tags: clean
+severity: none
+source: realistic — academic abstract
+notes: Proper hedging and citations, no manipulation
+domain: general
+
+This study examined the relationship between sleep duration and
+cognitive performance in adults aged 55-70 (N=1,247). Participants
+who reported fewer than six hours of sleep per night showed a
+statistically significant decline in working memory scores compared
+to the control group (p < 0.01). However, the effect size was modest
+(Cohen's d = 0.34), and several confounding variables, including
+medication use and comorbidities, could not be fully controlled.
+
+---
+tags: clean
+severity: none
+source: realistic — product review
+notes: Balanced assessment with specific observations
+domain: general
+
+The laptop's display is bright enough for outdoor use and the color
+accuracy is excellent for photo editing. Battery life averaged about
+seven hours in our mixed-use testing, which falls short of the
+manufacturer's 11-hour claim. The keyboard has good travel but the
+trackpad occasionally registers unintended palm touches. At $1,299,
+it competes directly with the Dell XPS 15 and MacBook Air M3.
+
+---
+tags: clean
+severity: none
+source: realistic — scientific communication
+notes: Proper uncertainty language, not false precision
+domain: general
+
+The model predicts a temperature increase of 1.5 to 2.7 degrees
+Celsius by 2100 under the intermediate emissions scenario, with a
+90 percent confidence interval. These projections are consistent
+with results from the CMIP6 ensemble (Meehl et al., 2020), though
+regional variability remains substantial, particularly for
+precipitation patterns in tropical regions.
+
+---
+tags: clean
+severity: none
+source: realistic — neutral organizational statement
+notes: One aspirational statement is normal; not pattern accumulation
+domain: general
+
+Our mission is to provide affordable dental care to underserved
+communities in rural Tennessee. In 2025, we served 4,200 patients
+across 12 mobile clinic sites and performed 1,800 procedures. Our
+operating budget was $1.3 million, funded primarily through grants
+from the Tennessee Department of Health and private donations.
+
+---
+tags: clean
+severity: none
+source: realistic — factual historical account
+notes: No framing or manipulation, just narrative
+domain: general
+
+Construction on the bridge began in October 1933 and was completed
+ahead of schedule in April 1937. The total cost was $35 million,
+approximately $27 million under the original bond issue. Eleven
+workers died during construction. The bridge's main span measures
+4,200 feet, which remained the longest in the world until 1964.
+
+---
+tags: clean
+severity: none
+source: realistic — policy recommendation with evidence
+notes: Makes a recommendation but supports it with data
+domain: general
+
+Based on our analysis of 340 intersection incidents over three years,
+we recommend installing a traffic signal at the Main Street and Oak
+Avenue crossing. The intersection averaged 8.3 reported collisions
+per year, exceeding the state threshold of 5.0 for signal
+consideration. Pedestrian volume data from March 2025 counts show
+an average of 220 daily crossings during peak hours.
+
+---
+tags: clean
+severity: none
+source: realistic — technology overview
+notes: Describes technology without hype or manipulation
+domain: general
+
+The system uses a convolutional neural network trained on approximately
+2.4 million labeled images to detect manufacturing defects on the
+assembly line. In production testing over six months, it achieved a
+defect detection rate of 94.2 percent with a false positive rate of
+3.1 percent. Human inspectors reviewing the same batch detected
+91.8 percent of defects. The system processes images in 47 milliseconds
+on average, enabling real-time rejection.
+
+---
+tags: clean
+severity: none
+source: realistic — balanced opinion piece
+notes: States opinion clearly as opinion, not as fact
+domain: general
+
+In my view, the city council should prioritize road maintenance over
+new construction projects this budget cycle. I base this on the public
+works department's own assessment that 34 percent of city roads are
+rated as "poor" or "very poor." Others may reasonably disagree and
+prioritize the proposed community center, which has strong public
+support in recent surveys. Both positions have merit.
+
+---
+tags: clean
+severity: none
+source: realistic — medical information
+notes: Proper hedging with source attribution
+domain: general
+
+According to the American Heart Association's 2025 statistical update,
+cardiovascular disease remains the leading cause of death in the
+United States, accounting for approximately 928,000 deaths annually.
+The age-adjusted death rate has declined 29 percent since 2000,
+attributed primarily to improvements in treatment of acute coronary
+events and reductions in smoking prevalence.
+
+# =====================
+# BIASED SAMPLES — SOFT CONSENSUS (5)
+# =====================
+
+---
+tags: soft_consensus, claim_without_citation
+severity: moderate
+source: realistic — corporate lobbying statement
+notes: "vast majority of stakeholders support" without naming any; "growing body of evidence" without citation
+domain: general
+
+The vast majority of stakeholders support the transition to the new
+regulatory framework. Those familiar with the details recognize that
+modernization is long overdue and that the current system creates
+unnecessary burdens for both consumers and providers. A growing body
+of evidence suggests that early adopters have seen measurable
+improvements in efficiency and customer satisfaction.
+
+---
+tags: soft_consensus
+severity: moderate
+source: realistic — policy advocacy
+notes: "overwhelming majority of professionals agree" without evidence
+domain: general
+
+The overwhelming majority of healthcare professionals agree that
+preventive screening protocols should begin at age 40 rather than
+the current guideline of 45. This position is increasingly recognized
+as the standard of care, and organizations that fail to adopt it risk
+falling behind established best practices.
+
+---
+tags: soft_consensus
+severity: moderate
+source: realistic — industry white paper
+notes: "strong majority" and "mounting evidence" without citation
+domain: general
+
+A strong majority of technology leaders believe that generative AI
+will fundamentally reshape enterprise operations within the next three
+years. Mounting evidence supports this timeline, with adoption rates
+accelerating across every major industry vertical.
+
+---
+tags: soft_consensus
+severity: moderate
+source: realistic — trade association statement
+notes: "clear majority" with vague "growing consensus"
+domain: general
+
+The clear majority of practitioners in this field concur that
+traditional approaches are no longer adequate for modern challenges.
+There is a growing consensus among professionals that the new
+methodology offers superior outcomes across all measured dimensions.
+
+---
+tags: soft_consensus
+severity: moderate
+source: realistic — educational policy argument
+notes: "great bulk" combined with "emerging research supports"
+domain: general
+
+The great bulk of educators support smaller class sizes as the
+single most effective intervention for improving student outcomes.
+Emerging research supports this position, demonstrating consistent
+improvements in test scores and graduation rates when class sizes
+are reduced below 20 students.
+
+# =====================
+# BIASED SAMPLES — COMPETENCE DISMISSAL (5)
+# =====================
+
+---
+tags: competence_dismissal
+severity: moderate
+source: realistic — regulatory response
+notes: Classic "those who oppose misunderstand" pattern
+domain: general
+
+Those who oppose these measures appear to misunderstand the complexity
+of modern regulatory requirements. The framework was designed by
+professionals with decades of experience in compliance and risk
+management. Implementation concerns, while understandable from those
+without sufficient background in the field, do not reflect the
+realities of operational risk.
+
+---
+tags: competence_dismissal
+severity: moderate
+source: realistic — policy debate response
+notes: "simply don't understand the nuance" dismissal
+domain: general
+
+Critics of the proposal simply don't understand the nuance of
+international trade agreements. The provisions they object to are
+standard in every bilateral trade deal signed in the last decade.
+Their concerns reflect a fundamental lack of understanding of how
+these instruments actually function in practice.
+
+---
+tags: competence_dismissal
+severity: moderate
+source: realistic — corporate response to critics
+notes: "lack the expertise to" pattern
+domain: general
+
+While we appreciate the feedback from community groups, many of the
+objections raised come from individuals who lack the expertise to
+evaluate the environmental impact methodology we employed. Our
+assessment was conducted by board-certified environmental scientists
+using EPA-approved protocols.
+
+---
+tags: competence_dismissal
+severity: moderate
+source: realistic — technology industry response
+notes: "fail to grasp" the complexity pattern
+domain: general
+
+Consumer advocacy groups who challenge our data practices fail to grasp
+the technical complexity of modern data architecture. The privacy
+controls we implement exceed regulatory requirements in every
+jurisdiction where we operate. Suggestions that our systems are
+inadequate reflect a misunderstanding of how encryption and
+anonymization technologies actually work.
+
+---
+tags: competence_dismissal
+severity: moderate
+source: realistic — academic debate
+notes: "don't fully appreciate the implications" dismissal
+domain: general
+
+Researchers who question these findings don't fully appreciate the
+implications of the longitudinal methodology we employed. Our study
+spans fourteen years of continuous observation, a scope that shorter
+studies cannot replicate. Those who resist these conclusions often
+have limited experience with datasets of this magnitude.
+
+# =====================
+# BIASED SAMPLES — VAGUE INSTITUTIONAL APPEAL (5)
+# =====================
+
+---
+tags: vague_institutional_appeal
+severity: moderate
+source: realistic — industry guidance document
+notes: "Leading organizations support" without naming them
+domain: general
+
+Leading organizations support the adoption of these standards as a
+baseline for responsible AI development. The framework aligns with
+principles endorsed by major institutions across the technology sector.
+Organizations that fail to adopt these practices risk falling behind
+industry expectations.
+
+---
+tags: vague_institutional_appeal
+severity: moderate
+source: realistic — compliance advisory
+notes: "respected authorities warn" without specific attribution
+domain: general
+
+Respected authorities warn that companies without adequate bias
+mitigation strategies face significant regulatory exposure.
+Key stakeholders across government and industry have emphasized the
+urgency of adopting comprehensive monitoring frameworks before
+enforcement deadlines take effect.
+
+---
+tags: vague_institutional_appeal
+severity: moderate
+source: realistic — healthcare policy statement
+notes: "Medical authorities have long recognized" without naming
+domain: general
+
+Medical authorities have long recognized the critical importance of
+early intervention in neurodevelopmental disorders. Professional bodies
+across the healthcare sector have endorsed universal screening
+protocols, and significant institutions continue to advocate for
+expanded access to early diagnostic services.
+
+---
+tags: vague_institutional_appeal
+severity: moderate
+source: realistic — financial advisory
+notes: "Regulatory bodies warn" without specifying which ones
+domain: general
+
+Regulatory bodies warn that current market conditions present
+elevated risks for retail investors. Top institutions have stressed
+the importance of diversification, and industry leaders have advocated
+for stronger consumer protection measures in the derivatives market.
+
+---
+tags: vague_institutional_appeal
+severity: moderate
+source: realistic — education policy
+notes: "prominent organizations recommend" without naming
+domain: general
+
+Prominent organizations recommend a comprehensive approach to digital
+literacy education beginning in elementary school. Expert bodies
+across the education sector have recognized that current curricula
+are inadequate for preparing students for a technology-driven economy.
+
+# =====================
+# BIASED SAMPLES — ASPIRATIONAL DEFLECTION (5)
+# =====================
+
+---
+tags: aspirational_deflection
+severity: low
+source: realistic — corporate responsibility report
+notes: Multiple aspirational statements substituting for evidence; min_matches=2 required
+domain: general
+
+Our mission is to build a more equitable future for all communities
+we serve. We strive to ensure that every decision we make reflects
+our commitment to transparency and accountability. We are deeply
+committed to advancing diversity at every level of our organization
+and believe that inclusion is not just a goal but a responsibility.
+
+---
+tags: aspirational_deflection
+severity: low
+source: realistic — organizational defense statement
+notes: Aspirational language deployed to deflect specific criticism
+domain: general
+
+We are firmly committed to the highest standards of environmental
+stewardship. Our goal is to achieve carbon neutrality across all
+operations by 2035. We strive to ensure that our supply chain
+practices meet or exceed international environmental standards.
+Our vision is to create a sustainable future for the next generation.
+
+---
+tags: aspirational_deflection
+severity: low
+source: realistic — tech company response to data breach
+notes: Deflects accountability with aspirational commitments
+domain: general
+
+We are deeply dedicated to protecting user privacy and data security.
+Our priority has always been to maintain the trust our users place
+in us. We strive to deliver industry-leading security measures and
+our commitment is to ensure that incidents like this do not recur.
+Our mission is to build technology that empowers and protects.
+
+---
+tags: aspirational_deflection
+severity: low
+source: realistic — political campaign statement
+notes: Goals stated as accomplishments with no evidence
+domain: general
+
+Our commitment is to ensure every family has access to quality
+healthcare. We strive to build an economy that works for everyone,
+not just the privileged few. Our goal is to create pathways to
+prosperity in every community. We seek to provide educational
+opportunities that unlock the potential of every child.
+
+---
+tags: aspirational_deflection
+severity: low
+source: realistic — nonprofit annual report
+notes: Aspirational without outcomes data; multiple "we strive to" patterns
+domain: general
+
+We are wholly dedicated to ending food insecurity in our region. Our
+vision is to create a world where no child goes hungry. We strive to
+provide nutritious meals to every family in need. Our aspiration is
+to eliminate the root causes of poverty in the communities we serve.
+We work to ensure that every dollar donated makes the greatest
+possible impact.
+
+# =====================
+# BIASED SAMPLES — DISMISSAL BY REFRAMING (5)
+# =====================
+
+---
+tags: dismissal_by_reframing
+severity: moderate
+source: realistic — political commentary
+notes: "what they're really saying is" reframe
+domain: general
+
+What they're really saying is that they want to dismantle the safety
+net that millions of Americans depend on. They dress it up in the
+language of fiscal responsibility, but this is essentially about
+shifting costs from corporations to working families.
+
+---
+tags: dismissal_by_reframing
+severity: moderate
+source: realistic — industry pushback
+notes: "this is really about" reframe
+domain: general
+
+The consumer advocacy groups frame their objection as a privacy
+concern, but their position is actually about blocking innovation.
+What they are really arguing is that technology companies should not
+be allowed to improve their products, regardless of the benefits
+to users.
+
+---
+tags: dismissal_by_reframing
+severity: moderate
+source: realistic — policy debate
+notes: "essentially about" + "what they're really asking" patterns
+domain: general
+
+The opposition frames this as a states' rights issue, but this is
+fundamentally about preserving outdated regulatory structures that
+benefit incumbent industries. What they're really asking is that we
+continue to subsidize inefficiency at the expense of consumers.
+
+---
+tags: dismissal_by_reframing
+severity: moderate
+source: realistic — labor dispute commentary
+notes: "boiled down to its core" reframe
+domain: general
+
+When you strip their argument down to its core, the union is
+demanding that management surrender all decision-making authority
+over staffing levels. The rhetoric about safety standards is a
+thin veneer over what this is really about: control over operations.
+
+---
+tags: dismissal_by_reframing
+severity: moderate
+source: realistic — academic critique
+notes: "what they're actually saying" reframe
+domain: general
+
+If we examine this argument carefully, what they are actually saying
+is that empirical evidence should be subordinated to ideological
+commitments. Their position is essentially a rejection of the
+scientific method in favor of predetermined conclusions.
+
+# =====================
+# BIASED SAMPLES — MIXED/COMBO PATTERNS (8)
+# =====================
+
+---
+tags: soft_consensus, competence_dismissal
+severity: high
+source: realistic — the original test text that scored 100
+notes: The text that exposed the detection gap; now should trigger both patterns
+domain: general
+
+The overwhelming majority of industry leaders agree that emerging
+frameworks are essential for maintaining market confidence. Those who
+oppose these measures appear to misunderstand the complexity of modern
+regulatory requirements.
+
+---
+tags: consensus_as_evidence, fear_urgency
+severity: high
+source: realistic — climate policy argument with manipulation
+notes: Combines consensus appeal with catastrophic urgency
+domain: general
+
+All climate scientists agree that immediate action is required to
+prevent catastrophic consequences. If we fail to act now, the window
+of opportunity will close permanently. There is no time left for
+debate — the science is settled and only denial stands in the way
+of progress.
+
+---
+tags: soft_consensus, vague_institutional_appeal, claim_without_citation
+severity: moderate
+source: realistic — regulatory advocacy
+notes: Combines soft consensus with unnamed institutions; "growing body of evidence" without citation
+domain: general
+
+A growing body of evidence confirms that the proposed standards will
+significantly reduce consumer harm. Leading organizations across the
+financial services sector support these reforms, and the vast majority
+of compliance professionals agree that modernization is overdue.
+
+---
+tags: competence_dismissal, credential_as_proof
+severity: moderate
+source: realistic — expert authority combined with dismissal
+notes: Uses credentials to dismiss critics
+domain: general
+
+As holders of advanced degrees in this discipline and practitioners
+with combined experience exceeding forty years, we can confirm that
+critics of this methodology lack the expertise to evaluate the
+statistical framework we employed. Our qualifications speak for
+themselves and should settle this debate.
+
+---
+tags: false_binary, fear_urgency
+severity: high
+source: realistic — policy advocacy with forced choice
+notes: Classic either/or with catastrophic framing
+domain: general
+
+We face a clear choice: adopt the proposed reforms now or watch our
+competitive position deteriorate irreversibly. There is no middle
+ground. Half measures will only accelerate the decline. If we do
+not act with complete commitment by the end of this quarter, the
+consequences will be severe and permanent.
+
+---
+tags: shame_lever, dissent_dismissal, moral_high_ground
+severity: high
+source: realistic — social pressure combined with dissent labeling
+notes: Uses social shame to prevent questioning; "basic decency" is moral high ground
+domain: general
+
+Any reasonable person would recognize the importance of these
+protections. Those who continue to oppose common-sense safety
+measures have been thoroughly debunked by credible researchers.
+Only fringe voices still question what the rest of society has
+accepted as basic decency.
+
+---
+tags: claim_without_citation, institutional_neutrality
+severity: moderate
+source: realistic — institutional claim without evidence
+notes: Should trigger claim_without_citation; tests citation suppression (no citation present)
+domain: general
+
+Studies consistently demonstrate that our approach delivers superior
+outcomes compared to traditional methods. Research confirms that the
+framework we developed has been independently validated. As a neutral
+third party, our assessment reflects the evidence objectively and
+without preference for any particular outcome.
+
+---
+tags: emotional_substitution, moral_high_ground
+severity: high
+source: realistic — emotional manipulation with moral framing
+notes: Replaces analysis with emotional appeal and moral positioning
+domain: general
+
+Think about the children who will suffer if this program is defunded.
+Every parent knows in their heart that this is the right thing to do.
+We must stand on the right side of morality and refuse to let
+bureaucratic indifference destroy the futures of our most vulnerable
+citizens. This is not a policy question — it is a matter of basic
+human decency.
