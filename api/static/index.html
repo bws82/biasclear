@@ -920,6 +920,138 @@
       margin-top: 1rem;
     }
 
+    /* PRICING */
+    .pricing-section {
+      padding: 3.5rem 2rem;
+      text-align: center;
+    }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5rem;
+      max-width: 900px;
+      margin: 2rem auto 0;
+    }
+
+    .pricing-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem 1.5rem;
+      text-align: left;
+      transition: border-color 0.3s, transform 0.2s;
+    }
+
+    .pricing-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .pricing-card.featured {
+      border-color: var(--accent);
+      position: relative;
+    }
+
+    .pricing-card.featured::before {
+      content: "Most Popular";
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--accent);
+      color: white;
+      padding: 2px 12px;
+      border-radius: 10px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .pricing-tier {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+    }
+
+    .pricing-price {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.25rem;
+    }
+
+    .pricing-price span {
+      font-size: 0.85rem;
+      font-weight: 400;
+      color: var(--text-muted);
+    }
+
+    .pricing-desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 1.25rem;
+      line-height: 1.5;
+    }
+
+    .pricing-features {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 1.5rem;
+    }
+
+    .pricing-features li {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      padding: 0.35rem 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .pricing-features li::before {
+      content: "✓";
+      color: var(--green);
+      font-weight: 700;
+      font-size: 0.75rem;
+    }
+
+    .pricing-cta {
+      display: inline-block;
+      padding: 0.7rem 1.5rem;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-decoration: none;
+      transition: all 0.25s;
+      text-align: center;
+      width: 100%;
+    }
+
+    .pricing-cta.primary {
+      background: var(--accent);
+      color: white;
+      border: none;
+    }
+
+    .pricing-cta.primary:hover {
+      background: #5254e0;
+      transform: translateY(-1px);
+    }
+
+    .pricing-cta.secondary {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+    }
+
+    .pricing-cta.secondary:hover {
+      background: rgba(99, 102, 241, 0.1);
+    }
+
     /* COMPLIANCE */
     .compliance-bar {
       max-width: 800px;
@@ -1353,7 +1485,7 @@
       <a href="#playground">Playground</a>
       <a href="#how-it-works">Architecture</a>
       <a href="#domains">Domains</a>
-      <a href="#compliance">Compliance</a>
+      <a href="#pricing">Pricing</a>
       <a href="https://github.com/bws82/biasclear" target="_blank">GitHub</a>
       <a href="/docs" class="btn-nav">API Docs</a>
     </div>
@@ -1619,6 +1751,54 @@
         <span class="fn">curl</span> -X POST https://biasclear.com/scan \<br>
         &nbsp;&nbsp;-H <span class="str">"Content-Type: application/json"</span> \<br>
         &nbsp;&nbsp;-d <span class="str">'{"text": "...", "domain": "legal", "mode": "deep"}'</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRICING -->
+  <div class="pricing-section" id="pricing">
+    <h2>Pricing</h2>
+    <p class="subtitle">Start free. Scale when you're ready.</p>
+    <div class="pricing-grid">
+      <div class="pricing-card">
+        <div class="pricing-tier">Free</div>
+        <div class="pricing-price">$0</div>
+        <div class="pricing-desc">Try the playground. No API key needed.</div>
+        <ul class="pricing-features">
+          <li>Interactive playground</li>
+          <li>Local scan mode (34 patterns)</li>
+          <li>4 detection domains</li>
+          <li>Community support</li>
+        </ul>
+        <a href="#playground" class="pricing-cta secondary">Try Playground</a>
+      </div>
+      <div class="pricing-card featured">
+        <div class="pricing-tier">Pro</div>
+        <div class="pricing-price">$99 <span>/month</span></div>
+        <div class="pricing-desc">Full API access for teams and products.</div>
+        <ul class="pricing-features">
+          <li>1,000 scans/day</li>
+          <li>Local + Deep + Full modes</li>
+          <li>Bias correction engine</li>
+          <li>Scan certificates</li>
+          <li>SHA-256 audit trail</li>
+          <li>API key + rate limiting</li>
+        </ul>
+        <a href="mailto:brad@biasclear.com?subject=BiasClear%20Pro" class="pricing-cta primary">Get Started</a>
+      </div>
+      <div class="pricing-card">
+        <div class="pricing-tier">Enterprise</div>
+        <div class="pricing-price">Custom</div>
+        <div class="pricing-desc">For regulated industries and compliance teams.</div>
+        <ul class="pricing-features">
+          <li>Unlimited scans</li>
+          <li>Custom detection patterns</li>
+          <li>Compliance reports (SB 205, EU AI Act)</li>
+          <li>SLA guarantee</li>
+          <li>Dedicated support</li>
+          <li>On-premise option</li>
+        </ul>
+        <a href="mailto:brad@biasclear.com?subject=BiasClear%20Enterprise" class="pricing-cta secondary">Contact Us</a>
       </div>
     </div>
   </div>

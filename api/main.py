@@ -35,6 +35,8 @@ from biasclear.patterns.learned import learning_ring
 from biasclear.llm.factory import get_provider
 from biasclear.auth import require_api_key, AUTH_ENABLED
 from biasclear.rate_limit import check_rate_limit
+from biasclear.cache import scan_cache
+from biasclear.llm.gemini import CircuitOpenError
 from biasclear.logging import setup_logging, get_logger
 from biasclear.schemas.scan import (
     ScanRequest,
@@ -43,6 +45,9 @@ from biasclear.schemas.scan import (
     ScanBatchResponse,
     CorrectRequest,
     CorrectResponse,
+    CertificateRequest,
+    CertificateResponse,
+    CertificateVerifyResponse,
     AuditResponse,
     ChainVerification,
     HealthResponse,
@@ -76,9 +81,26 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="BiasClear API",
-    description="Bias detection engine built on Persistent Influence Theory (PIT)",
+    description=(
+        "Structural bias detection engine built on Persistent Influence Theory (PIT). "
+        "Detects rhetorical manipulation patterns in text across legal, media, financial, "
+        "and general domains. Features a frozen deterministic core (34 patterns), "
+        "LLM-powered deep analysis, bias correction, and SHA-256 hash-chained audit trail.\n\n"
+        "**Quick Start:** `POST /scan` with `{\"text\": \"your text\", \"mode\": \"local\"}` "
+        "to scan for bias.\n\n"
+        "**Peer-reviewed:** DOI 10.5281/zenodo.18676405\n\n"
+        "**Compliance:** Designed for Colorado SB 205 and EU AI Act readiness."
+    ),
     version=f"1.1.0 (core {CORE_VERSION})",
     lifespan=lifespan,
+    openapi_tags=[
+        {"name": "Scan", "description": "Scan text for structural bias and distortion patterns."},
+        {"name": "Correct", "description": "Rewrite biased text while preserving factual content."},
+        {"name": "Certificate", "description": "Generate and verify bias scan certificates."},
+        {"name": "Audit", "description": "Tamper-evident SHA-256 hash-chained audit trail."},
+        {"name": "Patterns", "description": "Browse frozen core and learned detection patterns."},
+        {"name": "Health", "description": "Service health and version information."},
+    ],
 )
 
 # CORS — set BIASCLEAR_CORS_ORIGINS in production (e.g. "https://biasclear.com")
@@ -183,37 +205,74 @@ def _get_llm():
 # ROUTES
 # ============================================================
 
-@app.post("/scan", response_model=ScanResponse)
+@app.post("/scan", response_model=ScanResponse, tags=["Scan"])
 async def scan_text(
     request: ScanRequest,
     key_id: Optional[str] = Depends(require_api_key),
 ):
-    """Scan text for bias and distortion."""
+    """Scan text for structural bias and distortion patterns.
+
+    Supports three modes:
+    - **local**: Frozen core only (free, instant, deterministic)
+    - **deep**: LLM-powered analysis (higher quality, 1 API call)
+    - **full**: Both layers combined (recommended, enables learning ring)
+
+    Results are cached for 1 hour — identical scans return instantly.
+    If the LLM is unavailable, deep/full modes gracefully degrade to local.
+    """
     check_rate_limit(key_id)
     start = time.time()
 
+    # Check cache first — identical scans return instantly
+    cached = await scan_cache.get(request.text, request.domain, request.mode)
+    if cached is not None:
+        duration = int((time.time() - start) * 1000)
+        logger.info(
+            f"Scan cache hit: score={cached.get('truth_score', '?')} mode={request.mode}",
+            extra={
+                "truth_score": cached.get("truth_score"),
+                "scan_mode": request.mode,
+                "domain": request.domain,
+                "duration_ms": duration,
+                "key_id": key_id,
+            },
+        )
+        return cached
+
     learned = learning_ring.get_active_patterns()
 
-    if request.mode == "local":
+    # Circuit breaker: if LLM is down and mode requires it, fall back to local
+    try:
+        if request.mode == "local":
+            result = await scan_local(
+                request.text, domain=request.domain, external_patterns=learned,
+            )
+        elif request.mode == "deep":
+            result = await scan_deep(
+                request.text, llm=_get_llm(), domain=request.domain,
+                learning_ring=learning_ring, audit_chain=audit_chain,
+            )
+        elif request.mode == "full":
+            result = await scan_full(
+                request.text,
+                llm=_get_llm(),
+                domain=request.domain,
+                external_patterns=learned,
+                learning_ring=learning_ring,
+                audit_chain=audit_chain,
+            )
+        else:
+            raise HTTPException(400, f"Invalid mode: {request.mode}")
+    except CircuitOpenError:
+        # LLM circuit breaker is open — gracefully degrade to local-only
+        logger.warning(
+            "Circuit breaker open — falling back to local scan",
+            extra={"requested_mode": request.mode, "domain": request.domain},
+        )
         result = await scan_local(
             request.text, domain=request.domain, external_patterns=learned,
         )
-    elif request.mode == "deep":
-        result = await scan_deep(
-            request.text, llm=_get_llm(), domain=request.domain,
-            learning_ring=learning_ring, audit_chain=audit_chain,
-        )
-    elif request.mode == "full":
-        result = await scan_full(
-            request.text,
-            llm=_get_llm(),
-            domain=request.domain,
-            external_patterns=learned,
-            learning_ring=learning_ring,
-            audit_chain=audit_chain,
-        )
-    else:
-        raise HTTPException(400, f"Invalid mode: {request.mode}")
+        result["scan_mode"] = f"local (fallback from {request.mode})"
 
     if "error" in result and not result.get("bias_detected"):
         logger.error(
@@ -237,6 +296,9 @@ async def scan_text(
     )
     result["audit_hash"] = audit_hash
 
+    # Store in cache for future identical scans
+    await scan_cache.put(request.text, request.domain, request.mode, result)
+
     duration = int((time.time() - start) * 1000)
     logger.info(
         f"Scan complete: score={result['truth_score']} mode={request.mode}",
@@ -253,35 +315,47 @@ async def scan_text(
     return result
 
 
-@app.post("/scan/batch", response_model=ScanBatchResponse)
+@app.post("/scan/batch", response_model=ScanBatchResponse, tags=["Scan"])
 async def scan_batch(
     request: ScanBatchRequest,
     key_id: Optional[str] = Depends(require_api_key),
 ):
-    """Batch scan multiple texts concurrently."""
+    """Batch scan up to 100 texts concurrently.
+
+    Each item is scanned independently. Failed items return a placeholder
+    result with `scan_mode: "error"` rather than failing the entire batch.
+    """
     check_rate_limit(key_id)
 
     learned = learning_ring.get_active_patterns()
 
     async def _scan_one(item: ScanRequest) -> dict:
-        if item.mode == "local":
-            return await scan_local(
+        try:
+            if item.mode == "local":
+                return await scan_local(
+                    item.text, domain=item.domain, external_patterns=learned,
+                )
+            elif item.mode == "deep":
+                return await scan_deep(
+                    item.text, llm=_get_llm(), domain=item.domain,
+                    learning_ring=learning_ring, audit_chain=audit_chain,
+                )
+            else:
+                return await scan_full(
+                    item.text,
+                    llm=_get_llm(),
+                    domain=item.domain,
+                    external_patterns=learned,
+                    learning_ring=learning_ring,
+                    audit_chain=audit_chain,
+                )
+        except CircuitOpenError:
+            # Degrade to local-only if LLM is down
+            result = await scan_local(
                 item.text, domain=item.domain, external_patterns=learned,
             )
-        elif item.mode == "deep":
-            return await scan_deep(
-                item.text, llm=_get_llm(), domain=item.domain,
-                learning_ring=learning_ring, audit_chain=audit_chain,
-            )
-        else:
-            return await scan_full(
-                item.text,
-                llm=_get_llm(),
-                domain=item.domain,
-                external_patterns=learned,
-                learning_ring=learning_ring,
-                audit_chain=audit_chain,
-            )
+            result["scan_mode"] = f"local (fallback from {item.mode})"
+            return result
 
     results = await asyncio.gather(
         *[_scan_one(item) for item in request.items],
@@ -339,12 +413,17 @@ async def scan_batch(
     }
 
 
-@app.post("/correct", response_model=CorrectResponse)
+@app.post("/correct", response_model=CorrectResponse, tags=["Correct"])
 async def correct_text(
     request: CorrectRequest,
     key_id: Optional[str] = Depends(require_api_key),
 ):
-    """Correct bias in text using LLM remediation."""
+    """Rewrite biased text to remove structural distortion while preserving facts.
+
+    Requires a previous scan result as input. Uses iterative LLM correction
+    with post-correction verification (up to 3 passes). Returns the corrected
+    text, a list of changes made, and visual diff spans.
+    """
     check_rate_limit(key_id)
 
     result = await correct_bias(
@@ -368,13 +447,98 @@ async def correct_text(
     return result
 
 
-@app.get("/audit", response_model=AuditResponse)
-async def get_audit(
-    limit: int = Query(20, ge=1, le=100),
-    event_type: Optional[str] = None,
+@app.post("/certificate", response_model=CertificateResponse, tags=["Certificate"])
+async def generate_certificate(
+    request: CertificateRequest,
     key_id: Optional[str] = Depends(require_api_key),
 ):
-    """Get recent audit chain entries."""
+    """Generate a verifiable HTML certificate for a completed bias scan.
+
+    The certificate is a self-contained HTML document with truth score,
+    detected flags, PIT tier analysis, and a verification link tied to
+    the audit chain. Suitable for attaching to legal filings, editorial
+    reviews, or compliance documentation.
+    """
+    from datetime import datetime, timezone
+    from biasclear.certificate import generate_certificate_html, compute_certificate_id
+
+    check_rate_limit(key_id)
+
+    issued_at = datetime.now(timezone.utc).isoformat()
+    certificate_id = compute_certificate_id(request.text, issued_at)
+
+    # Build verify URL from request context
+    verify_url = f"https://biasclear.com/certificate/verify/{request.audit_hash}"
+
+    html = generate_certificate_html(
+        text=request.text,
+        scan_result=request.scan_result,
+        audit_hash=request.audit_hash,
+        certificate_id=certificate_id,
+        issued_at=issued_at,
+        verify_url=verify_url,
+    )
+
+    audit_chain.log(
+        event_type="certificate_generated",
+        data={
+            "certificate_id": certificate_id,
+            "audit_hash": request.audit_hash,
+            "truth_score": request.scan_result.get("truth_score"),
+            "key_id": key_id,
+        },
+        core_version=CORE_VERSION,
+    )
+
+    logger.info(
+        "Certificate generated",
+        extra={"audit_hash": request.audit_hash, "key_id": key_id},
+    )
+
+    return {
+        "certificate_id": certificate_id,
+        "audit_hash": request.audit_hash,
+        "html": html,
+        "issued_at": issued_at,
+        "verify_url": verify_url,
+    }
+
+
+@app.get("/certificate/verify/{audit_hash}", response_model=CertificateVerifyResponse, tags=["Certificate"])
+async def verify_certificate(audit_hash: str):
+    """Verify a certificate by its audit chain hash. No authentication required.
+
+    Returns whether the hash exists in the audit chain, along with the
+    original event type, timestamp, and truth score.
+    """
+    entries = audit_chain.get_recent(limit=500)
+    for entry in entries:
+        if entry["hash"] == audit_hash:
+            return {
+                "verified": True,
+                "audit_hash": audit_hash,
+                "event_type": entry["event_type"],
+                "timestamp": entry["timestamp"],
+                "truth_score": entry["data"].get("truth_score"),
+            }
+
+    return {
+        "verified": False,
+        "audit_hash": audit_hash,
+    }
+
+
+@app.get("/audit", response_model=AuditResponse, tags=["Audit"])
+async def get_audit(
+    limit: int = Query(20, ge=1, le=100, description="Number of entries to return (1-100)."),
+    event_type: Optional[str] = Query(None, description="Filter by event type (e.g. scan_local, correction)."),
+    key_id: Optional[str] = Depends(require_api_key),
+):
+    """Retrieve recent audit chain entries.
+
+    The audit chain is a SHA-256 hash-linked append-only log of all system events.
+    Each entry references the previous entry's hash, creating a tamper-evident chain.
+    """
     entries = audit_chain.get_recent(limit=limit, event_type=event_type)
     return {
         "entries": entries,
@@ -382,12 +546,16 @@ async def get_audit(
     }
 
 
-@app.get("/audit/verify", response_model=ChainVerification)
+@app.get("/audit/verify", response_model=ChainVerification, tags=["Audit"])
 async def verify_audit(
-    limit: int = Query(100, ge=1, le=1000),
+    limit: int = Query(100, ge=1, le=1000, description="Number of entries to verify (1-1000)."),
     key_id: Optional[str] = Depends(require_api_key),
 ):
-    """Verify integrity of the audit chain."""
+    """Verify integrity of the audit chain by checking hash links.
+
+    Walks the chain and confirms each entry's hash matches its content
+    and links correctly to the previous entry. Returns any broken links found.
+    """
     result = audit_chain.verify_chain(limit=limit)
 
     audit_chain.log(
@@ -399,9 +567,13 @@ async def verify_audit(
     return result
 
 
-@app.get("/health", response_model=HealthResponse)
+@app.get("/health", response_model=HealthResponse, tags=["Health"])
 async def health():
-    """Health check — no auth required."""
+    """Service health check. No authentication required.
+
+    Returns current version, LLM provider status, audit chain size,
+    and learning ring statistics.
+    """
     all_learned = learning_ring.get_all_patterns()
     return {
         "status": "operational",
@@ -415,15 +587,17 @@ async def health():
     }
 
 
-@app.get("/patterns")
+@app.get("/patterns", tags=["Patterns"])
 async def get_patterns(
-    domain: str = Query("general", pattern="^(general|legal|media|financial|auto)$"),
+    domain: str = Query("general", pattern="^(general|legal|media|financial|auto)$",
+                        description="Domain filter: general, legal, media, financial, or auto (all)."),
     key_id: Optional[str] = Depends(require_api_key),
 ):
-    """
-    Return all active detection patterns for a given domain.
+    """List all active detection patterns for a domain.
 
-    Use domain="auto" to see ALL patterns across all domains.
+    Returns both frozen core patterns (immutable, deterministic) and
+    learned patterns (governance-approved expansions). Use `domain=auto`
+    to see all patterns across all domains.
     """
     from biasclear.frozen_core import frozen_core
     check_rate_limit(key_id)
@@ -455,11 +629,15 @@ async def get_patterns(
     }
 
 
-@app.get("/patterns/learned")
+@app.get("/patterns/learned", tags=["Patterns"])
 async def get_learned_patterns(
     key_id: Optional[str] = Depends(require_api_key),
 ):
-    """Return all learned patterns with full governance metadata."""
+    """List all learned patterns with full governance metadata.
+
+    Includes staging, active, and deactivated patterns with their
+    confirmation counts, false positive rates, and activation thresholds.
+    """
     all_patterns = learning_ring.get_all_patterns()
     active = [p for p in all_patterns if p["status"] == "active"]
     staging = [p for p in all_patterns if p["status"] == "staging"]

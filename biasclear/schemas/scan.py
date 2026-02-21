@@ -16,9 +16,16 @@ from pydantic import BaseModel, Field
 
 class ScanRequest(BaseModel):
     """POST /scan request body."""
-    text: str = Field(..., min_length=1, max_length=50_000)
-    mode: str = Field("full", pattern="^(local|deep|full)$")
-    domain: str = Field("general", pattern="^(general|legal|media|financial|auto)$")
+    text: str = Field(..., min_length=1, max_length=50_000,
+                      description="The text to scan for bias (1-50,000 characters).")
+    mode: str = Field("full", pattern="^(local|deep|full)$",
+                      description="Scan mode: local (free), deep (LLM), or full (both).")
+    domain: str = Field("general", pattern="^(general|legal|media|financial|auto)$",
+                        description="Domain context for specialized detection.")
+
+    model_config = {"json_schema_extra": {"examples": [
+        {"text": "Studies show this approach is universally accepted by experts.", "mode": "local", "domain": "general"},
+    ]}}
 
 
 class ScanBatchRequest(BaseModel):
@@ -127,6 +134,36 @@ class ChainVerification(BaseModel):
     verified: bool
     entries_checked: int
     broken_links: list[dict]
+
+
+# ============================================================
+# CERTIFICATE
+# ============================================================
+
+class CertificateRequest(BaseModel):
+    """POST /certificate request body."""
+    text: str = Field(..., min_length=1, max_length=50_000,
+                      description="The text that was scanned.")
+    scan_result: dict = Field(..., description="The full ScanResponse output from /scan.")
+    audit_hash: str = Field(..., description="The audit_hash from the scan response.")
+
+
+class CertificateResponse(BaseModel):
+    """POST /certificate response — returns generated HTML certificate."""
+    certificate_id: str
+    audit_hash: str
+    html: str
+    issued_at: str
+    verify_url: str
+
+
+class CertificateVerifyResponse(BaseModel):
+    """GET /certificate/verify/{hash} response."""
+    verified: bool
+    audit_hash: str
+    event_type: Optional[str] = None
+    timestamp: Optional[str] = None
+    truth_score: Optional[int] = None
 
 
 # ============================================================

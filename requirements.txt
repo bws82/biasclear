@@ -1,6 +1,9 @@
-fastapi>=0.115.0
-uvicorn[standard]>=0.32.0
-pydantic>=2.0
-google-genai>=1.0.0
-python-dotenv>=1.0.0
-diff-match-patch>=20230430
+# BiasClear API — Pinned Dependencies
+# Last pinned: 2026-02-21
+# Update via: pip install --upgrade -r requirements.txt && pip freeze | grep ...
+fastapi==0.116.1
+uvicorn[standard]==0.35.0
+pydantic==2.11.7
+google-genai==1.47.0
+python-dotenv==1.1.1
+diff-match-patch==20241021
