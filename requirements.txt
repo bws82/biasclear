@@ -3,7 +3,7 @@
 # Update via: pip install --upgrade -r requirements.txt && pip freeze | grep ...
 fastapi==0.128.8
 uvicorn[standard]==0.35.0
-pydantic==2.11.7
+pydantic==2.12.5
 google-genai==1.47.0
 python-dotenv==1.1.1
 diff-match-patch==20241021
