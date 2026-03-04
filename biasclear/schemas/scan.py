@@ -117,7 +117,6 @@ class CorrectResponse(BaseModel):
 
 class AuditEntry(BaseModel):
     id: int
-    prev_hash: str
     hash: str
     event_type: str
     data: dict
