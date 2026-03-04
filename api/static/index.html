@@ -7,6 +7,21 @@
   <title>BiasClear — Structural Bias Detection Engine</title>
   <meta name="description"
     content="BiasClear scans text for structural rhetorical manipulation — framing, manufactured consensus, authority substitution, false urgency — and explains exactly how the text manipulates the reader.">
+
+  <!-- OpenGraph / Social Preview -->
+  <meta property="og:title" content="BiasClear — Structural Bias Detection Engine">
+  <meta property="og:description"
+    content="Scans text for rhetorical manipulation — manufactured consensus, authority substitution, false urgency — and explains exactly how the text manipulates the reader.">
+  <meta property="og:url" content="https://biasclear.com">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="BiasClear">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="BiasClear — Structural Bias Detection Engine">
+  <meta name="twitter:description"
+    content="39 deterministic detection patterns. 4 domains. SHA-256 audit chain. Open-source (AGPL-3.0).">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet">
@@ -1492,7 +1507,7 @@
   </nav>
 
   <div class="hero">
-    <div class="badge"><span class="dot"></span> v1.1.0 — Governed AI Engine</div>
+    <div class="badge"><span class="dot"></span> v1.2.0 — Governed AI Engine</div>
     <h1>Detect structural bias<br><span class="gradient">before it shapes opinion</span></h1>
     <p>BiasClear scans text for rhetorical manipulation — manufactured consensus, authority substitution, false urgency
       — and shows exactly how the text is engineered to influence the reader.</p>
@@ -1507,6 +1522,9 @@
       <a href="https://github.com/bws82/biasclear" target="_blank" style="opacity:0.8;"><img
           src="https://img.shields.io/github/license/bws82/biasclear?color=6366f1&labelColor=1a1a26" alt="License"></a>
     </div>
+    <div id="live-stats"
+      style="margin-top:1rem;font-size:0.8rem;color:var(--text-muted);opacity:0;transition:opacity 0.5s;">
+    </div>
   </div>
 
   <!-- COMPLIANCE BAR -->
@@ -1520,7 +1538,7 @@
 
   <div class="stats">
     <div class="stat">
-      <div class="stat-num">34</div>
+      <div class="stat-num">39</div>
       <div class="stat-label">Detection Patterns</div>
     </div>
     <div class="stat">
@@ -1597,7 +1615,7 @@
         <div class="pipeline-num">2</div>
         <div class="pipeline-content">
           <h3>Frozen Core Scan</h3>
-          <p>34 deterministic structural patterns run against the text. No ML weights. No drift. No prompt injection.
+          <p>39 deterministic structural patterns run against the text. No ML weights. No drift. No prompt injection.
             Same input → same output, every time.</p>
         </div>
       </div>
@@ -1635,7 +1653,7 @@
       <div class="feature-card">
         <div class="feature-icon">🔒</div>
         <h3>Frozen Core</h3>
-        <p>34 structural patterns encoded as deterministic code — not ML weights. Can't be prompt-injected. Can't drift.
+        <p>39 structural patterns encoded as deterministic code — not ML weights. Can't be prompt-injected. Can't drift.
           Same input, same output, every time.</p>
       </div>
       <div class="feature-card">
@@ -1758,24 +1776,25 @@
   <!-- PRICING -->
   <div class="pricing-section" id="pricing">
     <h2>Pricing</h2>
-    <p class="subtitle">Start free. Scale when you're ready.</p>
+    <p class="subtitle">Open source. Free during beta. Enterprise when you need it.</p>
     <div class="pricing-grid">
       <div class="pricing-card">
-        <div class="pricing-tier">Free</div>
-        <div class="pricing-price">$0</div>
-        <div class="pricing-desc">Try the playground. No API key needed.</div>
+        <div class="pricing-tier">Playground</div>
+        <div class="pricing-price">Free</div>
+        <div class="pricing-desc">Try it instantly. No signup required.</div>
         <ul class="pricing-features">
           <li>Interactive playground</li>
-          <li>Local scan mode (39 patterns)</li>
+          <li>39 deterministic patterns</li>
           <li>4 detection domains</li>
-          <li>Community support</li>
+          <li>Local + Deep scan modes</li>
+          <li>Bias correction</li>
         </ul>
         <a href="#playground" class="pricing-cta secondary">Try Playground</a>
       </div>
       <div class="pricing-card featured">
-        <div class="pricing-tier">Pro</div>
-        <div class="pricing-price">$99 <span>/month</span></div>
-        <div class="pricing-desc">Full API access for teams and products.</div>
+        <div class="pricing-tier">Developer API</div>
+        <div class="pricing-price">Free <span>during beta</span></div>
+        <div class="pricing-desc">Full API access. Build bias detection into your product.</div>
         <ul class="pricing-features">
           <li>1,000 scans/day</li>
           <li>Local + Deep + Full modes</li>
@@ -1783,8 +1802,9 @@
           <li>Scan certificates</li>
           <li>SHA-256 audit trail</li>
           <li>API key + rate limiting</li>
+          <li>pip install biasclear</li>
         </ul>
-        <a href="/docs" class="pricing-cta primary">Get Started</a>
+        <a href="#beta" class="pricing-cta primary">Request API Key</a>
       </div>
       <div class="pricing-card">
         <div class="pricing-tier">Enterprise</div>
@@ -1796,7 +1816,7 @@
           <li>Compliance reports (SB 205, EU AI Act)</li>
           <li>SLA guarantee</li>
           <li>Dedicated support</li>
-          <li>On-premise option</li>
+          <li>On-premise deployment</li>
         </ul>
         <a href="#beta" class="pricing-cta secondary">Contact Us</a>
       </div>
@@ -1820,11 +1840,29 @@
       <a href="https://doi.org/10.5281/zenodo.18676405">Zenodo</a>
       <a href="/docs">API Reference</a>
     </div>
-    <p>BiasClear v1.1.0 · Built on Persistent Influence Theory · AGPL-3.0<br>
+    <p>BiasClear v1.2.0 · Built on Persistent Influence Theory · AGPL-3.0<br>
       © 2026 Brad Slimp</p>
   </footer>
 
   <script>
+    // --- Live stats counter (non-blocking) ---
+    (async function loadStats() {
+      try {
+        const res = await fetch('/health');
+        if (res.ok) {
+          const data = await res.json();
+          const el = document.getElementById('live-stats');
+          if (el && data.total_scans > 0) {
+            const scans = data.total_scans.toLocaleString();
+            const patterns = 39;
+            const upH = Math.floor(data.uptime_seconds / 3600);
+            el.textContent = `${scans} scans processed \u00B7 ${patterns} detection patterns \u00B7 4 domains`;
+            el.style.opacity = '1';
+          }
+        }
+      } catch (e) { /* silent — stats are non-critical */ }
+    })();
+
     const input = document.getElementById('scan-input');
     const charCount = document.getElementById('char-count');
     const btnScan = document.getElementById('btn-scan');
@@ -1980,6 +2018,19 @@
           }
           const errBody = await res.json().catch(() => null);
           const errMsg = errBody?.detail?.[0]?.msg || errBody?.detail || `Server error (${res.status})`;
+
+          // Rate limit — styled message with guidance
+          if (res.status === 429) {
+            output.innerHTML = '<div class="output-empty" style="text-align:center;padding:2rem;">'
+              + '<div style="font-size:2rem;margin-bottom:0.75rem;">&#9201;</div>'
+              + '<div style="color:var(--amber);font-weight:600;margin-bottom:0.5rem;">Rate Limit Reached</div>'
+              + '<div style="color:var(--text-muted);font-size:0.9rem;line-height:1.6;">'
+              + 'The free playground allows 10 scans per minute.<br>'
+              + 'Wait a moment and try again, or <a href="mailto:brad@llloydlawllc.org" style="color:var(--accent);">request an API key</a> for higher limits.'
+              + '</div></div>';
+            return;
+          }
+
           output.innerHTML = '<div class="output-empty" style="color:var(--red)">⚠ Scan failed: ' + escapeHtml(String(errMsg)) + '</div>';
           return;
         }

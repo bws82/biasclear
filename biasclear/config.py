@@ -51,6 +51,9 @@ class Settings:
     # --- CORS ---
     CORS_ORIGINS: str = os.getenv("BIASCLEAR_CORS_ORIGINS", "https://biasclear.com")
 
+    # --- Base URL (for certificate verify links, etc.) ---
+    BASE_URL: str = os.getenv("BIASCLEAR_BASE_URL", "https://biasclear.com")
+
 
 settings = Settings()
 
