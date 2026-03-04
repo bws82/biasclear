@@ -1830,6 +1830,32 @@
     const btnScan = document.getElementById('btn-scan');
     const output = document.getElementById('output-panel');
 
+    // --- Playground session token ---
+    let playgroundToken = null;
+
+    async function fetchPlaygroundToken() {
+      try {
+        const res = await fetch('/playground/token');
+        if (res.ok) {
+          const data = await res.json();
+          playgroundToken = data.token;
+        }
+      } catch (e) {
+        console.warn('Failed to fetch playground token:', e.message);
+      }
+    }
+
+    function getPlaygroundHeaders() {
+      const headers = { 'Content-Type': 'application/json' };
+      if (playgroundToken) {
+        headers['X-Playground-Token'] = playgroundToken;
+      }
+      return headers;
+    }
+
+    // Fetch token on page load
+    fetchPlaygroundToken();
+
     // Store last scan for correction
     let lastScanText = '';
     let lastScanResult = null;
@@ -1877,7 +1903,7 @@
         pageText = pageText.substring(0, 5000);
         const res = await fetch('/scan', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getPlaygroundHeaders(),
           body: JSON.stringify({ text: pageText, mode: 'local', domain: 'general' }),
         });
         const data = await res.json();
@@ -1941,13 +1967,17 @@
       try {
         const res = await fetch('/scan', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getPlaygroundHeaders(),
           body: JSON.stringify({ text, domain, mode: 'deep' })
         });
 
         clearInterval(stepInterval);
 
         if (!res.ok) {
+          // Auto-refresh token on 403
+          if (res.status === 403) {
+            await fetchPlaygroundToken();
+          }
           const errBody = await res.json().catch(() => null);
           const errMsg = errBody?.detail?.[0]?.msg || errBody?.detail || `Server error (${res.status})`;
           output.innerHTML = '<div class="output-empty" style="color:var(--red)">⚠ Scan failed: ' + escapeHtml(String(errMsg)) + '</div>';
@@ -2071,7 +2101,7 @@
       try {
         const res = await fetch('/correct', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getPlaygroundHeaders(),
           body: JSON.stringify({
             text: lastScanText,
             scan_result: lastScanResult,
@@ -2080,6 +2110,7 @@
         });
 
         if (!res.ok) {
+          if (res.status === 403) { await fetchPlaygroundToken(); }
           const errBody = await res.json().catch(() => null);
           const errMsg = errBody?.detail?.[0]?.msg || errBody?.detail || `Server error (${res.status})`;
           container.innerHTML = '<div class="output-empty" style="color:var(--red)">⚠ Correction failed: ' + escapeHtml(String(errMsg)) + '</div>';

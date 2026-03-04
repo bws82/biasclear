@@ -13,11 +13,13 @@ GET  /health       — Health check
 from __future__ import annotations
 
 import asyncio
+import re
 import time
+import uuid
 from contextlib import asynccontextmanager
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException, Query, Depends
+from fastapi import FastAPI, HTTPException, Query, Depends, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -37,6 +39,10 @@ from biasclear.auth import require_api_key, AUTH_ENABLED
 from biasclear.rate_limit import check_rate_limit
 from biasclear.cache import scan_cache
 from biasclear.llm.gemini import CircuitOpenError
+from biasclear.playground_token import (
+    create_playground_token,
+    validate_playground_token,
+)
 from biasclear.logging import setup_logging, get_logger
 from biasclear.schemas.scan import (
     ScanRequest,
@@ -54,6 +60,22 @@ from biasclear.schemas.scan import (
 )
 
 logger = get_logger("api")
+
+# Production detection
+_ON_RENDER = os.getenv("RENDER", "").lower() == "true"
+_DOCS_ENABLED = os.getenv("BIASCLEAR_DOCS_ENABLED", "").lower() == "true"
+
+# Hex hash pattern for audit_hash validation
+_HEX64_PATTERN = re.compile(r"^[0-9a-f]{64}$")
+
+
+def _get_client_ip(request: Request) -> str:
+    """Extract client IP, respecting X-Forwarded-For from Render's proxy."""
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        # First IP in the chain is the real client
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "0.0.0.0"
 
 
 # ============================================================
@@ -87,6 +109,10 @@ async def lifespan(app: FastAPI):
     logger.info("BiasClear API shutting down")
 
 
+# OpenAPI docs lockdown — disabled in production unless explicitly enabled
+_docs_url = "/docs" if (not _ON_RENDER or _DOCS_ENABLED) else None
+_openapi_url = "/openapi.json" if (not _ON_RENDER or _DOCS_ENABLED) else None
+
 app = FastAPI(
     title="BiasClear API",
     description=(
@@ -101,6 +127,8 @@ app = FastAPI(
     ),
     version=f"1.1.0 (core {CORE_VERSION})",
     lifespan=lifespan,
+    docs_url=_docs_url,
+    openapi_url=_openapi_url,
     openapi_tags=[
         {"name": "Scan", "description": "Scan text for structural bias and distortion patterns."},
         {"name": "Correct", "description": "Rewrite biased text while preserving factual content."},
@@ -210,13 +238,32 @@ def _get_llm():
 
 
 # ============================================================
+# PLAYGROUND TOKEN ENDPOINT
+# ============================================================
+
+@app.get("/playground/token", include_in_schema=False)
+async def get_playground_token(request: Request):
+    """Issue a short-lived playground session token."""
+    ip = _get_client_ip(request)
+    token = create_playground_token(ip)
+    if token is None:
+        raise HTTPException(
+            status_code=429,
+            detail="Token issuance rate limit exceeded. Try again in 60 seconds.",
+        )
+    return {"token": token, "max_uses": 50, "ttl_seconds": 3600}
+
+
+# ============================================================
 # ROUTES
 # ============================================================
 
 @app.post("/scan", response_model=ScanResponse, tags=["Scan"])
 async def scan_text(
     request: ScanRequest,
+    raw_request: Request,
     key_id: Optional[str] = Depends(require_api_key),
+    x_playground_token: Optional[str] = Header(None, alias="X-Playground-Token"),
 ):
     """Scan text for structural bias and distortion patterns.
 
@@ -228,7 +275,21 @@ async def scan_text(
     Results are cached for 1 hour — identical scans return instantly.
     If the LLM is unavailable, deep/full modes gracefully degrade to local.
     """
-    check_rate_limit(key_id)
+    ip = _get_client_ip(raw_request)
+
+    # Playground token required for unauthenticated requests
+    if key_id is None and AUTH_ENABLED is False:
+        if x_playground_token:
+            valid, reason = validate_playground_token(x_playground_token, ip)
+            if not valid:
+                raise HTTPException(
+                    status_code=403,
+                    detail=f"Invalid playground token: {reason}. Refresh the page to get a new token.",
+                )
+        # Allow requests without token for backward compat in dev mode
+        # In production (Render), the token provides the anti-abuse gate
+
+    check_rate_limit(key_id, ip=ip)
     start = time.time()
 
     learned = learning_ring.get_active_patterns()
@@ -336,14 +397,19 @@ async def scan_text(
 @app.post("/scan/batch", response_model=ScanBatchResponse, tags=["Scan"])
 async def scan_batch(
     request: ScanBatchRequest,
+    raw_request: Request,
     key_id: Optional[str] = Depends(require_api_key),
 ):
     """Batch scan up to 100 texts concurrently.
 
     Each item is scanned independently. Failed items return a placeholder
     result with `scan_mode: "error"` rather than failing the entire batch.
+    Batch scan requires an API key — playground tokens are not accepted.
     """
-    check_rate_limit(key_id)
+    if key_id is None and AUTH_ENABLED:
+        raise HTTPException(401, "Batch scan requires an API key.")
+    ip = _get_client_ip(raw_request)
+    check_rate_limit(key_id, ip=ip)
 
     learned = learning_ring.get_active_patterns()
 
@@ -434,7 +500,9 @@ async def scan_batch(
 @app.post("/correct", response_model=CorrectResponse, tags=["Correct"])
 async def correct_text(
     request: CorrectRequest,
+    raw_request: Request,
     key_id: Optional[str] = Depends(require_api_key),
+    x_playground_token: Optional[str] = Header(None, alias="X-Playground-Token"),
 ):
     """Rewrite biased text to remove structural distortion while preserving facts.
 
@@ -442,7 +510,18 @@ async def correct_text(
     with post-correction verification (up to 3 passes). Returns the corrected
     text, a list of changes made, and visual diff spans.
     """
-    check_rate_limit(key_id)
+    ip = _get_client_ip(raw_request)
+
+    # Playground token validation for unauthenticated correction
+    if key_id is None and AUTH_ENABLED is False and x_playground_token:
+        valid, reason = validate_playground_token(x_playground_token, ip)
+        if not valid:
+            raise HTTPException(
+                status_code=403,
+                detail=f"Invalid playground token: {reason}.",
+            )
+
+    check_rate_limit(key_id, ip=ip)
 
     result = await correct_bias(
         text=request.text,
@@ -529,6 +608,10 @@ async def verify_certificate(audit_hash: str):
     Returns whether the hash exists in the audit chain, along with the
     original event type, timestamp, and truth score.
     """
+    # Validate audit_hash format — must be a 64-char hex string
+    if not _HEX64_PATTERN.match(audit_hash):
+        raise HTTPException(400, "Invalid audit hash format. Expected 64-character hex string.")
+
     entries = audit_chain.get_recent(limit=500)
     for entry in entries:
         if entry["hash"] == audit_hash:
@@ -548,7 +631,7 @@ async def verify_certificate(audit_hash: str):
 
 @app.get("/audit", response_model=AuditResponse, tags=["Audit"])
 async def get_audit(
-    limit: int = Query(20, ge=1, le=100, description="Number of entries to return (1-100)."),
+    limit: int = Query(10, ge=1, le=100, description="Number of entries to return (1-100)."),
     event_type: Optional[str] = Query(None, description="Filter by event type (e.g. scan_local, correction)."),
     key_id: Optional[str] = Depends(require_api_key),
 ):
@@ -558,6 +641,9 @@ async def get_audit(
     Each entry references the previous entry's hash, creating a tamper-evident chain.
     """
     entries = audit_chain.get_recent(limit=limit, event_type=event_type)
+    # Strip prev_hash from responses — internal chain detail
+    for entry in entries:
+        entry.pop("prev_hash", None)
     return {
         "entries": entries,
         "total_count": audit_chain.get_count(),
@@ -589,8 +675,8 @@ async def verify_audit(
 async def health():
     """Service health check. No authentication required.
 
-    Returns current version, LLM provider status, audit chain size,
-    and learning ring statistics.
+    Returns current version, LLM provider status, and learning ring statistics.
+    Audit entry count is omitted in production to avoid disclosing usage volume.
     """
     all_learned = learning_ring.get_all_patterns()
     return {
@@ -598,7 +684,7 @@ async def health():
         "version": "1.1.0",
         "core_version": CORE_VERSION,
         "llm_provider": settings.LLM_PROVIDER,
-        "audit_entries": audit_chain.get_count(),
+        "audit_entries": 0 if _ON_RENDER else audit_chain.get_count(),
         "learned_patterns_active": len([p for p in all_learned if p["status"] == "active"]),
         "learned_patterns_staging": len([p for p in all_learned if p["status"] == "staging"]),
         "learning_enabled": True,
@@ -673,6 +759,17 @@ async def get_learned_patterns(
     }
 
 
+# --- Request ID Middleware ---
+@app.middleware("http")
+async def add_request_id(request: Request, call_next):
+    """Generate a unique request ID for forensic tracing."""
+    request_id = str(uuid.uuid4())
+    request.state.request_id = request_id
+    response = await call_next(request)
+    response.headers["X-Request-ID"] = request_id
+    return response
+
+
 # --- Security + Version Headers Middleware ---
 @app.middleware("http")
 async def add_security_headers(request: Request, call_next):
@@ -687,6 +784,19 @@ async def add_security_headers(request: Request, call_next):
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    response.headers["X-Permitted-Cross-Domain-Policies"] = "none"
+    response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+    response.headers["Cross-Origin-Resource-Policy"] = "same-origin"
+    # CSP — allows inline scripts/styles for the landing page
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline'; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        "font-src 'self' https://fonts.gstatic.com; "
+        "img-src 'self' data: https://img.shields.io; "
+        "connect-src 'self'; "
+        "frame-ancestors 'none'"
+    )
     return response
 
 

@@ -55,6 +55,12 @@ DEFAULT_LIMITS = RateLimits(
     per_hour=int(os.getenv("BIASCLEAR_RATE_PER_HOUR", "1000")),
 )
 
+# Stricter limits for unauthenticated (playground) traffic
+PLAYGROUND_LIMITS = RateLimits(
+    per_minute=int(os.getenv("BIASCLEAR_PLAYGROUND_RATE_PER_MINUTE", "10")),
+    per_hour=int(os.getenv("BIASCLEAR_PLAYGROUND_RATE_PER_HOUR", "100")),
+)
+
 # LRU-bounded store: key_hash → RateWindow
 # OrderedDict tracks access order for eviction
 _windows: OrderedDict[str, RateWindow] = OrderedDict()
@@ -64,24 +70,38 @@ _lock = threading.Lock()
 RATE_LIMIT_ENABLED = os.getenv("BIASCLEAR_RATE_LIMIT", "true").lower() == "true"
 
 
+def _hash_ip(ip: str) -> str:
+    """Hash IP for rate limit key — don't use raw IPs as dict keys."""
+    import hashlib
+    return f"ip:{hashlib.sha256(ip.encode()).hexdigest()[:16]}"
+
+
 def check_rate_limit(
     key_id: Optional[str],
     limits: Optional[RateLimits] = None,
+    ip: Optional[str] = None,
 ) -> None:
     """
-    Check and enforce rate limits for a given key.
+    Check and enforce rate limits for a given key or IP.
 
     Args:
-        key_id: The key identifier (hash prefix from auth). None = no limit.
+        key_id: The key identifier (hash prefix from auth). None = unauthenticated.
         limits: Override default limits.
+        ip: Client IP address. Used for rate limiting when key_id is None.
 
     Raises:
         HTTPException 429 if rate limit exceeded.
     """
     if not RATE_LIMIT_ENABLED:
         return
+
+    # Unauthenticated requests: rate limit by IP with stricter playground limits
     if key_id is None:
-        return  # Dev mode — no limits
+        if ip:
+            key_id = _hash_ip(ip)
+            limits = limits or PLAYGROUND_LIMITS
+        else:
+            return  # Dev mode — no IP, no limits
 
     limits = limits or DEFAULT_LIMITS
 
