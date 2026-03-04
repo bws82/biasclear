@@ -30,6 +30,9 @@ import os
 
 from biasclear.config import settings
 from biasclear.frozen_core import CORE_VERSION
+
+# Track startup time for uptime reporting
+_STARTUP_TIME = time.time()
 from biasclear.audit import audit_chain
 from biasclear.detector import scan_local, scan_deep, scan_full
 from biasclear.corrector import correct_bias
@@ -564,8 +567,8 @@ async def generate_certificate(
     issued_at = datetime.now(timezone.utc).isoformat()
     certificate_id = compute_certificate_id(request.text, issued_at)
 
-    # Build verify URL from request context
-    verify_url = f"https://biasclear.com/certificate/verify/{request.audit_hash}"
+    # Build verify URL from configuration (not hardcoded)
+    verify_url = f"{settings.BASE_URL}/certificate/verify/{request.audit_hash}"
 
     html = generate_certificate_html(
         text=request.text,
@@ -675,19 +678,42 @@ async def verify_audit(
 async def health():
     """Service health check. No authentication required.
 
-    Returns current version, LLM provider status, and learning ring statistics.
-    Audit entry count is omitted in production to avoid disclosing usage volume.
+    Returns current version, LLM provider status, learning ring statistics,
+    total scans processed, and uptime.
     """
     all_learned = learning_ring.get_all_patterns()
+    audit_count = audit_chain.get_count()
+
+    # Count total scans from audit chain
+    total_scans = 0
+    try:
+        for evt_type in ("scan_local", "scan_deep", "scan_full", "scan_batch"):
+            total_scans += audit_chain.get_count(event_type=evt_type)
+    except (TypeError, Exception):
+        # Fallback if get_count doesn't support event_type filter
+        total_scans = audit_count
+
+    # Check LLM availability via circuit breaker state
+    llm_available = True
+    try:
+        provider = _get_llm()
+        if hasattr(provider, "circuit_breaker"):
+            llm_available = not provider.circuit_breaker.is_open
+    except Exception:
+        llm_available = False
+
     return {
         "status": "operational",
         "version": "1.1.0",
         "core_version": CORE_VERSION,
         "llm_provider": settings.LLM_PROVIDER,
-        "audit_entries": 0 if _ON_RENDER else audit_chain.get_count(),
+        "llm_available": llm_available,
+        "audit_entries": 0 if _ON_RENDER else audit_count,
+        "total_scans": total_scans,
         "learned_patterns_active": len([p for p in all_learned if p["status"] == "active"]),
         "learned_patterns_staging": len([p for p in all_learned if p["status"] == "staging"]),
         "learning_enabled": True,
+        "uptime_seconds": int(time.time() - _STARTUP_TIME),
     }
 
 

@@ -23,8 +23,11 @@ jobs:
           pip install --upgrade pip
           pip install -e ".[dev,api]"
 
-      - name: Run tests
-        run: pytest tests/ -v --tb=short
+      - name: Install coverage tools
+        run: pip install pytest-cov
+
+      - name: Run tests with coverage
+        run: pytest tests/ -v --tb=short --cov=biasclear --cov-report=term-missing --cov-report=xml
 
   security:
     runs-on: ubuntu-latest

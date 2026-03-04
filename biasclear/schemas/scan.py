@@ -174,7 +174,10 @@ class HealthResponse(BaseModel):
     version: str
     core_version: str
     llm_provider: str
+    llm_available: bool
     audit_entries: int
+    total_scans: int
     learned_patterns_active: int
     learned_patterns_staging: int
     learning_enabled: bool
+    uptime_seconds: int

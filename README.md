@@ -1,8 +1,14 @@
 # BiasClear API
 
+![CI](https://github.com/bws82/biasclear/actions/workflows/ci.yml/badge.svg)
+![License](https://img.shields.io/badge/license-AGPL--3.0-blue)
+![Python](https://img.shields.io/badge/python-3.11%2B-blue)
+
 Structural bias detection engine built on [Persistent Influence Theory (PIT)](https://doi.org/10.5281/zenodo.18676405).
 
 BiasClear scans text for rhetorical manipulation patterns — manufactured consensus, authority substitution, false urgency, dissent dismissal — and explains exactly how the text is structured to influence the reader.
+
+**Live:** [biasclear.com](https://biasclear.com) | **Paper:** [DOI 10.5281/zenodo.18676405](https://doi.org/10.5281/zenodo.18676405)
 
 ## Quick Start
 
@@ -10,14 +16,14 @@ BiasClear scans text for rhetorical manipulation patterns — manufactured conse
 # Clone and install
 git clone https://github.com/bws82/biasclear.git
 cd biasclear
-pip install -e ".[dev]"
+pip install -e ".[dev,api]"
 
 # Configure
 cp .env.example .env
 # Edit .env — add your GEMINI_API_KEY for deep/full scans
 
 # Run
-uvicorn app.main:app --reload
+uvicorn api.main:app --reload
 ```
 
 The API is live at `http://localhost:8000`. Interactive docs at `/docs`.
@@ -33,8 +39,8 @@ The API is live at `http://localhost:8000`. Interactive docs at `/docs`.
 │  Scan    │    Scan      │      Scan         │
 │  (free)  │  (LLM call)  │  (local + deep)   │
 ├──────────┴──────────────┴───────────────────┤
-│              Frozen Core (v1.1.0)           │
-│     34 structural patterns · 4 domains      │
+│              Frozen Core (v1.2.0)           │
+│     39 structural patterns · 4 domains      │
 │        Deterministic · Immutable            │
 ├─────────────────────────────────────────────┤
 │             Learning Ring                   │
