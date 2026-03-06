@@ -9,7 +9,7 @@ Structural bias detection engine built on [Persistent Influence Theory (PIT)](ht
 
 BiasClear scans text for rhetorical manipulation patterns — manufactured consensus, authority substitution, false urgency, dissent dismissal — and explains exactly how the text is structured to influence the reader.
 
-**Live:** [biasclear.com](https://biasclear.com) | **Paper:** [DOI 10.5281/zenodo.18676405](https://doi.org/10.5281/zenodo.18676405)
+**Live:** [biasclear.com](https://biasclear.com) | **Paper:** [DOI 10.5281/zenodo.18676405](https://doi.org/10.5281/zenodo.18676405) | **EA Forum:** [I Built an Open-Source Tool That Audits AI Persuasion](https://forum.effectivealtruism.org/posts/zByjJ3cJZpHKjhxxY/i-built-an-open-source-tool-that-audits-ai-persuasion)
 
 ## Quick Start
 
