@@ -1117,6 +1117,58 @@
       margin-bottom: 1rem;
     }
 
+    /* ABOUT SECTION */
+    .about-section {
+      padding: 5rem 2rem;
+      max-width: 760px;
+      margin: 0 auto;
+      border-top: 1px solid var(--border);
+    }
+
+    .about-section h2 {
+      margin-bottom: 1.5rem;
+    }
+
+    .about-section p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.8;
+      margin-bottom: 1.25rem;
+    }
+
+    .about-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.25rem;
+      margin-top: 2rem;
+    }
+
+    .about-links a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+
+    .about-links a:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+      background: var(--accent-glow);
+    }
+
+    .about-links svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
     /* CORRECTION UI */
     .btn-correct {
       display: inline-flex;
@@ -1501,6 +1553,7 @@
       <a href="#how-it-works">Architecture</a>
       <a href="#domains">Domains</a>
       <a href="#pricing">Pricing</a>
+      <a href="#about">About</a>
       <a href="https://github.com/bws82/biasclear" target="_blank">GitHub</a>
       <a href="/docs" class="btn-nav">API Docs</a>
     </div>
@@ -1832,6 +1885,30 @@
       <button type="submit">Request Access</button>
     </form>
     <div class="signup-confirm" id="signup-confirm">✓ Request received. We'll be in touch.</div>
+  </div>
+
+  <div class="about-section" id="about">
+    <h2>About BiasClear</h2>
+    <p>BiasClear was founded in 2025 by Bradley Slimp, an independent AI safety researcher based in Boerne, Texas. With 20+ years of experience in operations management and retail banking — including 11 years at Wells Fargo managing multi-site operations and nine-figure asset portfolios — Brad identified a critical gap in the AI safety stack: no tool existed to audit the structural persuasion patterns in AI-generated text.</p>
+    <p>BiasClear is built on the Persistence of Information Theory (PIT) framework, published on SSRN and Zenodo (DOI: 10.5281/zenodo.18676405). The tool is open-source under AGPL-3.0 and designed for regulatory compliance with the Colorado AI Act (SB 205) and the EU AI Act.</p>
+    <div class="about-links">
+      <a href="https://www.linkedin.com/in/brad-s-82694021/" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.3 6.5a1.78 1.78 0 01-1.8 1.75zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19a.66.66 0 000 .14V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.36.86 3.36 3.66z"/></svg>
+        LinkedIn
+      </a>
+      <a href="https://github.com/bws82/biasclear" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+        GitHub
+      </a>
+      <a href="mailto:brad@biasclear.com">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+        brad@biasclear.com
+      </a>
+      <a href="https://doi.org/10.5281/zenodo.18676405" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        Published Research
+      </a>
+    </div>
   </div>
 
   <footer>
