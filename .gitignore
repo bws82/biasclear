@@ -24,5 +24,23 @@ Thumbs.db
 *.swp
 *.swo
 
+# Certificates and keys
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.cer
+
+# Logs
+*.log
+
+# Alternate DB extensions
+*.sqlite3
+
+# Environment variants (keep .env.example)
+.env.*
+!.env.example
+
 # Calibration reports (regenerated on demand)
 calibration/reports/
