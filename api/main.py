@@ -37,7 +37,7 @@ from biasclear.audit import audit_chain
 from biasclear.detector import scan_local, scan_deep, scan_full
 from biasclear.corrector import correct_bias
 from biasclear.patterns.learned import learning_ring
-from biasclear.llm.factory import get_provider
+from biasclear.llm.factory import get_provider_with_fallback
 from biasclear.auth import require_api_key, AUTH_ENABLED
 from biasclear.rate_limit import check_rate_limit
 from biasclear.cache import scan_cache
@@ -238,7 +238,7 @@ _llm = None
 def _get_llm():
     global _llm
     if _llm is None:
-        _llm = get_provider(settings.LLM_PROVIDER)
+        _llm = get_provider_with_fallback()
     return _llm
 
 
