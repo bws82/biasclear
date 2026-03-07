@@ -13,22 +13,50 @@ BiasClear scans text for rhetorical manipulation patterns — manufactured conse
 
 ## Quick Start
 
+### Install
+
 ```bash
-# Clone and install
-git clone https://github.com/bws82/biasclear.git
-cd biasclear
-pip install -e ".[dev,api]"
-
-# Configure
-cp .env.example .env
-# Edit .env — set BIASCLEAR_LLM_PROVIDER and provider credentials
-# Default: Bedrock (AWS). Alternative: Gemini (Google).
-
-# Run
-uvicorn api.main:app --reload
+pip install biasclear
 ```
 
-The API is live at `http://localhost:8000`. Interactive docs at `/docs`.
+### Configure
+
+BiasClear supports multiple LLM providers for contextual/deep analysis.
+
+- **Production default:** Amazon Bedrock
+- **Fallback / optional:** Gemini
+
+Set the provider and credentials you want to use:
+
+```bash
+# Option A — Amazon Bedrock (recommended)
+export BIASCLEAR_LLM_PROVIDER=bedrock
+export AWS_REGION=us-east-1
+export BEDROCK_MODEL_ID=us.anthropic.claude-sonnet-4-6
+# For authentication, use one of the following:
+# Render / bearer token path
+export AWS_BEARER_TOKEN_BEDROCK=your_bedrock_bearer_token
+# Standard AWS credentials
+export AWS_ACCESS_KEY_ID=your_access_key_id
+export AWS_SECRET_ACCESS_KEY=your_secret_access_key
+
+# Option B — Gemini (fallback / optional)
+export BIASCLEAR_LLM_PROVIDER=gemini
+export GEMINI_API_KEY=your_gemini_api_key
+```
+
+### Run a scan
+
+```python
+from biasclear import scan_text
+
+result = scan_text(
+    text="Experts agree there is no reasonable alternative, so immediate action is required.",
+    mode="deep"
+)
+
+print(result)
+```
 
 ## Architecture
 
@@ -52,6 +80,16 @@ The API is live at `http://localhost:8000`. Interactive docs at `/docs`.
 │        SHA-256 hash-chained · SQLite        │
 └─────────────────────────────────────────────┘
 ```
+
+## Runtime
+
+BiasClear uses a provider-flexible architecture for contextual and deep analysis.
+
+- **Current production default:** Amazon Bedrock
+- **Current model path:** Anthropic Claude via Bedrock
+- **Fallback option:** Gemini
+
+The deterministic core scan remains rule-based and reproducible regardless of provider choice. Provider-backed analysis is used to extend contextual interpretation, not to replace the core structural audit layer.
 
 ## Scan Modes
 
@@ -84,19 +122,54 @@ The API is live at `http://localhost:8000`. Interactive docs at `/docs`.
 
 ## Configuration
 
-Copy `.env.example` to `.env` and configure:
+### Core settings
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `BIASCLEAR_LLM_PROVIDER` | No | `gemini` | LLM provider: `bedrock` or `gemini` |
-| `AWS_BEARER_TOKEN_BEDROCK` | If bedrock | — | Bedrock API key (long-term or short-term) |
-| `AWS_REGION` | If bedrock | `us-east-1` | AWS region for Bedrock |
-| `BEDROCK_MODEL_ID` | If bedrock | `us.anthropic.claude-sonnet-4-6` | Bedrock model ID |
-| `GEMINI_API_KEY` | If gemini | — | Google Gemini API key |
-| `BIASCLEAR_API_KEYS` | Production | — | Comma-separated API keys for auth |
-| `BIASCLEAR_CORS_ORIGINS` | Production | `https://biasclear.com` | Allowed origins |
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `BIASCLEAR_API_KEYS` | Yes (for hosted API use) | API keys authorized to access protected endpoints |
+| `BIASCLEAR_LLM_PROVIDER` | No | LLM provider for contextual/deep analysis. Supported values: `bedrock`, `gemini` |
+| `AWS_REGION` | Required for Bedrock | AWS region for Bedrock runtime (default recommended: `us-east-1`) |
+| `BEDROCK_MODEL_ID` | Required for Bedrock | Bedrock model ID used for deep analysis |
+| `AWS_BEARER_TOKEN_BEDROCK` | Optional for Bedrock | Bedrock bearer-token auth path, commonly used in hosted environments like Render |
+| `AWS_ACCESS_KEY_ID` | Optional for Bedrock | Standard AWS access key for local/dev environments |
+| `AWS_SECRET_ACCESS_KEY` | Optional for Bedrock | Standard AWS secret key for local/dev environments |
+| `GEMINI_API_KEY` | Required only for Gemini | Gemini API key if using Gemini as provider |
 
-**Production default:** Bedrock with Anthropic Claude Sonnet 4.6. Gemini available as fallback — switch by changing `BIASCLEAR_LLM_PROVIDER`.
+### Notes
+
+- **Production default:** Bedrock
+- **Current recommended provider:** Amazon Bedrock
+- **Gemini remains supported as a fallback**
+- If `BIASCLEAR_LLM_PROVIDER` is not set, configure your deployment to use the intended default explicitly
+- Do not commit secrets to source control; use environment variables or your deployment platform's secret manager
+
+### Example environment configuration
+
+#### Bedrock (recommended)
+
+```bash
+BIASCLEAR_LLM_PROVIDER=bedrock
+AWS_REGION=us-east-1
+BEDROCK_MODEL_ID=us.anthropic.claude-sonnet-4-6
+AWS_BEARER_TOKEN_BEDROCK=your_bedrock_bearer_token
+```
+
+#### Bedrock (standard AWS credentials)
+
+```bash
+BIASCLEAR_LLM_PROVIDER=bedrock
+AWS_REGION=us-east-1
+BEDROCK_MODEL_ID=us.anthropic.claude-sonnet-4-6
+AWS_ACCESS_KEY_ID=your_access_key_id
+AWS_SECRET_ACCESS_KEY=your_secret_access_key
+```
+
+#### Gemini (fallback)
+
+```bash
+BIASCLEAR_LLM_PROVIDER=gemini
+GEMINI_API_KEY=your_gemini_api_key
+```
 
 See `.env.example` for the full list.
 
@@ -119,6 +192,10 @@ python run_calibration.py --optimize
 docker build -t biasclear .
 docker run -p 8000:8000 --env-file .env biasclear
 ```
+
+## Security
+
+Do not place live credentials in source code, examples, issue threads, or pull requests. Use environment variables and deployment-platform secret storage only.
 
 ## License
 
