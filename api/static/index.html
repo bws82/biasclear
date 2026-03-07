@@ -2080,11 +2080,20 @@
       }, 1500);
 
       try {
-        const res = await fetch('/scan', {
+        let res = await fetch('/scan', {
           method: 'POST',
           headers: getPlaygroundHeaders(),
           body: JSON.stringify({ text, domain, mode: 'deep' })
         });
+
+        // If deep scan fails (LLM unavailable), fall back to local scan silently
+        if (res.status === 502) {
+          res = await fetch('/scan', {
+            method: 'POST',
+            headers: getPlaygroundHeaders(),
+            body: JSON.stringify({ text, domain, mode: 'local' })
+          });
+        }
 
         clearInterval(stepInterval);
 
