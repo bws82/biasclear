@@ -23,9 +23,12 @@ This module holds the expanding DETECTION CAPABILITY.
 from __future__ import annotations
 
 import json
+import logging
 import os
 import sqlite3
 import threading
+
+logger = logging.getLogger("biasclear.patterns.learned")
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -154,7 +157,7 @@ class LearningRing:
                         )
                 conn.commit()
         except Exception:
-            pass  # JSON load failure is non-fatal
+            logger.warning("JSON load failed", exc_info=True)
 
     def _persist_to_json(self):
         """Write all patterns to JSON file for cross-deploy persistence."""
@@ -164,7 +167,7 @@ class LearningRing:
             with open(self.json_path, "w") as f:
                 json.dump(patterns, f, indent=2)
         except Exception:
-            pass  # JSON write failure is non-fatal
+            logger.warning("JSON write failed", exc_info=True)
 
     def propose(
         self,

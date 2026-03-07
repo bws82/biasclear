@@ -97,13 +97,15 @@ async def lifespan(app: FastAPI):
             "Set BIASCLEAR_API_KEYS in Render environment variables to enable auth."
         )
 
-    # Warn if Gemini API key is missing — deep/full scans will degrade to local-only
-    if not settings.GEMINI_API_KEY:
+    # Warn if LLM credentials are missing for the configured provider
+    if settings.LLM_PROVIDER == "gemini" and not settings.GEMINI_API_KEY:
         logger.warning(
-            "⚠️  GEMINI_API_KEY not set — deep and full scan modes will fall back to "
-            "local-only analysis. Set GEMINI_API_KEY in environment variables for "
-            "full detection capability. Get a key: https://aistudio.google.com/apikey"
+            "GEMINI_API_KEY not set — deep and full scan modes will fall back to "
+            "local-only analysis. Set GEMINI_API_KEY for full detection capability."
         )
+    elif settings.LLM_PROVIDER == "bedrock":
+        logger.info("Bedrock provider configured (region=%s, model=%s)",
+                    settings.AWS_REGION, settings.BEDROCK_MODEL_ID)
 
     learning_ring.set_audit_logger(audit_chain.log)
     logger.info("BiasClear API starting",
@@ -121,12 +123,12 @@ app = FastAPI(
     description=(
         "Structural bias detection engine built on Persistent Influence Theory (PIT). "
         "Detects rhetorical manipulation patterns in text across legal, media, financial, "
-        "and general domains. Features a frozen deterministic core (34 patterns), "
+        "and general domains. Features a frozen deterministic core (39 patterns), "
         "LLM-powered deep analysis, bias correction, and SHA-256 hash-chained audit trail.\n\n"
         "**Quick Start:** `POST /scan` with `{\"text\": \"your text\", \"mode\": \"local\"}` "
         "to scan for bias.\n\n"
-        "**Peer-reviewed:** DOI 10.5281/zenodo.18676405\n\n"
-        "**Compliance:** Designed for Colorado SB 205 and EU AI Act readiness."
+        "**Published preprint:** DOI 10.5281/zenodo.18676405\n\n"
+        "**Alignment:** Designed for Colorado SB 205 and EU AI Act alignment."
     ),
     version=f"1.1.0 (core {CORE_VERSION})",
     lifespan=lifespan,
@@ -684,14 +686,7 @@ async def health():
     all_learned = learning_ring.get_all_patterns()
     audit_count = audit_chain.get_count()
 
-    # Count total scans from audit chain
-    total_scans = 0
-    try:
-        for evt_type in ("scan_local", "scan_deep", "scan_full", "scan_batch"):
-            total_scans += audit_chain.get_count(event_type=evt_type)
-    except (TypeError, Exception):
-        # Fallback if get_count doesn't support event_type filter
-        total_scans = audit_count
+    total_scans = audit_count
 
     # Check LLM availability via circuit breaker state
     llm_available = True

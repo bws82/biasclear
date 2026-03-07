@@ -7,7 +7,7 @@ Re-exports from submodules for clean imports.
 from biasclear.llm import LLMProvider
 
 
-def get_provider(provider_name: str = "gemini") -> LLMProvider:
+def get_provider(provider_name: str = "bedrock") -> LLMProvider:
     """Factory — returns the configured LLM provider."""
     if provider_name == "gemini":
         from biasclear.llm.gemini import GeminiProvider
