@@ -33,6 +33,12 @@ class Settings:
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
     GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 
+    # --- Bedrock Provider (alternative to Gemini) ---
+    AWS_REGION: str = os.getenv("AWS_REGION", "us-east-1")
+    BEDROCK_MODEL_ID: str = os.getenv(
+        "BEDROCK_MODEL_ID", "us.anthropic.claude-haiku-4-5-20251001-v1:0"
+    )
+
     # --- Audit ---
     AUDIT_DB_PATH: str = os.getenv("BIASCLEAR_AUDIT_DB", _DEFAULT_AUDIT_PATH)
 

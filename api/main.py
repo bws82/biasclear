@@ -41,7 +41,7 @@ from biasclear.llm.factory import get_provider
 from biasclear.auth import require_api_key, AUTH_ENABLED
 from biasclear.rate_limit import check_rate_limit
 from biasclear.cache import scan_cache
-from biasclear.llm.gemini import CircuitOpenError
+from biasclear.llm import CircuitOpenError
 from biasclear.playground_token import (
     create_playground_token,
     validate_playground_token,
