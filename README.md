@@ -21,7 +21,8 @@ pip install -e ".[dev,api]"
 
 # Configure
 cp .env.example .env
-# Edit .env — add your GEMINI_API_KEY for deep/full scans
+# Edit .env — set BIASCLEAR_LLM_PROVIDER and provider credentials
+# Default: Bedrock (AWS). Alternative: Gemini (Google).
 
 # Run
 uvicorn api.main:app --reload
@@ -85,11 +86,17 @@ The API is live at `http://localhost:8000`. Interactive docs at `/docs`.
 
 Copy `.env.example` to `.env` and configure:
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `GEMINI_API_KEY` | For deep/full scans | Google Gemini API key |
-| `BIASCLEAR_API_KEYS` | Production | Comma-separated API keys |
-| `BIASCLEAR_CORS_ORIGINS` | Production | Allowed origins (default: `*`) |
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `BIASCLEAR_LLM_PROVIDER` | No | `gemini` | LLM provider: `bedrock` or `gemini` |
+| `AWS_BEARER_TOKEN_BEDROCK` | If bedrock | — | Bedrock API key (long-term or short-term) |
+| `AWS_REGION` | If bedrock | `us-east-1` | AWS region for Bedrock |
+| `BEDROCK_MODEL_ID` | If bedrock | `us.anthropic.claude-sonnet-4-6` | Bedrock model ID |
+| `GEMINI_API_KEY` | If gemini | — | Google Gemini API key |
+| `BIASCLEAR_API_KEYS` | Production | — | Comma-separated API keys for auth |
+| `BIASCLEAR_CORS_ORIGINS` | Production | `https://biasclear.com` | Allowed origins |
+
+**Production default:** Bedrock with Anthropic Claude Sonnet 4.6. Gemini available as fallback — switch by changing `BIASCLEAR_LLM_PROVIDER`.
 
 See `.env.example` for the full list.
 
