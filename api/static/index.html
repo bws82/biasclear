@@ -1566,7 +1566,7 @@
       — and shows exactly how the text is engineered to influence the reader.</p>
     <div class="hero-actions">
       <a href="#playground" class="btn btn-primary">Try the Playground</a>
-      <a href="https://doi.org/10.5281/zenodo.18676405" class="btn btn-outline" target="_blank">Read the Paper</a>
+      <a href="https://doi.org/10.5281/zenodo.18676405" class="btn btn-outline" target="_blank">Read the Preprint</a>
       <button class="btn-self-scan" id="btn-self-scan" onclick="selfScan()">⚡ Scan This Page</button>
     </div>
     <div style="margin-top:1.5rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
@@ -1582,11 +1582,11 @@
 
   <!-- COMPLIANCE BAR -->
   <div class="compliance-bar" id="compliance">
-    <div class="compliance-item"><span class="check">✓</span> Designed for SB 205 Compliance</div>
-    <div class="compliance-item"><span class="check">✓</span> Designed for EU AI Act Compliance</div>
+    <div class="compliance-item"><span class="check">✓</span> Designed for SB 205 Alignment</div>
+    <div class="compliance-item"><span class="check">✓</span> Designed for EU AI Act Alignment</div>
     <div class="compliance-item"><span class="check">✓</span> SHA-256 Audit Chain</div>
     <div class="compliance-item"><span class="check">✓</span> AGPL-3.0 Licensed</div>
-    <div class="compliance-item"><span class="check">✓</span> Peer-Reviewed (DOI)</div>
+    <div class="compliance-item"><span class="check">✓</span> Published Preprint (DOI)</div>
   </div>
 
   <div class="stats">
@@ -1676,7 +1676,7 @@
         <div class="pipeline-num">3</div>
         <div class="pipeline-content">
           <h3>Deep Analysis (AI-Powered)</h3>
-          <p>LLM-powered analysis runs under the frozen core's governance principles. It sees what the rules can't —
+          <p>LLM-powered analysis runs under the frozen core's governance principles via a provider-flexible runtime (currently AWS Bedrock / Anthropic Claude). It sees what the rules can't —
             novel manipulation, contextual framing, implicit bias.</p>
         </div>
       </div>
@@ -1788,7 +1788,7 @@
     <h2 style="text-align:center;font-size:2rem;font-weight:700;letter-spacing:-0.02em;margin-bottom:1rem;">Integrate in
       Minutes</h2>
     <p style="color:var(--text-muted);text-align:center;max-width:600px;margin:0 auto 0;font-size:1.05rem;">
-      Python SDK, REST API, or direct HTTP. Scan any text with three lines of code.
+      REST API or direct HTTP. Scan any text with a few lines of code. Python client SDK available on <a href="https://pypi.org/project/biasclear" target="_blank" style="color:var(--accent);">PyPI</a>.
     </p>
     <div class="code-block">
       <div class="code-header">
@@ -1796,7 +1796,7 @@
         <span>Python</span>
       </div>
       <div class="code-body">
-        <span class="comment"># pip install biasclear</span><br>
+        <span class="comment"># pip install biasclear  (Python client SDK)</span><br>
         <span class="kw">import</span> requests<br><br>
         <span class="var">response</span> = requests.<span class="fn">post</span>(<span
           class="str">"https://biasclear.com/scan"</span>, json={<br>
@@ -1855,18 +1855,18 @@
           <li>Scan certificates</li>
           <li>SHA-256 audit trail</li>
           <li>API key + rate limiting</li>
-          <li>pip install biasclear</li>
+          <li>Python client SDK (pip install)</li>
         </ul>
         <a href="#beta" class="pricing-cta primary">Request API Key</a>
       </div>
       <div class="pricing-card">
-        <div class="pricing-tier">Enterprise</div>
+        <div class="pricing-tier">Enterprise <span style="font-size:0.7em;opacity:0.7;">(Coming Soon)</span></div>
         <div class="pricing-price">Custom</div>
         <div class="pricing-desc">For regulated industries and compliance teams.</div>
         <ul class="pricing-features">
           <li>Unlimited scans</li>
           <li>Custom detection patterns</li>
-          <li>Compliance reports (SB 205, EU AI Act)</li>
+          <li>Alignment reports (SB 205, EU AI Act)</li>
           <li>SLA guarantee</li>
           <li>Dedicated support</li>
           <li>On-premise deployment</li>
@@ -1889,8 +1889,8 @@
 
   <div class="about-section" id="about">
     <h2>About BiasClear</h2>
-    <p>BiasClear was founded in 2025 by Bradley Slimp, an independent AI safety researcher based in Boerne, Texas. With 20+ years of experience in operations management and retail banking — including 11 years at Wells Fargo managing multi-site operations and nine-figure asset portfolios — Brad identified a critical gap in the AI safety stack: no tool existed to audit the structural persuasion patterns in AI-generated text.</p>
-    <p>BiasClear is built on the Persistence of Information Theory (PIT) framework, published on SSRN and Zenodo (DOI: 10.5281/zenodo.18676405). The tool is open-source under AGPL-3.0 and designed for regulatory compliance with the Colorado AI Act (SB 205) and the EU AI Act.</p>
+    <p>BiasClear was created in 2025 by Bradley Slimp, an independent researcher and operations executive based in Boerne, Texas. With 20+ years of experience in operations management and retail banking — including 11 years at Wells Fargo managing multi-site operations and nine-figure asset portfolios — Brad identified a gap in the AI safety stack: no tool existed to audit the structural persuasion patterns in AI-generated text.</p>
+    <p>BiasClear is built on the Persistent Influence Theory (PIT) framework, a preprint published on <a href="https://doi.org/10.5281/zenodo.18676405" target="_blank" style="color:var(--accent);">Zenodo</a> and <a href="https://papers.ssrn.com/" target="_blank" style="color:var(--accent);">SSRN</a> (DOI: 10.5281/zenodo.18676405). PIT has not yet undergone formal peer review. The tool is open-source under AGPL-3.0 and designed with alignment toward emerging AI governance frameworks including the Colorado AI Act (SB 205) and the EU AI Act. Development supported by AWS Activate.</p>
     <div class="about-links">
       <a href="https://www.linkedin.com/in/brad-s-82694021/" target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.3 6.5a1.78 1.78 0 01-1.8 1.75zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19a.66.66 0 000 .14V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.36.86 3.36 3.66z"/></svg>
@@ -1906,7 +1906,7 @@
       </a>
       <a href="https://doi.org/10.5281/zenodo.18676405" target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-        Published Research
+        Published Preprint
       </a>
     </div>
   </div>
