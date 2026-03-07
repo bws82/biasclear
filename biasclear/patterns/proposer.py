@@ -20,12 +20,15 @@ The proposer is the bridge.
 
 from __future__ import annotations
 
+import logging
 import re
 import hashlib
 from typing import Optional
 
 from biasclear.llm import LLMProvider
-from biasclear.frozen_core import frozen_core, PIT_TIERS
+from biasclear.frozen_core import PIT_TIERS
+
+logger = logging.getLogger("biasclear.patterns.proposer")
 
 
 PATTERN_EXTRACTION_PROMPT = """You are a pattern engineer for a bias detection system.
@@ -139,7 +142,8 @@ class PatternProposer:
                 ),
                 temperature=0.2,
             )
-        except Exception:
+        except Exception as e:
+            logger.warning("Pattern extraction failed: %s", e)
             return []
 
         # Validate the LLM's response

@@ -16,7 +16,9 @@ BiasClear scans text for rhetorical manipulation patterns — manufactured conse
 ### Install
 
 ```bash
-pip install biasclear
+git clone https://github.com/bws82/biasclear.git
+cd biasclear
+pip install ".[api]"
 ```
 
 ### Configure
@@ -48,14 +50,13 @@ export GEMINI_API_KEY=your_gemini_api_key
 ### Run a scan
 
 ```python
-from biasclear import scan_text
+from biasclear import scan_local
 
-result = scan_text(
-    text="Experts agree there is no reasonable alternative, so immediate action is required.",
-    mode="deep"
-)
+# Local scan — deterministic, zero API cost
+result = scan_local("Experts agree there is no reasonable alternative.")
+print(result["truth_score"], result["flags"])
 
-print(result)
+# For deep/full scans, configure an LLM provider (see Configuration)
 ```
 
 ## Architecture
@@ -109,13 +110,16 @@ The deterministic core scan remains rule-based and reproducible regardless of pr
 | `GET` | `/patterns` | List active detection patterns |
 | `GET` | `/audit` | Recent audit chain entries |
 | `GET` | `/audit/verify` | Verify audit chain integrity |
+| `POST` | `/certificate` | Generate a bias scan certificate |
+| `GET` | `/certificate/verify/{hash}` | Verify a certificate by audit hash |
+| `GET` | `/patterns/learned` | List learned (non-frozen) patterns |
 | `GET` | `/health` | Health check |
 
 ## Detection Domains
 
 | Domain | Patterns | Example Targets |
 |--------|----------|----------------|
-| General | 14 | Consensus-as-evidence, false binary, fear urgency, shame lever |
+| General | 19 | Consensus-as-evidence, false binary, fear urgency, shame lever |
 | Legal | 6 | Settled-law dismissal, sanctions threats, straw man arguments |
 | Media | 9 | Editorial-as-news, anonymous attribution, weasel quantifiers |
 | Financial | 5 | Survivorship bias, anchoring, cherry-picked timeframes |
@@ -140,7 +144,7 @@ The deterministic core scan remains rule-based and reproducible regardless of pr
 - **Production default:** Bedrock
 - **Current recommended provider:** Amazon Bedrock
 - **Gemini remains supported as a fallback**
-- If `BIASCLEAR_LLM_PROVIDER` is not set, configure your deployment to use the intended default explicitly
+- If `BIASCLEAR_LLM_PROVIDER` is not set, it defaults to `bedrock`
 - Do not commit secrets to source control; use environment variables or your deployment platform's secret manager
 
 ### Example environment configuration

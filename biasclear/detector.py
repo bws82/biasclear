@@ -210,7 +210,7 @@ async def scan_deep(
         score_breakdown=score_breakdown,
     )
 
-    # Self-scan — check Gemini's own explanation for bias
+    # Self-scan — check the LLM's own explanation for bias
     result["self_scan"] = _self_scan(result.get("explanation", ""))
 
     # Self-learning loop — propose novel patterns
@@ -255,11 +255,11 @@ async def scan_full(
         text, domain=domain, external_patterns=external_patterns,
     )
 
-    # Build local flag summary for Gemini deduplication
+    # Build local flag summary for LLM deduplication
     local_flag_ids = [f.pattern_id for f in core_eval.flags]
     local_flags_str = ", ".join(local_flag_ids) if local_flag_ids else "(none)"
 
-    # Phase 2: Deep — Gemini as co-detector
+    # Phase 2: Deep — LLM as co-detector
     prompt = DEEP_ANALYSIS_PROMPT.format(
         principles=frozen_core.get_principles_prompt(),
         domain_context=DOMAIN_CONTEXT.get(domain, ""),
@@ -272,7 +272,7 @@ async def scan_full(
     try:
         deep_result = await llm.generate_json(prompt, temperature=0.2)
     except Exception as e:
-        logger.warning("Gemini co-detection failed: %s", e)
+        logger.warning("LLM co-detection failed: %s", e)
         _llm_failed = True
 
     # Phase 3: Score (includes AI flag penalties)
@@ -325,7 +325,7 @@ async def scan_full(
             "Truth score has been capped at 85."
         )
 
-    # Phase 6: Self-scan — check Gemini's own explanation for bias
+    # Phase 6: Self-scan — check the LLM's own explanation for bias
     result["self_scan"] = _self_scan(result.get("explanation", ""))
 
     # Phase 7: Self-learning loop — propose novel patterns
@@ -351,7 +351,7 @@ async def scan_full(
 
 def _self_scan(explanation: str) -> Optional[dict]:
     """
-    Self-scan: run the frozen core on Gemini's own explanation.
+    Self-scan: run the frozen core on the LLM's own explanation.
 
     Detects bias in BiasClear's AI output before it reaches the user.
     Uses local scan only (zero API cost, deterministic, ~5ms).
@@ -392,7 +392,7 @@ def _extract_ai_flags(
     deep_result: Optional[dict],
     local_flag_ids: list[str],
 ) -> list[dict]:
-    """Extract and validate AI-detected flags from Gemini response."""
+    """Extract and validate AI-detected flags from LLM response."""
     if not deep_result:
         return []
 
@@ -552,7 +552,7 @@ def _build_result(
         ),
         "scan_mode": scan_mode,
         "source": "local" if scan_mode == "local" else (
-            "gemini+local" if deep_result else "local_fallback"
+            "llm+local" if deep_result else "local_fallback"
         ),
         "core_version": CORE_VERSION,
         "score_breakdown": score_breakdown,

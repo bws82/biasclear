@@ -10,17 +10,17 @@ The frozen core defines:
   4. The evaluation engine (rule-based, zero API cost)
 
 This module is FROZEN. It does not learn, adapt, or drift.
-Its principles are code, not weights. They cannot be:
-  - Prompt-injected
-  - Modified at runtime
-  - Overridden by model output
-  - Updated without a new versioned release
+Its principles are code, not weights. By design, they resist:
+  - Prompt injection (no LLM in the evaluation path)
+  - Runtime modification (frozen dataclass, no mutation API)
+  - Model output overrides (scoring is deterministic)
+  - Unversioned changes (any update requires a new release)
 
 The outer learning ring (patterns/learned.py) can expand
 DETECTION capability. It cannot redefine what a distortion IS.
 That definition lives here and only here.
 
-Version: 1.0.0
+Version: 1.2.0
 """
 
 from __future__ import annotations

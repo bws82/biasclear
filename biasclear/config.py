@@ -5,7 +5,7 @@ Central settings loaded from environment variables.
 """
 
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -29,11 +29,11 @@ class Settings:
     API_VERSION: str = "1"
 
     # --- LLM Provider ---
-    LLM_PROVIDER: str = os.getenv("BIASCLEAR_LLM_PROVIDER", "gemini")
+    LLM_PROVIDER: str = os.getenv("BIASCLEAR_LLM_PROVIDER", "bedrock")
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
     GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 
-    # --- Bedrock Provider (alternative to Gemini) ---
+    # --- Bedrock Provider (production default) ---
     AWS_REGION: str = os.getenv("AWS_REGION", "us-east-1")
     BEDROCK_MODEL_ID: str = os.getenv(
         "BEDROCK_MODEL_ID", "us.anthropic.claude-sonnet-4-6"

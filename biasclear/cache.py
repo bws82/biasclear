@@ -4,7 +4,7 @@ Scan Result Cache
 In-memory TTL cache for scan results.
 Key = SHA-256(text + domain + mode). TTL = 1 hour.
 
-Prevents duplicate Gemini API calls for identical inputs.
+Prevents duplicate LLM API calls for identical inputs.
 Thread-safe via asyncio lock.
 
 Usage:
