@@ -119,4 +119,19 @@ class _FallbackProvider(LLMProvider):
                     temperature=temperature,
                     json_mode=json_mode,
                 )
-            raise
+
+            # Transient error — try fallback once without permanently switching
+            logger.warning(
+                "Primary provider %s transient error: %s. "
+                "Trying fallback %s for this request.",
+                self._primary_name, e, self._fallback_name,
+            )
+            try:
+                return await self._get_fallback().generate(
+                    prompt=prompt,
+                    system_instruction=system_instruction,
+                    temperature=temperature,
+                    json_mode=json_mode,
+                )
+            except Exception:
+                raise e  # re-raise original if fallback also fails
