@@ -1,0 +1,46 @@
+# Git
+.git/
+.github/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+__pycache__/
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Databases (local dev only)
+*.db
+*.sqlite3
+
+# Credentials
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Logs
+*.log
+
+# Tests (not needed in production image)
+tests/
+
+# Calibration reports
+calibration/reports/
+
+# Claude
+.claude/
