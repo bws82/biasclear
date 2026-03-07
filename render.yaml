@@ -26,7 +26,9 @@ services:
         value: "https://biasclear.com"
       - key: BIASCLEAR_API_KEYS
         sync: false  # Must be set manually in dashboard
+      - key: AWS_ACCESS_KEY_ID
+        sync: false  # Must be set manually in dashboard
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false  # Must be set manually in dashboard
       - key: GEMINI_API_KEY
         sync: false  # Must be set manually in dashboard (fallback provider)
-      - key: AWS_BEARER_TOKEN_BEDROCK
-        sync: false  # Must be set manually in dashboard (Bedrock API key)
