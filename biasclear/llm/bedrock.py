@@ -33,7 +33,7 @@ class BedrockProvider(LLMProvider):
         self._region = region or os.getenv("AWS_REGION", "us-east-1")
         self._model_id = model_id or os.getenv(
             "BEDROCK_MODEL_ID",
-            "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+            "us.anthropic.claude-sonnet-4-6",
         )
         self._client = None
         self.circuit_breaker = CircuitBreaker()

@@ -36,7 +36,7 @@ class Settings:
     # --- Bedrock Provider (alternative to Gemini) ---
     AWS_REGION: str = os.getenv("AWS_REGION", "us-east-1")
     BEDROCK_MODEL_ID: str = os.getenv(
-        "BEDROCK_MODEL_ID", "us.anthropic.claude-sonnet-4-6-20250514-v1:0"
+        "BEDROCK_MODEL_ID", "us.anthropic.claude-sonnet-4-6"
     )
 
     # --- Audit ---
