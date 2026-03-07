@@ -35,10 +35,6 @@ Set the provider and credentials you want to use:
 export BIASCLEAR_LLM_PROVIDER=bedrock
 export AWS_REGION=us-east-1
 export BEDROCK_MODEL_ID=us.anthropic.claude-sonnet-4-6
-# For authentication, use one of the following:
-# Render / bearer token path
-export AWS_BEARER_TOKEN_BEDROCK=your_bedrock_bearer_token
-# Standard AWS credentials
 export AWS_ACCESS_KEY_ID=your_access_key_id
 export AWS_SECRET_ACCESS_KEY=your_secret_access_key
 
@@ -134,9 +130,8 @@ The deterministic core scan remains rule-based and reproducible regardless of pr
 | `BIASCLEAR_LLM_PROVIDER` | No | LLM provider for contextual/deep analysis. Supported values: `bedrock`, `gemini` |
 | `AWS_REGION` | Required for Bedrock | AWS region for Bedrock runtime (default recommended: `us-east-1`) |
 | `BEDROCK_MODEL_ID` | Required for Bedrock | Bedrock model ID used for deep analysis |
-| `AWS_BEARER_TOKEN_BEDROCK` | Optional for Bedrock | Bedrock bearer-token auth path, commonly used in hosted environments like Render |
-| `AWS_ACCESS_KEY_ID` | Optional for Bedrock | Standard AWS access key for local/dev environments |
-| `AWS_SECRET_ACCESS_KEY` | Optional for Bedrock | Standard AWS secret key for local/dev environments |
+| `AWS_ACCESS_KEY_ID` | Required for Bedrock | AWS access key (or use IAM role / `~/.aws/credentials`) |
+| `AWS_SECRET_ACCESS_KEY` | Required for Bedrock | AWS secret key (or use IAM role / `~/.aws/credentials`) |
 | `GEMINI_API_KEY` | Required only for Gemini | Gemini API key if using Gemini as provider |
 
 ### Notes
@@ -150,15 +145,6 @@ The deterministic core scan remains rule-based and reproducible regardless of pr
 ### Example environment configuration
 
 #### Bedrock (recommended)
-
-```bash
-BIASCLEAR_LLM_PROVIDER=bedrock
-AWS_REGION=us-east-1
-BEDROCK_MODEL_ID=us.anthropic.claude-sonnet-4-6
-AWS_BEARER_TOKEN_BEDROCK=your_bedrock_bearer_token
-```
-
-#### Bedrock (standard AWS credentials)
 
 ```bash
 BIASCLEAR_LLM_PROVIDER=bedrock
