@@ -32,14 +32,17 @@ class RateWindow:
     timestamps: list[float] = field(default_factory=list)
 
     def count_within(self, window_seconds: float) -> int:
-        """Count requests within the sliding window."""
+        """Count requests within the sliding window (non-mutating)."""
         cutoff = time.time() - window_seconds
-        self.timestamps = [t for t in self.timestamps if t > cutoff]
-        return len(self.timestamps)
+        return sum(1 for t in self.timestamps if t > cutoff)
 
     def record(self):
-        """Record a new request."""
-        self.timestamps.append(time.time())
+        """Record a new request and trim stale entries."""
+        now = time.time()
+        self.timestamps.append(now)
+        # Trim entries older than max window (1 hour) to bound memory
+        if len(self.timestamps) > 100:
+            self.timestamps = [t for t in self.timestamps if t > now - 3600]
 
 
 @dataclass

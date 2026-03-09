@@ -13,6 +13,7 @@ GET  /health       — Health check
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import re
 import time
 import uuid
@@ -190,8 +191,11 @@ async def beta_signup(request: Request):
         logger.info("Beta signup recorded", extra={"email": email})
         return JSONResponse({"status": "ok", "message": "Signup recorded"})
     except Exception:
-        logger.warning("Beta signup failed silently", exc_info=True)
-        return JSONResponse({"status": "ok", "message": "Signup recorded"})
+        logger.error("Beta signup failed", exc_info=True)
+        return JSONResponse(
+            {"status": "error", "message": "Signup could not be recorded"},
+            status_code=500,
+        )
 
 
 @app.get("/beta-signups", include_in_schema=False)
@@ -300,7 +304,10 @@ async def scan_text(
     start = time.time()
 
     learned = learning_ring.get_active_patterns()
-    lr_version = str(len(learned))  # Cache key includes learning ring state
+    # Cache key includes learning ring state — hash pattern IDs so any
+    # activation/deactivation invalidates cache (not just count changes)
+    _pattern_ids = sorted(p.id for p in learned)
+    lr_version = hashlib.md5(",".join(_pattern_ids).encode()).hexdigest()[:8] if _pattern_ids else "none"
 
     # Check cache first — identical scans return instantly
     cached = await scan_cache.get(request.text, request.domain, request.mode, extra=lr_version)
