@@ -738,6 +738,82 @@ async def health():
     }
 
 
+@app.get("/stats", tags=["Health"])
+async def stats():
+    """Public usage statistics. No authentication required.
+
+    Returns scan counts by mode, score distribution, top patterns fired,
+    and activity over the last 24 hours. Useful for dashboards and
+    investor/grant due diligence.
+    """
+    recent = audit_chain.get_recent(limit=500)
+
+    # Count scans by mode
+    scans = [e for e in recent if e["event_type"].startswith("scan_")]
+    mode_counts = {}
+    score_buckets = {"0-20": 0, "21-40": 0, "41-60": 0, "61-80": 0, "81-100": 0}
+    pattern_fires = {}
+
+    for scan in scans:
+        data = scan.get("data", {})
+        mode = data.get("scan_mode", data.get("mode", "unknown"))
+        mode_counts[mode] = mode_counts.get(mode, 0) + 1
+
+        # Score distribution
+        score = data.get("truth_score")
+        if score is not None:
+            if score <= 20:
+                score_buckets["0-20"] += 1
+            elif score <= 40:
+                score_buckets["21-40"] += 1
+            elif score <= 60:
+                score_buckets["41-60"] += 1
+            elif score <= 80:
+                score_buckets["61-80"] += 1
+            else:
+                score_buckets["81-100"] += 1
+
+        # Pattern fire frequency
+        for flag in data.get("flags", []):
+            pid = flag.get("pattern_id", "unknown")
+            pattern_fires[pid] = pattern_fires.get(pid, 0) + 1
+
+    # Sort patterns by frequency
+    top_patterns = sorted(
+        pattern_fires.items(), key=lambda x: x[1], reverse=True
+    )[:10]
+
+    # 24-hour activity
+    from datetime import datetime, timezone, timedelta
+    cutoff_24h = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
+    scans_24h = sum(1 for s in scans if s.get("timestamp", "") > cutoff_24h)
+    corrections_24h = sum(
+        1 for e in recent
+        if e["event_type"] == "correction" and e.get("timestamp", "") > cutoff_24h
+    )
+
+    total_audit = audit_chain.get_count()
+    all_learned = learning_ring.get_all_patterns()
+
+    return {
+        "total_scans": len(scans),
+        "total_audit_entries": total_audit,
+        "scans_by_mode": mode_counts,
+        "score_distribution": score_buckets,
+        "top_patterns_fired": [{"pattern_id": p, "count": c} for p, c in top_patterns],
+        "last_24h": {
+            "scans": scans_24h,
+            "corrections": corrections_24h,
+        },
+        "learning_ring": {
+            "active": len([p for p in all_learned if p["status"] == "active"]),
+            "staging": len([p for p in all_learned if p["status"] == "staging"]),
+            "total": len(all_learned),
+        },
+        "uptime_seconds": int(time.time() - _STARTUP_TIME),
+    }
+
+
 @app.get("/patterns", tags=["Patterns"])
 async def get_patterns(
     domain: str = Query("general", pattern="^(general|legal|media|financial|auto)$",
