@@ -129,11 +129,18 @@ class AuditChain:
         ]
 
     def verify_chain(self, limit: int = 100) -> dict:
-        """Verify integrity of the most recent entries."""
+        """Verify integrity of the most recent entries.
+
+        Checks newest entries first (most security-relevant). The subquery
+        fetches the N most recent rows, then we re-sort ASC for chain-link
+        validation (each entry's prev_hash must match the prior entry's hash).
+        """
         with self._get_conn() as conn:
             rows = conn.execute(
                 """SELECT id, prev_hash, hash, event_type, data, timestamp, core_version
-                   FROM audit_chain ORDER BY id ASC LIMIT ?""",
+                   FROM (
+                       SELECT * FROM audit_chain ORDER BY id DESC LIMIT ?
+                   ) ORDER BY id ASC""",
                 (limit,),
             ).fetchall()
 
