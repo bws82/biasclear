@@ -227,6 +227,7 @@ async def scan_deep(
             )
             result["learning_proposals"] = proposals
         except Exception:
+            logger.warning("Learning pattern proposal failed in scan_deep", exc_info=True)
             result["learning_proposals"] = []
     else:
         result["learning_proposals"] = []
@@ -303,6 +304,7 @@ async def scan_full(
                 temperature=0.7,
             )
         except Exception:
+            logger.warning("Impact scoring failed in scan_full", exc_info=True)
             impact = None
 
     result = _build_result(
@@ -342,6 +344,7 @@ async def scan_full(
             )
             result["learning_proposals"] = proposals
         except Exception:
+            logger.warning("Learning pattern proposal failed in scan_full", exc_info=True)
             result["learning_proposals"] = []
     else:
         result["learning_proposals"] = []

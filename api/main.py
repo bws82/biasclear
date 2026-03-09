@@ -199,6 +199,8 @@ async def get_beta_signups(
     key_id: Optional[str] = Depends(require_api_key),
 ):
     """Retrieve all beta signup emails from the audit chain."""
+    if not AUTH_ENABLED:
+        raise HTTPException(status_code=403, detail="Endpoint requires authentication to be enabled.")
     entries = audit_chain.get_recent(limit=500, event_type="beta_signup")
     emails = [
         {
@@ -405,7 +407,7 @@ async def scan_batch(
     raw_request: Request,
     key_id: Optional[str] = Depends(require_api_key),
 ):
-    """Batch scan up to 100 texts concurrently.
+    """Batch scan up to 50 texts concurrently with concurrency cap.
 
     Each item is scanned independently. Failed items return a placeholder
     result with `scan_mode: "error"` rather than failing the entire batch.
@@ -413,6 +415,8 @@ async def scan_batch(
     """
     if key_id is None and AUTH_ENABLED:
         raise HTTPException(401, "Batch scan requires an API key.")
+    if len(request.items) > 50:
+        raise HTTPException(400, "Batch scan limited to 50 items per request.")
     ip = _get_client_ip(raw_request)
     check_rate_limit(key_id, ip=ip)
 
@@ -446,8 +450,15 @@ async def scan_batch(
             result["scan_mode"] = f"local (fallback from {item.mode})"
             return result
 
+    # Concurrency cap: max 10 concurrent LLM calls to prevent overload
+    _batch_semaphore = asyncio.Semaphore(10)
+
+    async def _scan_one_limited(item: ScanRequest) -> dict:
+        async with _batch_semaphore:
+            return await _scan_one(item)
+
     results = await asyncio.gather(
-        *[_scan_one(item) for item in request.items],
+        *[_scan_one_limited(item) for item in request.items],
         return_exceptions=True,
     )
 
@@ -518,13 +529,20 @@ async def correct_text(
     ip = _get_client_ip(raw_request)
 
     # Playground token validation for unauthenticated correction
-    if key_id is None and AUTH_ENABLED is False and x_playground_token:
-        valid, reason = validate_playground_token(x_playground_token, ip)
-        if not valid:
-            raise HTTPException(
-                status_code=403,
-                detail=f"Invalid playground token: {reason}.",
-            )
+    if key_id is None and not AUTH_ENABLED:
+        if x_playground_token:
+            valid, reason = validate_playground_token(x_playground_token, ip)
+            if not valid:
+                raise HTTPException(
+                    status_code=403,
+                    detail=f"Invalid playground token: {reason}.",
+                )
+        # No token and no API key — allow through (playground mode)
+    elif key_id is None and AUTH_ENABLED:
+        raise HTTPException(
+            status_code=401,
+            detail="Authentication required. Include X-API-Key header.",
+        )
 
     check_rate_limit(key_id, ip=ip)
 
@@ -695,6 +713,7 @@ async def health():
         if hasattr(provider, "circuit_breaker"):
             llm_available = not provider.circuit_breaker.is_open
     except Exception:
+        logger.warning("LLM availability check failed in health endpoint", exc_info=True)
         llm_available = False
 
     return {
