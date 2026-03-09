@@ -25,12 +25,45 @@ Version: 1.2.0
 
 from __future__ import annotations
 
+import concurrent.futures
+import logging
 import re
 from dataclasses import dataclass, field
 from typing import Optional
 
+logger = logging.getLogger("biasclear.frozen_core")
+
 # --- Core Version (stamped on every scan result) ---
 CORE_VERSION = "1.2.0"
+
+
+# ============================================================
+# REGEX SAFETY
+# ============================================================
+
+# Shared executor — avoids creating a new thread pool per regex call
+_REGEX_EXECUTOR = concurrent.futures.ThreadPoolExecutor(max_workers=2)
+
+
+def _regex_with_timeout(pattern: str, text: str, timeout: int = 2) -> list[str]:
+    """Run regex with timeout to prevent ReDoS from learned patterns.
+
+    Uses a thread pool with timeout. If the regex takes longer than
+    `timeout` seconds, returns an empty list and logs a warning.
+    Thread-safe — works in any context (main thread, async, tests).
+    """
+    future = _REGEX_EXECUTOR.submit(
+        re.findall, pattern, text, re.IGNORECASE | re.DOTALL
+    )
+    try:
+        return future.result(timeout=timeout)
+    except concurrent.futures.TimeoutError:
+        logger.warning("Regex execution timed out (ReDoS?): %s", pattern[:80])
+        future.cancel()
+        return []
+    except re.error as e:
+        logger.warning("Regex execution error: %s — %s", pattern[:80], e)
+        return []
 
 
 # ============================================================
@@ -1356,7 +1389,7 @@ class FrozenCore:
         """Match a structural pattern against text. Returns matched fragments."""
         matches = []
         for indicator_regex in pattern.indicators:
-            found = re.findall(indicator_regex, text, re.IGNORECASE | re.DOTALL)
+            found = _regex_with_timeout(indicator_regex, text)
             matches.extend(found)
         return matches if len(matches) >= pattern.min_matches else []
 

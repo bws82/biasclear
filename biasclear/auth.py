@@ -11,6 +11,7 @@ into any route.
 
 from __future__ import annotations
 
+import logging
 import os
 import hashlib
 import secrets
@@ -18,6 +19,8 @@ from typing import Optional
 
 from fastapi import HTTPException, Security, Depends
 from fastapi.security import APIKeyHeader
+
+logger = logging.getLogger("biasclear.auth")
 
 # Header name for API key
 API_KEY_HEADER = APIKeyHeader(name="X-API-Key", auto_error=False)
@@ -36,6 +39,19 @@ for key in _RAW_KEYS.split(","):
 
 # Dev mode: if no keys configured, auth is disabled
 AUTH_ENABLED = len(_VALID_KEY_HASHES) > 0
+
+# Startup validation — warn or fail-closed
+if not AUTH_ENABLED:
+    _require_auth = os.getenv("BIASCLEAR_REQUIRE_AUTH", "").lower() == "true"
+    if _require_auth:
+        raise RuntimeError(
+            "BIASCLEAR_REQUIRE_AUTH=true but no BIASCLEAR_API_KEYS configured. "
+            "Refusing to start with authentication disabled in production."
+        )
+    logger.warning(
+        "BIASCLEAR_API_KEYS not set — authentication DISABLED. "
+        "Set BIASCLEAR_REQUIRE_AUTH=true in production to fail-closed."
+    )
 
 
 def _verify_key(api_key: str) -> bool:

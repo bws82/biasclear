@@ -200,6 +200,20 @@ class LearningRing:
         if severity not in valid_severities:
             return {"accepted": False, "reason": f"Invalid severity: {severity}"}
 
+        # Guard: Validate regex — reject invalid or dangerous patterns
+        import re as _re
+        if len(regex) > 200:
+            return {"accepted": False, "reason": "Regex too long (max 200 chars)"}
+        try:
+            _re.compile(regex)
+        except _re.error as e:
+            logger.warning("Rejected invalid regex pattern: %s (%s)", regex[:50], e)
+            return {"accepted": False, "reason": f"Invalid regex: {e}"}
+        # Reject patterns with nested quantifiers (ReDoS risk)
+        if _re.search(r'\([^)]*[+*][^)]*\)[+*]', regex):
+            logger.warning("Rejected nested-quantifier regex (ReDoS risk): %s", regex[:50])
+            return {"accepted": False, "reason": "Regex contains nested quantifiers (ReDoS risk)"}
+
         now = datetime.now(timezone.utc).isoformat()
 
         with self._lock:
