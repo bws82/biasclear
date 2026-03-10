@@ -22,6 +22,7 @@
   <meta name="twitter:description"
     content="39 deterministic detection patterns. 4 domains. SHA-256 audit chain. Open-source (AGPL-3.0).">
 
+  <link rel="icon" type="image/jpeg" href="/static/logo.jpeg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet">
@@ -1317,12 +1318,12 @@
       top: 80px;
       right: 20px;
       background: var(--surface);
-      border: 1px solid var(--border);
+      border: 1px solid var(--accent);
       border-radius: 10px;
-      padding: 1rem 1.25rem;
-      min-width: 260px;
-      max-width: 340px;
-      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+      padding: 1.25rem 1.5rem;
+      min-width: 280px;
+      max-width: 360px;
+      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(99, 102, 241, 0.15);
       z-index: 200;
       animation: fadeInDown 0.4s ease-out;
     }
@@ -1555,7 +1556,7 @@
       <a href="#pricing">Pricing</a>
       <a href="#about">About</a>
       <a href="https://github.com/bws82/biasclear" target="_blank">GitHub</a>
-      <a href="/docs" class="btn-nav">API Docs</a>
+      <a href="https://biasclear-api.onrender.com/docs" class="btn-nav" target="_blank">API Docs</a>
     </div>
   </nav>
 
@@ -1915,7 +1916,7 @@
     <div class="links">
       <a href="https://github.com/bws82/biasclear">GitHub</a>
       <a href="https://doi.org/10.5281/zenodo.18676405">Zenodo</a>
-      <a href="/docs">API Reference</a>
+      <a href="https://biasclear-api.onrender.com/docs" target="_blank">API Reference</a>
     </div>
     <p>BiasClear v1.2.0 · Built on Persistent Influence Theory · AGPL-3.0<br>
       © 2026 Brad Slimp</p>
@@ -2045,7 +2046,7 @@
         document.body.appendChild(toast);
 
         // Auto-dismiss after 8 seconds
-        setTimeout(() => { if (toast.parentElement) toast.remove(); }, 8000);
+        setTimeout(() => { if (toast.parentElement) toast.remove(); }, 12000);
       } catch (e) {
         console.error('Self-scan failed:', e);
       } finally {
