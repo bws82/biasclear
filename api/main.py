@@ -86,6 +86,22 @@ def _get_client_ip(request: Request) -> str:
 # STARTUP / SHUTDOWN
 # ============================================================
 
+async def _cleanup_loop():
+    """Background task: purge expired tokens and stale rate-limit windows every 5 minutes."""
+    from biasclear.playground_token import cleanup_expired_tokens
+    from biasclear.rate_limit import cleanup_stale_windows
+
+    while True:
+        await asyncio.sleep(300)  # 5 minutes
+        try:
+            tokens_removed = cleanup_expired_tokens()
+            cleanup_stale_windows(max_age=7200)
+            if tokens_removed:
+                logger.debug("Cleanup: removed %d expired tokens", tokens_removed)
+        except Exception:
+            logger.warning("Background cleanup failed", exc_info=True)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Wire up dependencies on startup."""
@@ -109,9 +125,14 @@ async def lifespan(app: FastAPI):
                     settings.AWS_REGION, settings.BEDROCK_MODEL_ID)
 
     learning_ring.set_audit_logger(audit_chain.log)
+
+    # Start background cleanup for expired tokens and stale rate-limit windows
+    cleanup_task = asyncio.create_task(_cleanup_loop())
+
     logger.info("BiasClear API starting",
                 extra={"core_version": CORE_VERSION, "auth_enabled": AUTH_ENABLED})
     yield
+    cleanup_task.cancel()
     logger.info("BiasClear API shutting down")
 
 
