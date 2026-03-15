@@ -58,9 +58,9 @@ class TestAuthBypass:
         assert res.status_code == 200  # Still playground mode
 
     def test_beta_signups_blocked_no_auth(self, client):
-        """Beta signups endpoint should be gated when auth is disabled."""
+        """Beta signups endpoint should be gated when no API key provided."""
         res = client.get("/beta-signups")
-        assert res.status_code == 403
+        assert res.status_code in (401, 403)
 
     def test_sql_injection_in_audit_hash(self, client):
         """SQL injection in certificate verify hash."""

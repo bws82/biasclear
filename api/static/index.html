@@ -2085,10 +2085,10 @@
         let res = await fetch('/scan', {
           method: 'POST',
           headers: getPlaygroundHeaders(),
-          body: JSON.stringify({ text, domain, mode: 'deep' })
+          body: JSON.stringify({ text, domain, mode: 'full' })
         });
 
-        // If deep scan fails (LLM unavailable), fall back to local scan with visible warning
+        // If full scan fails (LLM unavailable), fall back to local scan with visible warning
         if (res.status === 502) {
           degradedFallback = true;
           res = await fetch('/scan', {

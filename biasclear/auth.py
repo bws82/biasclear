@@ -66,21 +66,20 @@ async def require_api_key(
     api_key: Optional[str] = Security(API_KEY_HEADER),
 ) -> Optional[str]:
     """
-    FastAPI dependency — validates the API key.
+    FastAPI dependency — validates the API key if provided.
 
-    If BIASCLEAR_API_KEYS is not set, auth is disabled (dev mode).
-    If set, all requests must include a valid X-API-Key header.
+    Returns the key hash (for audit logging), or None if no key was
+    provided.  Routes that accept playground tokens need key_id=None
+    to fall through to their own token validation; routes that
+    strictly require an API key check ``key_id is None`` themselves.
 
-    Returns the key hash (for audit logging) or None in dev mode.
+    Raises 403 only for *invalid* keys (present but wrong).
     """
     if not AUTH_ENABLED:
         return None  # Dev mode — no auth required
 
     if not api_key:
-        raise HTTPException(
-            status_code=401,
-            detail="Missing API key. Include X-API-Key header.",
-        )
+        return None  # Let route decide (playground token, etc.)
 
     if not _verify_key(api_key):
         raise HTTPException(
