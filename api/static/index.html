@@ -2080,6 +2080,7 @@
         }
       }, 1500);
 
+      let degradedFallback = false;
       try {
         let res = await fetch('/scan', {
           method: 'POST',
@@ -2087,8 +2088,9 @@
           body: JSON.stringify({ text, domain, mode: 'deep' })
         });
 
-        // If deep scan fails (LLM unavailable), fall back to local scan silently
+        // If deep scan fails (LLM unavailable), fall back to local scan with visible warning
         if (res.status === 502) {
+          degradedFallback = true;
           res = await fetch('/scan', {
             method: 'POST',
             headers: getPlaygroundHeaders(),
@@ -2123,6 +2125,7 @@
         }
 
         const data = await res.json();
+        if (degradedFallback) data._degradedFallback = true;
         lastScanText = text;
         lastScanResult = data;
         lastScanDomain = domain;
@@ -2138,13 +2141,18 @@
     }
 
     function renderResult(data) {
-      const score = data.truth_score ?? 100;
+      let score = data.truth_score ?? 100;
       const flags = data.flags ?? [];
       const knowledgeType = data.knowledge_type ?? 'neutral';
       const scanMode = data.scan_mode ?? 'local';
       const explanation = data.explanation ?? '';
       const severity = data.severity ?? 'none';
       const pitTier = data.pit_tier ?? 'none';
+
+      // Cap score at 85 in degraded mode — local-only can't fully validate text
+      if (data._degradedFallback && score > 85) {
+        score = 85;
+      }
 
       const scoreClass = score >= 80 ? 'score-high' : score >= 50 ? 'score-mid' : 'score-low';
 
@@ -2160,6 +2168,14 @@
       }
       html += '<span class="meta-tag">Flags: ' + flags.length + '</span>';
       html += '</div></div>';
+
+      // Show degraded-mode warning when deep scan failed and fell back to local
+      if (data._degradedFallback) {
+        html += '<div class="result-explanation" style="border-color:var(--amber);background:rgba(245,158,11,0.06)">';
+        html += '<div class="label" style="color:var(--amber)">Limited Analysis</div>';
+        html += 'AI-powered deep analysis is temporarily unavailable. This result uses the deterministic pattern engine only, which detects structural rhetoric patterns but may miss subtler forms of bias such as emotional framing, causal oversimplification, or implicit persuasion. For full analysis, try again later.';
+        html += '</div>';
+      }
 
       if (explanation) {
         html += '<div class="result-explanation">';
