@@ -2149,12 +2149,18 @@
       const severity = data.severity ?? 'none';
       const pitTier = data.pit_tier ?? 'none';
 
+      // Detect degraded mode from backend response OR browser-side fallback
+      const isDegraded = data.degraded === true
+        || data._degradedFallback === true
+        || data.source === 'local_fallback';
+
       // Cap score at 85 in degraded mode — local-only can't fully validate text
-      if (data._degradedFallback && score > 85) {
+      if (isDegraded && score > 85) {
         score = 85;
       }
 
-      const scoreClass = score >= 80 ? 'score-high' : score >= 50 ? 'score-mid' : 'score-low';
+      const scoreClass = isDegraded ? 'score-mid'
+        : score >= 80 ? 'score-high' : score >= 50 ? 'score-mid' : 'score-low';
 
       let html = '<div class="result-header">';
       html += '<div class="score-label">Integrity Score</div>';
@@ -2169,11 +2175,13 @@
       html += '<span class="meta-tag">Flags: ' + flags.length + '</span>';
       html += '</div></div>';
 
-      // Show degraded-mode warning when deep scan failed and fell back to local
-      if (data._degradedFallback) {
+      // Show degraded-mode warning from backend truth or browser-side fallback
+      if (isDegraded) {
+        const warning = data.degradation_warning
+          || 'AI-powered deep analysis is temporarily unavailable. This result uses the deterministic pattern engine only, which detects structural rhetoric patterns but may miss subtler forms of bias such as emotional framing, causal oversimplification, or implicit persuasion. For full analysis, try again later.';
         html += '<div class="result-explanation" style="border-color:var(--amber);background:rgba(245,158,11,0.06)">';
         html += '<div class="label" style="color:var(--amber)">Limited Analysis</div>';
-        html += 'AI-powered deep analysis is temporarily unavailable. This result uses the deterministic pattern engine only, which detects structural rhetoric patterns but may miss subtler forms of bias such as emotional framing, causal oversimplification, or implicit persuasion. For full analysis, try again later.';
+        html += escapeHtml(warning);
         html += '</div>';
       }
 
@@ -2184,8 +2192,10 @@
         html += '</div>';
       }
 
-      if (flags.length === 0 && score >= 80) {
+      if (flags.length === 0 && score >= 80 && !isDegraded) {
         html += '<div class="output-empty" style="color:var(--green)">✓ No structural bias detected</div>';
+      } else if (flags.length === 0 && isDegraded) {
+        html += '<div class="output-empty" style="color:var(--amber)">⚠ No patterns found by local engine — full AI analysis was unavailable</div>';
       } else if (flags.length === 0) {
         html += '<div class="output-empty" style="color:var(--amber)">⚠ Deep analysis flagged issues but no structural patterns matched</div>';
       } else {

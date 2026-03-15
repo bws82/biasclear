@@ -74,6 +74,8 @@ class ScanResponse(BaseModel):
     learning_proposals: Optional[list[dict]] = None
     score_breakdown: Optional[dict] = None
     self_scan: Optional[dict] = None
+    degraded: bool = False
+    degradation_warning: Optional[str] = None
 
 
 class ScanBatchResponse(BaseModel):
@@ -175,6 +177,8 @@ class HealthResponse(BaseModel):
     core_version: str
     llm_provider: str
     llm_available: bool
+    llm_status: str = "unknown"
+    llm_last_success_ago: Optional[int] = None
     audit_entries: int
     total_scans: int
     learned_patterns_active: int

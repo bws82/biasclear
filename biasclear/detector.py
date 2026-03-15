@@ -320,8 +320,8 @@ async def scan_full(
 
     # Phase 5: Degradation warning when LLM failed
     if _llm_failed:
-        result["_degraded"] = True
-        result["_degradation_warning"] = (
+        result["degraded"] = True
+        result["degradation_warning"] = (
             "LLM analysis was unavailable. Results are from the local deterministic "
             "engine only. Some subtle bias patterns may not be detected. "
             "Truth score has been capped at 85."
