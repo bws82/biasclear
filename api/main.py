@@ -224,6 +224,8 @@ async def get_beta_signups(
     key_id: Optional[str] = Depends(require_api_key),
 ):
     """Retrieve all beta signup emails from the audit chain."""
+    if key_id is None:
+        raise HTTPException(status_code=401, detail="API key required.")
     if not AUTH_ENABLED:
         raise HTTPException(status_code=403, detail="Endpoint requires authentication to be enabled.")
     entries = audit_chain.get_recent(limit=500, event_type="beta_signup")
@@ -309,8 +311,8 @@ async def scan_text(
     """
     ip = _get_client_ip(raw_request)
 
-    # Playground token required for unauthenticated requests
-    if key_id is None and AUTH_ENABLED is False:
+    # Authenticate: API key OR playground token required
+    if key_id is None:
         if x_playground_token:
             valid, reason = validate_playground_token(x_playground_token, ip)
             if not valid:
@@ -318,8 +320,11 @@ async def scan_text(
                     status_code=403,
                     detail=f"Invalid playground token: {reason}. Refresh the page to get a new token.",
                 )
-        # Allow requests without token for backward compat in dev mode
-        # In production (Render), the token provides the anti-abuse gate
+        elif AUTH_ENABLED:
+            raise HTTPException(
+                status_code=401,
+                detail="Authentication required. Include X-API-Key header or use the playground.",
+            )
 
     check_rate_limit(key_id, ip=ip)
     start = time.time()
@@ -556,8 +561,8 @@ async def correct_text(
     """
     ip = _get_client_ip(raw_request)
 
-    # Playground token validation for unauthenticated correction
-    if key_id is None and not AUTH_ENABLED:
+    # Authenticate: API key OR playground token required
+    if key_id is None:
         if x_playground_token:
             valid, reason = validate_playground_token(x_playground_token, ip)
             if not valid:
@@ -565,12 +570,11 @@ async def correct_text(
                     status_code=403,
                     detail=f"Invalid playground token: {reason}.",
                 )
-        # No token and no API key — allow through (playground mode)
-    elif key_id is None and AUTH_ENABLED:
-        raise HTTPException(
-            status_code=401,
-            detail="Authentication required. Include X-API-Key header.",
-        )
+        elif AUTH_ENABLED:
+            raise HTTPException(
+                status_code=401,
+                detail="Authentication required. Include X-API-Key header.",
+            )
 
     check_rate_limit(key_id, ip=ip)
 
@@ -607,6 +611,9 @@ async def generate_certificate(
     the audit chain. Suitable for attaching to legal filings, editorial
     reviews, or compliance documentation.
     """
+    if key_id is None and AUTH_ENABLED:
+        raise HTTPException(401, "Certificate generation requires an API key.")
+
     from datetime import datetime, timezone
     from biasclear.certificate import generate_certificate_html, compute_certificate_id
 
