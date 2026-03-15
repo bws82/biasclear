@@ -34,6 +34,9 @@ from biasclear.frozen_core import CORE_VERSION
 
 # Track startup time for uptime reporting
 _STARTUP_TIME = time.time()
+
+# Track last successful LLM call for health truthfulness
+_llm_last_success: float = 0.0
 from biasclear.audit import audit_chain
 from biasclear.detector import scan_local, scan_deep, scan_full
 from biasclear.corrector import correct_bias
@@ -383,8 +386,8 @@ async def scan_text(
             request.text, domain=request.domain, external_patterns=learned,
         )
         result["scan_mode"] = f"local (fallback from {request.mode})"
-        result["_degraded"] = True
-        result["_degradation_warning"] = (
+        result["degraded"] = True
+        result["degradation_warning"] = (
             "LLM circuit breaker is open due to repeated failures. Results are from "
             "the local deterministic engine only. Some subtle bias patterns may not "
             "be detected. Truth score has been capped at 85."
@@ -399,6 +402,12 @@ async def scan_text(
             extra={"error": result["error"], "scan_mode": request.mode, "domain": request.domain},
         )
         raise HTTPException(502, "LLM provider temporarily unavailable. Please try again.")
+
+    # Track LLM success for health endpoint truthfulness
+    global _llm_last_success
+    if not result.get("degraded") and result.get("source") != "local_fallback":
+        if request.mode in ("deep", "full"):
+            _llm_last_success = time.time()
 
     audit_hash = audit_chain.log(
         event_type=f"scan_{request.mode}",
@@ -481,6 +490,13 @@ async def scan_batch(
                 item.text, domain=item.domain, external_patterns=learned,
             )
             result["scan_mode"] = f"local (fallback from {item.mode})"
+            result["degraded"] = True
+            result["degradation_warning"] = (
+                "LLM circuit breaker is open. Result is from the local "
+                "deterministic engine only. Truth score capped at 85."
+            )
+            if result["truth_score"] > 85:
+                result["truth_score"] = 85
             return result
 
     # Concurrency cap: max 10 concurrent LLM calls to prevent overload
@@ -743,13 +759,24 @@ async def health():
 
     # Check LLM availability via circuit breaker state
     llm_available = True
+    llm_status = "ready"
     try:
         provider = _get_llm()
         if hasattr(provider, "circuit_breaker"):
-            llm_available = not provider.circuit_breaker.is_open
+            if provider.circuit_breaker.is_open:
+                llm_available = False
+                llm_status = "circuit_open"
     except Exception:
         logger.warning("LLM availability check failed in health endpoint", exc_info=True)
         llm_available = False
+        llm_status = "provider_error"
+
+    # Compute time since last successful LLM scan
+    llm_last_success_ago = None
+    if _llm_last_success > 0:
+        llm_last_success_ago = int(time.time() - _llm_last_success)
+    elif llm_available:
+        llm_status = "no_requests_yet"
 
     return {
         "status": "operational",
@@ -757,6 +784,8 @@ async def health():
         "core_version": CORE_VERSION,
         "llm_provider": settings.LLM_PROVIDER,
         "llm_available": llm_available,
+        "llm_status": llm_status,
+        "llm_last_success_ago": llm_last_success_ago,
         "audit_entries": 0 if _ON_RENDER else audit_count,
         "total_scans": total_scans,
         "learned_patterns_active": len([p for p in all_learned if p["status"] == "active"]),

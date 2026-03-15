@@ -221,3 +221,88 @@ class TestAuditResilience:
             assert len(result["broken_links"]) > 0
         finally:
             os.unlink(tmp)
+
+
+# ============================================================
+# DEGRADED MODE TRUTHFULNESS
+# ============================================================
+
+class TestDegradedModeTruth:
+    """Verify degraded state is explicit in API responses — not hidden."""
+
+    def test_degraded_fields_in_schema(self):
+        """ScanResponse must include degraded and degradation_warning fields."""
+        from biasclear.schemas.scan import ScanResponse
+
+        # Default: not degraded
+        resp = ScanResponse(
+            text="test", truth_score=90, knowledge_type="neutral",
+            bias_detected=False, bias_types=[], pit_tier="none",
+            pit_detail="", severity="none", confidence=0.0,
+            explanation="", flags=[], scan_mode="full",
+            source="llm+local", core_version="1.2.0",
+        )
+        assert resp.degraded is False
+        assert resp.degradation_warning is None
+
+    def test_degraded_fields_survive_serialization(self):
+        """Degraded fields must not be stripped by Pydantic serialization."""
+        from biasclear.schemas.scan import ScanResponse
+
+        resp = ScanResponse(
+            text="test", truth_score=85, knowledge_type="neutral",
+            bias_detected=False, bias_types=[], pit_tier="none",
+            pit_detail="", severity="none", confidence=0.0,
+            explanation="", flags=[], scan_mode="full",
+            source="local_fallback", core_version="1.2.0",
+            degraded=True,
+            degradation_warning="LLM was unavailable.",
+        )
+        data = resp.model_dump()
+        assert data["degraded"] is True
+        assert data["degradation_warning"] == "LLM was unavailable."
+        assert data["source"] == "local_fallback"
+
+    def test_circuit_breaker_fallback_sets_degraded(self, client):
+        """Route-level CircuitOpenError fallback must set degraded=True."""
+        from biasclear.llm import CircuitOpenError
+
+        with patch("api.main._get_llm", side_effect=CircuitOpenError("open")):
+            res = client.post("/scan", json={
+                "text": "All experts agree this is settled science.",
+                "mode": "full", "domain": "general",
+            })
+            assert res.status_code == 200
+            data = res.json()
+            assert data["degraded"] is True
+            assert data["degradation_warning"] is not None
+            assert data["truth_score"] <= 85
+
+    def test_health_has_llm_status_fields(self, client):
+        """Health response must include llm_status and llm_last_success_ago."""
+        res = client.get("/health")
+        assert res.status_code == 200
+        data = res.json()
+        assert "llm_status" in data
+        assert "llm_last_success_ago" in data
+
+    def test_health_reports_circuit_open(self, client):
+        """Health should report circuit_open when circuit breaker is tripped."""
+        mock_provider = MagicMock()
+        mock_provider.circuit_breaker.is_open = True
+        with patch("api.main._get_llm", return_value=mock_provider):
+            res = client.get("/health")
+            data = res.json()
+            assert data["llm_available"] is False
+            assert data["llm_status"] == "circuit_open"
+
+    def test_local_scan_never_degraded(self, client):
+        """Local-only scan should never be marked as degraded."""
+        res = client.post("/scan", json={
+            "text": "The study found a 15% increase in yield.",
+            "mode": "local", "domain": "general",
+        })
+        assert res.status_code == 200
+        data = res.json()
+        assert data["degraded"] is False
+        assert data["degradation_warning"] is None
