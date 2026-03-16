@@ -16,7 +16,7 @@ It is not a sentiment classifier. It does not flag opinions for being unpopular.
 
 **3. Auditability.** Every scan produces a SHA-256 hash-chained audit entry. The chain is tamper-evident and append-only. Each result includes a full score breakdown showing exactly which patterns fired, what penalties were applied, and why. This is designed for environments where explainability is not optional — legal, regulatory, compliance.
 
-**4. Identity-neutral detection.** The system detects structural distortion regardless of who is being discussed. "Trump is ruining everything" and "Biden is ruining everything" trigger the same causal totalization patterns. Bounded factual claims ("The policy caused me to lose my health insurance") stay clean. This is validated by 42 symmetry and boundary tests.
+**4. Identity-neutral detection.** The system detects structural distortion regardless of who is being discussed. "Trump is ruining everything" and "Biden is ruining everything" trigger the same causal totalization patterns. Bounded factual claims ("The policy caused me to lose my health insurance") stay clean. This is validated by 38 symmetry and boundary tests.
 
 **5. Domain-specific coverage.** Four detection domains — Legal, Media, Financial, General — with patterns built from real-world examples (opposing counsel briefs, news articles, financial reports). Legal patterns detect settled-law dismissals, merit attacks, sanctions threats. Media patterns detect weasel quantifiers, buried qualifiers, editorial-as-news framing.
 
