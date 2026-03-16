@@ -92,32 +92,41 @@ def calculate_truth_score(
         breakdown["multi_tier_penalty"] = -pen
 
     # --- AI flag penalties (lighter than core — non-deterministic) ---
+    # Cap total AI-layer penalty to reduce variance from LLM non-determinism.
+    # When the deterministic core already flags heavily, AI additions should
+    # not create large score gaps for structurally identical inputs.
+    _MAX_AI_PENALTY = 30
     ai_penalty_map = {"critical": 14, "high": 10, "moderate": 6, "low": 3}
+    ai_total = 0
     for af in ai_flags:
         sev = af.get("severity", "moderate")
         pen = ai_penalty_map.get(sev, 6)
-        score -= pen
+        ai_total += pen
         breakdown["ai_flag_penalties"].append({
             "pattern": af.get("pattern_id", "unknown"),
             "severity": sev,
             "penalty": -pen,
         })
+    ai_total = min(ai_total, _MAX_AI_PENALTY)
+    score -= ai_total
 
     # --- Deep analysis penalties (when available) ---
+    _MAX_DEEP_PENALTY = 30
     if deep_result:
         severity = deep_result.get("severity", "none")
         deep_sev_penalty = {
             "critical": 20, "high": 15, "moderate": 8, "low": 4, "none": 0,
         }
         pen = deep_sev_penalty.get(severity, 0)
-        score -= pen
         breakdown["deep_severity_penalty"] = -pen
 
         bias_types = deep_result.get("bias_types", [])
         unique_types = [b for b in bias_types if b != "none"]
         type_pen = len(set(unique_types)) * 4
-        score -= type_pen
         breakdown["deep_bias_type_penalty"] = -type_pen
+
+        deep_total = min(pen + type_pen, _MAX_DEEP_PENALTY)
+        score -= deep_total
 
     final = max(0, min(100, score))
     breakdown["final_score"] = final
