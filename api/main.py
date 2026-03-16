@@ -819,20 +819,39 @@ async def debug_llm_test(
             info["model_id"] = provider._primary._model_id
         if hasattr(provider._primary, '_region'):
             info["region"] = provider._primary._region
-    # Try a simple generate call
+    # Test Bedrock directly (bypass fallback wrapper)
     try:
-        # Reset circuit breaker temporarily for this test
-        if hasattr(provider, '_primary'):
-            provider._primary.circuit_breaker._state = "closed"
-            provider._primary.circuit_breaker._failures = 0
-        result = await provider.generate("Say 'hello' in one word.", temperature=0.0)
-        info["test_result"] = result[:200]
-        info["test_status"] = "success"
+        from biasclear.llm.bedrock import BedrockProvider
+        bedrock = BedrockProvider()
+        bedrock.circuit_breaker._state = "closed"
+        bedrock.circuit_breaker._failures = 0
+        result = await bedrock.generate("Say 'hello' in one word.", temperature=0.0)
+        info["bedrock_result"] = result[:200]
+        info["bedrock_status"] = "success"
     except Exception as e:
-        info["test_error"] = str(e)
-        info["test_error_type"] = type(e).__name__
-        info["test_traceback"] = traceback.format_exc()[-500:]
-        info["test_status"] = "failed"
+        info["bedrock_error"] = str(e)
+        info["bedrock_error_type"] = type(e).__name__
+        info["bedrock_traceback"] = traceback.format_exc()[-800:]
+        info["bedrock_status"] = "failed"
+
+    # Test Gemini directly
+    try:
+        from biasclear.llm.gemini import GeminiProvider
+        gemini = GeminiProvider()
+        result = await gemini.generate("Say 'hello' in one word.", temperature=0.0)
+        info["gemini_result"] = result[:200]
+        info["gemini_status"] = "success"
+    except Exception as e:
+        info["gemini_error"] = str(e)[:300]
+        info["gemini_error_type"] = type(e).__name__
+        info["gemini_status"] = "failed"
+
+    # Check AWS credentials
+    info["aws_key_set"] = bool(os.getenv("AWS_ACCESS_KEY_ID"))
+    info["aws_secret_set"] = bool(os.getenv("AWS_SECRET_ACCESS_KEY"))
+    info["aws_region"] = os.getenv("AWS_REGION", os.getenv("AWS_DEFAULT_REGION", "not set"))
+    info["gemini_key_set"] = bool(os.getenv("GEMINI_API_KEY"))
+
     return info
 
 
