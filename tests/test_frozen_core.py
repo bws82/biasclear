@@ -559,14 +559,14 @@ class TestPatternInventory:
     """Verify the full pattern inventory is as expected."""
 
     def test_base_pattern_count(self):
-        assert len(frozen_core._base_patterns) == 19
+        assert len(frozen_core._base_patterns) == 22
 
     def test_legal_pattern_count(self):
         assert len(frozen_core._legal_patterns) == 6
 
     def test_total_pattern_count(self):
         total = len(frozen_core._base_patterns) + len(frozen_core._legal_patterns)
-        assert total == 25
+        assert total == 28
 
     def test_all_tiers_covered(self):
         all_patterns = frozen_core._base_patterns + frozen_core._legal_patterns
@@ -766,3 +766,234 @@ class TestMediaPatternInventory:
         )
         pids = {f.pattern_id for f in result.flags if f.category == "structural"}
         assert "MEDIA_EDITORIAL_AS_NEWS" not in pids
+
+
+# ============================================================
+# Phase 3: Causal Blame Distortion Pattern Tests
+# ============================================================
+
+class TestCausalTotalization:
+    """CAUSAL_TOTALIZATION — Tier 2, identity-neutral causal blame."""
+
+    def test_trump_is_ruining_my_life(self):
+        result = frozen_core.evaluate(
+            "Donald Trump is ruining my life.",
+            domain="general",
+        )
+        pids = {f.pattern_id for f in result.flags if f.category == "structural"}
+        assert "CAUSAL_TOTALIZATION" in pids
+
+    def test_biden_is_ruining_my_life(self):
+        """Symmetry: same pattern fires for opposite political figure."""
+        result = frozen_core.evaluate(
+            "Joe Biden is ruining my life.",
+            domain="general",
+        )
+        pids = {f.pattern_id for f in result.flags if f.category == "structural"}
+        assert "CAUSAL_TOTALIZATION" in pids
+
+    def test_boss_is_ruining_my_life(self):
+        """Non-political entity triggers the same pattern."""
+        result = frozen_core.evaluate(
+            "My boss is ruining my life.",
+            domain="general",
+        )
+        pids = {f.pattern_id for f in result.flags if f.category == "structural"}
+        assert "CAUSAL_TOTALIZATION" in pids
+
+    def test_media_destroying_country(self):
+        result = frozen_core.evaluate(
+            "The media is destroying this country.",
+            domain="general",
+        )
+        pids = {f.pattern_id for f in result.flags if f.category == "structural"}
+        assert "CAUSAL_TOTALIZATION" in pids
+
+    def test_government_wrecking_economy(self):
+        result = frozen_core.evaluate(
+            "The government is wrecking the economy.",
+            domain="general",
+        )
+        pids = {f.pattern_id for f in result.flags if f.category == "structural"}
+        assert "CAUSAL_TOTALIZATION" in pids
+
+    def test_past_tense_destroyed_my_life(self):
+        result = frozen_core.evaluate(
+            "That company destroyed my life.",
+            domain="general",
+        )
+        pids = {f.pattern_id for f in result.flags if f.category == "structural"}
+        assert "CAUSAL_TOTALIZATION" in pids
+
+    def test_no_false_positive_bounded_claim(self):
+        """Specific, bounded causal claims should NOT trigger."""
+        result = frozen_core.evaluate(
+            "The policy caused me to lose my Medicaid coverage.",
+            domain="general",
+        )
+        pids = {f.pattern_id for f in result.flags if f.category == "structural"}
+        assert "CAUSAL_TOTALIZATION" not in pids
+
+    def test_no_false_positive_factual_harm(self):
+        """Concrete factual causation with mechanism should NOT trigger."""
+        result = frozen_core.evaluate(
+            "The company's negligence caused me financial harm.",
+            domain="general",
+        )
+        pids = {f.pattern_id for f in result.flags if f.category == "structural"}
+        assert "CAUSAL_TOTALIZATION" not in pids
+
+    def test_no_false_positive_neutral_statement(self):
+        result = frozen_core.evaluate(
+            "The study found a 15% increase in yield.",
+            domain="general",
+        )
+        pids = {f.pattern_id for f in result.flags if f.category == "structural"}
+        assert "CAUSAL_TOTALIZATION" not in pids
+
+
+class TestMonocausalBlame:
+    """MONOCAUSAL_BLAME — Tier 2, single-cause compression."""
+
+    def test_because_of_everything_fallen_apart(self):
+        result = frozen_core.evaluate(
+            "Because of the Democrats everything has fallen apart.",
+            domain="general",
+        )
+        pids = {f.pattern_id for f in result.flags if f.category == "structural"}
+        assert "MONOCAUSAL_BLAME" in pids
+
+    def test_because_of_republicans_gone_wrong(self):
+        """Symmetry: fires for opposite party too."""
+        result = frozen_core.evaluate(
+            "Because of the Republicans everything has gone wrong.",
+            domain="general",
+        )
+        pids = {f.pattern_id for f in result.flags if f.category == "structural"}
+        assert "MONOCAUSAL_BLAME" in pids
+
+    def test_sole_reason(self):
+        result = frozen_core.evaluate(
+            "Immigration is the sole reason for all of this.",
+            domain="general",
+        )
+        pids = {f.pattern_id for f in result.flags if f.category == "structural"}
+        assert "MONOCAUSAL_BLAME" in pids
+
+    def test_only_reason_for_my_problems(self):
+        result = frozen_core.evaluate(
+            "He is the only reason for my problems.",
+            domain="general",
+        )
+        pids = {f.pattern_id for f in result.flags if f.category == "structural"}
+        assert "MONOCAUSAL_BLAME" in pids
+
+    def test_all_their_fault(self):
+        result = frozen_core.evaluate(
+            "It's all their fault that we're in this mess.",
+            domain="general",
+        )
+        pids = {f.pattern_id for f in result.flags if f.category == "structural"}
+        assert "MONOCAUSAL_BLAME" in pids
+
+    def test_no_false_positive_contributing_factor(self):
+        """Acknowledging a contributing factor is not monocausal."""
+        result = frozen_core.evaluate(
+            "The regulation was one of several factors that led to the decline.",
+            domain="general",
+        )
+        pids = {f.pattern_id for f in result.flags if f.category == "structural"}
+        assert "MONOCAUSAL_BLAME" not in pids
+
+    def test_no_false_positive_specific_mechanism(self):
+        result = frozen_core.evaluate(
+            "The tariff increased steel prices by 25%, which raised construction costs.",
+            domain="general",
+        )
+        pids = {f.pattern_id for f in result.flags if f.category == "structural"}
+        assert "MONOCAUSAL_BLAME" not in pids
+
+
+class TestTotalizingHarmLanguage:
+    """TOTALIZING_HARM_LANGUAGE — Tier 3, sweeping harm without bounds."""
+
+    def test_ruining_everything(self):
+        result = frozen_core.evaluate(
+            "They are ruining everything for the rest of us.",
+            domain="general",
+        )
+        pids = {f.pattern_id for f in result.flags if f.category == "structural"}
+        assert "TOTALIZING_HARM_LANGUAGE" in pids
+
+    def test_completely_destroyed(self):
+        result = frozen_core.evaluate(
+            "The economy has been completely destroyed.",
+            domain="general",
+        )
+        pids = {f.pattern_id for f in result.flags if f.category == "structural"}
+        assert "TOTALIZING_HARM_LANGUAGE" in pids
+
+    def test_everything_is_gone(self):
+        result = frozen_core.evaluate(
+            "Everything is gone. There is no hope left.",
+            domain="general",
+        )
+        pids = {f.pattern_id for f in result.flags if f.category == "structural"}
+        assert "TOTALIZING_HARM_LANGUAGE" in pids
+
+    def test_nothing_left(self):
+        result = frozen_core.evaluate(
+            "After what they did, there is nothing left.",
+            domain="general",
+        )
+        pids = {f.pattern_id for f in result.flags if f.category == "structural"}
+        assert "TOTALIZING_HARM_LANGUAGE" in pids
+
+    def test_no_false_positive_bounded_damage(self):
+        """Bounded harm statements should NOT trigger."""
+        result = frozen_core.evaluate(
+            "The flood destroyed three buildings on Main Street.",
+            domain="general",
+        )
+        pids = {f.pattern_id for f in result.flags if f.category == "structural"}
+        assert "TOTALIZING_HARM_LANGUAGE" not in pids
+
+    def test_no_false_positive_factual_loss(self):
+        result = frozen_core.evaluate(
+            "The company lost $2.3 million in the breach.",
+            domain="general",
+        )
+        pids = {f.pattern_id for f in result.flags if f.category == "structural"}
+        assert "TOTALIZING_HARM_LANGUAGE" not in pids
+
+
+class TestCausalBlameSymmetry:
+    """Cross-cutting symmetry tests — prove identity-neutral treatment."""
+
+    @pytest.mark.parametrize("entity", [
+        "Donald Trump", "Joe Biden", "Barack Obama", "Ron DeSantis",
+        "My boss", "The CEO", "The government", "Big pharma",
+        "The school board", "My landlord",
+    ])
+    def test_causal_totalization_symmetric(self, entity):
+        """Every entity should trigger CAUSAL_TOTALIZATION equally."""
+        result = frozen_core.evaluate(
+            f"{entity} is ruining my life.",
+            domain="general",
+        )
+        pids = {f.pattern_id for f in result.flags if f.category == "structural"}
+        assert "CAUSAL_TOTALIZATION" in pids, f"Failed for entity: {entity}"
+
+    @pytest.mark.parametrize("text", [
+        "The policy caused me to lose my health insurance.",
+        "Rising interest rates made my mortgage unaffordable.",
+        "The company's layoffs left 200 workers without income.",
+        "The regulation increased compliance costs by 40%.",
+        "His decision to close the plant eliminated 500 jobs.",
+    ])
+    def test_bounded_claims_never_trigger(self, text):
+        """Legitimate bounded causal claims must never trigger blame patterns."""
+        result = frozen_core.evaluate(text, domain="general")
+        pids = {f.pattern_id for f in result.flags if f.category == "structural"}
+        assert "CAUSAL_TOTALIZATION" not in pids, f"False positive: {text}"
+        assert "MONOCAUSAL_BLAME" not in pids, f"False positive: {text}"

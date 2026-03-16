@@ -714,6 +714,93 @@ STRUCTURAL_PATTERNS: list[StructuralPattern] = [
         ],
         min_matches=1,
     ),
+
+    # --- Causal Blame Distortion Patterns ---
+    # Identity-neutral, politically symmetric patterns detecting
+    # structural distortion in everyday blame/causal language.
+
+    StructuralPattern(
+        id="CAUSAL_TOTALIZATION",
+        name="Causal Totalization",
+        description=(
+            "A single person, group, or entity is blamed for broad life collapse "
+            "or total harm without evidence, mechanism, or bounded scope. "
+            "The claim compresses complex causation into a single actor."
+        ),
+        pit_tier=2,
+        severity="moderate",
+        principle="Truth",
+        indicators=[
+            # "[entity] is/are ruining/destroying/wrecking my life/everything/the country"
+            r"\b(?:is|are|has\s+been|have\s+been)\s+"
+            r"(?:ruining|destroying|wrecking|devastating|demolishing|"
+            r"annihilating|obliterating|killing|sabotaging)\s+"
+            r"(?:my\s+life|our\s+(?:lives?|country|nation|future)|"
+            r"everything|this\s+country|the\s+(?:country|nation|economy|world|system))\b",
+            # "[entity] ruined/destroyed/wrecked everything/my life"
+            r"\b(?:ruined|destroyed|wrecked|devastated|demolished|"
+            r"obliterated|killed|sabotaged)\s+"
+            r"(?:my\s+life|our\s+(?:lives?|country|nation|future)|"
+            r"everything|this\s+country|the\s+(?:country|nation|economy|world|system))\b",
+        ],
+        min_matches=1,
+    ),
+
+    StructuralPattern(
+        id="MONOCAUSAL_BLAME",
+        name="Monocausal Blame Compression",
+        description=(
+            "Reduces complex outcomes to a single cause or actor without "
+            "evidence or acknowledgment of contributing factors. Presents "
+            "a simplistic causal narrative where one entity bears total "
+            "responsibility for broad harm."
+        ),
+        pit_tier=2,
+        severity="moderate",
+        principle="Truth",
+        indicators=[
+            # "because of [single entity], [sweeping negative]"
+            r"\bbecause\s+of\s+(?:\w+\s+){0,3}(?:everything\s+(?:is|has)\s+"
+            r"(?:fallen\s+apart|gone\s+(?:wrong|downhill|to\s+(?:hell|shit|ruin))))\b",
+            # "the reason/cause [for all/everything/the whole]"
+            r"\b(?:the\s+(?:only|sole|single|entire|whole|real|main)\s+"
+            r"(?:reason|cause))\s+(?:for|why|that)\b",
+            # "[entity] is the reason/cause everything/my life"
+            r"\bis\s+(?:the\s+)?(?:only|sole|single|entire|whole|real)?\s*"
+            r"(?:reason|cause)\s+(?:for\s+)?(?:everything|all\s+of\s+(?:this|it)|"
+            r"my\s+(?:problems?|suffering|pain|misery|struggles?))\b",
+            # "it's all [someone's] fault"
+            r"\b(?:it(?:'s|\s+is)\s+all\s+(?:\w+(?:'s|\s+))?fault)\b",
+        ],
+        min_matches=1,
+    ),
+
+    StructuralPattern(
+        id="TOTALIZING_HARM_LANGUAGE",
+        name="Totalizing Harm Language",
+        description=(
+            "Uses absolute, sweeping harm language without bounded claims, "
+            "evidence, or specific mechanism. The language implies total, "
+            "irreversible destruction without qualifying the scope."
+        ),
+        pit_tier=3,
+        severity="low",
+        principle="Truth",
+        indicators=[
+            # "ruining/destroying/wrecking everything" (standalone sweeping claim)
+            r"\b(?:(?:is|are|has|have)\s+)?(?:ruining|destroying|wrecking|"
+            r"devastating|demolishing)\s+(?:everything|all\s+of\s+(?:it|this)|"
+            r"the\s+entire|the\s+whole)\b",
+            # "completely/totally/utterly ruined/destroyed/wrecked"
+            r"\b(?:completely|totally|utterly|absolutely|entirely)\s+"
+            r"(?:ruined|destroyed|wrecked|devastated|demolished)\b",
+            # "nothing left" / "everything is gone/lost/broken"
+            r"\b(?:nothing\s+(?:is\s+)?left|everything\s+(?:is\s+)?"
+            r"(?:gone|lost|broken|ruined|destroyed|over))\b",
+        ],
+        min_matches=1,
+        suppress_if_cited=True,
+    ),
 ]
 # These are loaded when domain="legal" is specified
 
