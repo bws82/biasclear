@@ -795,6 +795,47 @@ async def health():
     }
 
 
+@app.get("/debug/llm-test", include_in_schema=False)
+async def debug_llm_test(
+    key_id: Optional[str] = Depends(require_api_key),
+):
+    """Temporary diagnostic: test LLM provider directly and return error details."""
+    if key_id is None and AUTH_ENABLED:
+        raise HTTPException(401, "API key required.")
+    import traceback
+    provider = _get_llm()
+    info = {
+        "provider_type": type(provider).__name__,
+        "circuit_state": getattr(provider, 'circuit_breaker', None) and provider.circuit_breaker.state,
+        "circuit_failures": getattr(provider, 'circuit_breaker', None) and provider.circuit_breaker._failures,
+    }
+    # If it's a FallbackProvider, dig deeper
+    if hasattr(provider, '_primary'):
+        info["primary_type"] = type(provider._primary).__name__
+        info["primary_failed"] = provider._primary_failed
+        info["primary_circuit_state"] = provider._primary.circuit_breaker.state
+        info["primary_circuit_failures"] = provider._primary.circuit_breaker._failures
+        if hasattr(provider._primary, '_model_id'):
+            info["model_id"] = provider._primary._model_id
+        if hasattr(provider._primary, '_region'):
+            info["region"] = provider._primary._region
+    # Try a simple generate call
+    try:
+        # Reset circuit breaker temporarily for this test
+        if hasattr(provider, '_primary'):
+            provider._primary.circuit_breaker._state = "closed"
+            provider._primary.circuit_breaker._failures = 0
+        result = await provider.generate("Say 'hello' in one word.", temperature=0.0)
+        info["test_result"] = result[:200]
+        info["test_status"] = "success"
+    except Exception as e:
+        info["test_error"] = str(e)
+        info["test_error_type"] = type(e).__name__
+        info["test_traceback"] = traceback.format_exc()[-500:]
+        info["test_status"] = "failed"
+    return info
+
+
 @app.get("/stats", tags=["Health"])
 async def stats():
     """Public usage statistics. No authentication required.
