@@ -6,9 +6,16 @@
 set -euo pipefail
 
 DOMAIN="https://biasclear.com"
-API_KEY="${1:-bc_kdNYxFOGC7lrd03cqy8MtHWEvJJLuXzMpiJF-Tufb1Y}"
+API_KEY="${1:-${BIASCLEAR_API_KEY:-}}"
 PASS=0
 FAIL=0
+
+if [ -z "$API_KEY" ]; then
+  echo "Error: API key required."
+  echo "Usage: ./scripts/smoke_check.sh <API_KEY>"
+  echo "   or: BIASCLEAR_API_KEY=... ./scripts/smoke_check.sh"
+  exit 1
+fi
 
 green() { printf "\033[32m✓ %s\033[0m\n" "$1"; }
 red()   { printf "\033[31m✗ %s\033[0m\n" "$1"; }

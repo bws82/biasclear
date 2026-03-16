@@ -36,8 +36,8 @@ In `local` mode, BiasClear runs without any LLM — fully deterministic, zero ex
 
 ## What Is Already Validated
 
-- **451 passing tests** across the full test suite
-- **42 causal-blame symmetry tests** — political figures, authority figures, institutions treated identically
+- **318 passing tests** across the full test suite
+- **38 causal-blame symmetry and boundary tests** — political figures, authority figures, institutions treated identically
 - **Boundary control tests** — bounded factual claims verified clean of false positives
 - **3 domain calibration sets** — legal, media, financial examples with expected outcomes
 - **Live production verification** — `mode=full`, `source: llm+local`, `degraded: false` confirmed on public domain
@@ -65,7 +65,7 @@ In `local` mode, BiasClear runs without any LLM — fully deterministic, zero ex
 
 ## Why Funding Helps Now
 
-BiasClear is past prototype. It has a working public API, a published theoretical framework, a deterministic detection engine, an LLM-assisted analysis layer, cryptographic auditability, and 451 passing tests. It is deployed on AWS infrastructure and serving real scans.
+BiasClear is past prototype. It has a working public API, a published theoretical framework, a deterministic detection engine, an LLM-assisted analysis layer, cryptographic auditability, and 318 passing tests. It is deployed on AWS infrastructure and serving real scans.
 
 What it needs to become a credible tool for regulated industries:
 
