@@ -148,7 +148,7 @@ app = FastAPI(
     description=(
         "Structural bias detection engine built on Persistent Influence Theory (PIT). "
         "Detects rhetorical manipulation patterns in text across legal, media, financial, "
-        "and general domains. Features a frozen deterministic core (39 patterns), "
+        "and general domains. Features a frozen deterministic core (42 patterns), "
         "LLM-powered deep analysis, bias correction, and SHA-256 hash-chained audit trail.\n\n"
         "**Quick Start:** `POST /scan` with `{\"text\": \"your text\", \"mode\": \"local\"}` "
         "to scan for bias.\n\n"
@@ -793,66 +793,6 @@ async def health():
         "learning_enabled": True,
         "uptime_seconds": int(time.time() - _STARTUP_TIME),
     }
-
-
-@app.get("/debug/llm-test", include_in_schema=False)
-async def debug_llm_test(
-    key_id: Optional[str] = Depends(require_api_key),
-):
-    """Temporary diagnostic: test LLM provider directly and return error details."""
-    if key_id is None and AUTH_ENABLED:
-        raise HTTPException(401, "API key required.")
-    import traceback
-    provider = _get_llm()
-    info = {
-        "provider_type": type(provider).__name__,
-        "circuit_state": getattr(provider, 'circuit_breaker', None) and provider.circuit_breaker.state,
-        "circuit_failures": getattr(provider, 'circuit_breaker', None) and provider.circuit_breaker._failures,
-    }
-    # If it's a FallbackProvider, dig deeper
-    if hasattr(provider, '_primary'):
-        info["primary_type"] = type(provider._primary).__name__
-        info["primary_failed"] = provider._primary_failed
-        info["primary_circuit_state"] = provider._primary.circuit_breaker.state
-        info["primary_circuit_failures"] = provider._primary.circuit_breaker._failures
-        if hasattr(provider._primary, '_model_id'):
-            info["model_id"] = provider._primary._model_id
-        if hasattr(provider._primary, '_region'):
-            info["region"] = provider._primary._region
-    # Test Bedrock directly (bypass fallback wrapper)
-    try:
-        from biasclear.llm.bedrock import BedrockProvider
-        bedrock = BedrockProvider()
-        bedrock.circuit_breaker._state = "closed"
-        bedrock.circuit_breaker._failures = 0
-        result = await bedrock.generate("Say 'hello' in one word.", temperature=0.0)
-        info["bedrock_result"] = result[:200]
-        info["bedrock_status"] = "success"
-    except Exception as e:
-        info["bedrock_error"] = str(e)
-        info["bedrock_error_type"] = type(e).__name__
-        info["bedrock_traceback"] = traceback.format_exc()[-800:]
-        info["bedrock_status"] = "failed"
-
-    # Test Gemini directly
-    try:
-        from biasclear.llm.gemini import GeminiProvider
-        gemini = GeminiProvider()
-        result = await gemini.generate("Say 'hello' in one word.", temperature=0.0)
-        info["gemini_result"] = result[:200]
-        info["gemini_status"] = "success"
-    except Exception as e:
-        info["gemini_error"] = str(e)[:300]
-        info["gemini_error_type"] = type(e).__name__
-        info["gemini_status"] = "failed"
-
-    # Check AWS credentials
-    info["aws_key_set"] = bool(os.getenv("AWS_ACCESS_KEY_ID"))
-    info["aws_secret_set"] = bool(os.getenv("AWS_SECRET_ACCESS_KEY"))
-    info["aws_region"] = os.getenv("AWS_REGION", os.getenv("AWS_DEFAULT_REGION", "not set"))
-    info["gemini_key_set"] = bool(os.getenv("GEMINI_API_KEY"))
-
-    return info
 
 
 @app.get("/stats", tags=["Health"])
