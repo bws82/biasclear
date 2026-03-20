@@ -105,6 +105,46 @@ async def _cleanup_loop():
             logger.warning("Background cleanup failed", exc_info=True)
 
 
+# Track canary state for health reporting
+_canary_last_run: float = 0.0
+_canary_last_passed: bool = False
+_canary_consecutive_failures: int = 0
+
+
+async def _llm_canary_loop():
+    """Background canary: lightweight LLM probe every 4 minutes.
+
+    Keeps _llm_last_success fresh so the health endpoint can distinguish
+    an idle-but-healthy service from a broken one. Uses a cheap
+    generate() call (not a full scan) to minimize cost.
+    """
+    global _llm_last_success, _canary_last_run, _canary_last_passed, _canary_consecutive_failures
+
+    while True:
+        await asyncio.sleep(240)  # 4 minutes — inside the 5-min staleness window
+        _canary_last_run = time.time()
+        try:
+            provider = _get_llm()
+            probe = await provider.generate(
+                prompt="Respond with exactly: OK",
+                temperature=0.0,
+            )
+            if probe and "OK" in probe.upper():
+                _llm_last_success = time.time()
+                _canary_last_passed = True
+                _canary_consecutive_failures = 0
+                logger.debug("LLM canary OK")
+            else:
+                _canary_last_passed = False
+                _canary_consecutive_failures += 1
+                logger.warning("LLM canary unexpected response: %s",
+                               probe[:100] if probe else "(empty)")
+        except Exception as e:
+            _canary_last_passed = False
+            _canary_consecutive_failures += 1
+            logger.warning("LLM canary FAILED: %s", e)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Wire up dependencies on startup."""
@@ -156,8 +196,12 @@ async def lifespan(app: FastAPI):
             "Error: %s", e,
         )
 
+    # Start LLM canary — keeps health status fresh during idle periods
+    canary_task = asyncio.create_task(_llm_canary_loop())
+
     yield
     cleanup_task.cancel()
+    canary_task.cancel()
     logger.info("BiasClear API shutting down")
 
 
@@ -839,7 +883,7 @@ async def health():
 
     return {
         "status": "operational",
-        "version": "1.1.0",
+        "version": "1.2.0",
         "core_version": CORE_VERSION,
         "llm_provider": settings.LLM_PROVIDER,
         "llm_provider_actual": actual_provider,
@@ -847,6 +891,13 @@ async def health():
         "llm_available": llm_available,
         "llm_status": llm_status,
         "llm_last_success_ago": llm_last_success_ago,
+        "llm_canary": {
+            "enabled": True,
+            "interval_seconds": 240,
+            "last_passed": _canary_last_passed,
+            "last_run_ago": int(time.time() - _canary_last_run) if _canary_last_run > 0 else None,
+            "consecutive_failures": _canary_consecutive_failures,
+        },
         "audit_entries": 0 if _ON_RENDER else audit_count,
         "total_scans": total_scans,
         "learned_patterns_active": len([p for p in all_learned if p["status"] == "active"]),
