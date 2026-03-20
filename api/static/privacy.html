@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BiasClear Privacy Policy</title>
+  <style>
+    :root {
+      --bg: #0b0b12;
+      --surface: #141421;
+      --border: rgba(255,255,255,0.08);
+      --text: #f5f7fb;
+      --muted: #a7adbf;
+      --accent: #6366f1;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #17172a 0%, var(--bg) 45%);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    main {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 4rem 1.5rem 5rem;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 2rem;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.25);
+    }
+    h1, h2 { letter-spacing: -0.02em; }
+    h1 { margin-top: 0; font-size: 2.2rem; }
+    h2 { margin-top: 2rem; font-size: 1.2rem; }
+    p, li { color: var(--muted); }
+    a { color: #8ea0ff; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    ul { padding-left: 1.2rem; }
+    .meta {
+      font-size: 0.95rem;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+    .back {
+      display: inline-block;
+      margin-bottom: 1.5rem;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <a class="back" href="/">← Back to BiasClear</a>
+    <div class="card">
+      <h1>BiasClear Privacy Policy</h1>
+      <p class="meta">Last updated: March 20, 2026</p>
+
+      <p>
+        BiasClear is a small, founder-operated service. This page explains what we collect on
+        <a href="https://biasclear.com">biasclear.com</a>, why we collect it, and how we handle it.
+      </p>
+
+      <h2>What We Collect</h2>
+      <ul>
+        <li><strong>Beta signup email addresses</strong> when you request API access.</li>
+        <li><strong>Scan request content</strong> only for the purpose of generating a scan result.</li>
+        <li><strong>Operational metadata</strong> such as timestamps, request identifiers, scan mode, and provider status.</li>
+      </ul>
+
+      <h2>What We Store</h2>
+      <ul>
+        <li>Beta signup emails are stored in a dedicated operational database so we can reply to access requests.</li>
+        <li>BiasClear's audit log stores scan metadata, score details, and privacy-safer signup metadata such as masked email and SHA-256 email hash.</li>
+        <li>The public health and stats endpoints expose service-level telemetry, not raw scan text.</li>
+      </ul>
+
+      <h2>What We Do Not Do</h2>
+      <ul>
+        <li>We do not sell your data.</li>
+        <li>We do not place secrets or private credentials in source code.</li>
+        <li>We do not publish raw beta-signup email addresses in public audit responses.</li>
+      </ul>
+
+      <h2>How We Use Information</h2>
+      <ul>
+        <li>To respond to beta access requests.</li>
+        <li>To operate the live scan service and monitor reliability.</li>
+        <li>To improve detection quality, stability, and documentation.</li>
+      </ul>
+
+      <h2>Retention and Deletion</h2>
+      <p>
+        Beta signup emails are retained for access management and outreach related to BiasClear.
+        If you want your email removed, contact
+        <a href="mailto:brad@biasclear.com">brad@biasclear.com</a>.
+      </p>
+
+      <h2>Questions</h2>
+      <p>
+        Questions about this policy or data handling can be sent to
+        <a href="mailto:brad@biasclear.com">brad@biasclear.com</a>.
+      </p>
+    </div>
+  </main>
+</body>
+</html>

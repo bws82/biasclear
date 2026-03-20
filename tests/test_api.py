@@ -28,6 +28,17 @@ def client():
         yield c
 
 
+@pytest.fixture(autouse=True)
+def reset_rate_limits():
+    """Keep API tests independent of previous request volume."""
+    from biasclear.rate_limit import _windows, _lock
+    with _lock:
+        _windows.clear()
+    yield
+    with _lock:
+        _windows.clear()
+
+
 # ============================================================
 # HEALTH & META
 # ============================================================
@@ -42,10 +53,20 @@ class TestHealth:
     def test_health_fields(self, client):
         data = client.get("/health").json()
         assert data["status"] == "operational"
+        assert data["version"] == "1.2.0"
         assert "core_version" in data
         assert "llm_provider" in data
         assert "audit_entries" in data
         assert "learning_enabled" in data
+
+    def test_version_header_matches_health(self, client):
+        res = client.get("/health")
+        assert res.headers["x-biasclear-version"] == res.json()["version"]
+
+    def test_openapi_version_matches_health(self, client):
+        health = client.get("/health").json()
+        openapi = client.get("/openapi.json").json()
+        assert openapi["info"]["version"] == health["version"]
 
     def test_root_returns_200(self, client):
         r = client.get("/")
@@ -192,6 +213,24 @@ class TestScanBatch:
     def test_batch_empty_rejected(self, client):
         r = client.post("/scan/batch", json={"items": []})
         assert r.status_code == 422
+
+
+class TestStats:
+    """Verify public stats reflect scan audit data."""
+
+    def test_stats_include_scan_mode_and_patterns(self, client):
+        scan = client.post("/scan", json={
+            "text": "Everyone agrees this is the only reasonable option.",
+            "mode": "local",
+            "domain": "general",
+        })
+        assert scan.status_code == 200
+
+        stats = client.get("/stats")
+        assert stats.status_code == 200
+        data = stats.json()
+        assert data["scans_by_mode"].get("local", 0) >= 1
+        assert len(data["top_patterns_fired"]) >= 1
 
 
 # ============================================================

@@ -176,9 +176,24 @@ class AuditChain:
             "broken_links": broken,
         }
 
-    def get_count(self) -> int:
+    def get_count(
+        self,
+        event_type: Optional[str] = None,
+        event_prefix: Optional[str] = None,
+    ) -> int:
         with self._get_conn() as conn:
-            row = conn.execute("SELECT COUNT(*) FROM audit_chain").fetchone()
+            if event_type:
+                row = conn.execute(
+                    "SELECT COUNT(*) FROM audit_chain WHERE event_type = ?",
+                    (event_type,),
+                ).fetchone()
+            elif event_prefix:
+                row = conn.execute(
+                    "SELECT COUNT(*) FROM audit_chain WHERE event_type LIKE ?",
+                    (f"{event_prefix}%",),
+                ).fetchone()
+            else:
+                row = conn.execute("SELECT COUNT(*) FROM audit_chain").fetchone()
             return row[0] if row else 0
 
 

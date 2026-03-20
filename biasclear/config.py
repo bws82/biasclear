@@ -10,6 +10,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+APP_VERSION = "1.2.0"
+
 # Render sets RENDER=true automatically
 _ON_RENDER = os.getenv("RENDER", "").lower() == "true"
 # Use persistent disk path ONLY if the disk is actually mounted
@@ -26,7 +28,7 @@ class Settings:
 
     # --- Core Versioning ---
     CORE_VERSION: str = "1.2.0"
-    API_VERSION: str = "1"
+    API_VERSION: str = APP_VERSION
 
     # --- LLM Provider ---
     LLM_PROVIDER: str = os.getenv("BIASCLEAR_LLM_PROVIDER", "bedrock")
@@ -62,4 +64,3 @@ class Settings:
 
 
 settings = Settings()
-

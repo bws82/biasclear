@@ -29,7 +29,7 @@ from pathlib import Path
 
 import os
 
-from biasclear.config import settings
+from biasclear.config import settings, APP_VERSION
 from biasclear.frozen_core import CORE_VERSION
 
 # Track startup time for uptime reporting
@@ -51,6 +51,7 @@ from biasclear.playground_token import (
     validate_playground_token,
 )
 from biasclear.logging import setup_logging, get_logger
+from biasclear.signups import signup_store
 from biasclear.schemas.scan import (
     ScanRequest,
     ScanBatchRequest,
@@ -221,7 +222,7 @@ app = FastAPI(
         "**Published preprint:** DOI 10.5281/zenodo.18676405\n\n"
         "**Alignment:** Designed for Colorado SB 205 and EU AI Act alignment."
     ),
-    version=f"1.1.0 (core {CORE_VERSION})",
+    version=APP_VERSION,
     lifespan=lifespan,
     docs_url=_docs_url,
     openapi_url=_openapi_url,
@@ -259,6 +260,15 @@ async def root():
     return JSONResponse({"message": "BiasClear API", "docs": "/docs"})
 
 
+@app.get("/privacy", include_in_schema=False)
+async def privacy():
+    """Serve the privacy policy page."""
+    page = _static_dir / "privacy.html"
+    if page.exists():
+        return FileResponse(str(page), media_type="text/html")
+    return JSONResponse({"message": "Privacy policy unavailable"}, status_code=404)
+
+
 @app.get("/demo", include_in_schema=False)
 async def demo_redirect():
     """Redirect /demo to the playground section of the landing page."""
@@ -267,18 +277,29 @@ async def demo_redirect():
 
 @app.post("/beta-signup", include_in_schema=False)
 async def beta_signup(request: Request):
-    """Log beta signup interest. Emails are stored in the audit chain."""
+    """Log beta signup interest with privacy-safer audit metadata."""
     try:
         body = await request.json()
-        email = body.get("email", "").strip()
+        email = body.get("email", "").strip().lower()
         if not email or "@" not in email:
             return JSONResponse({"status": "error", "message": "Invalid email"}, status_code=400)
+        signup = signup_store.add(email, source="website")
         audit_chain.log(
             event_type="beta_signup",
-            data={"email": email, "source": "website"},
+            data={
+                "email_sha256": signup["email_sha256"],
+                "email_masked": signup["email_masked"],
+                "source": signup["source"],
+            },
             core_version=CORE_VERSION,
         )
-        logger.info("Beta signup recorded", extra={"email": email})
+        logger.info(
+            "Beta signup recorded",
+            extra={
+                "email_masked": signup["email_masked"],
+                "email_sha256": signup["email_sha256"],
+            },
+        )
         return JSONResponse({"status": "ok", "message": "Signup recorded"})
     except Exception:
         logger.error("Beta signup failed", exc_info=True)
@@ -292,20 +313,20 @@ async def beta_signup(request: Request):
 async def get_beta_signups(
     key_id: Optional[str] = Depends(require_api_key),
 ):
-    """Retrieve all beta signup emails from the audit chain."""
+    """Retrieve all beta signup emails from the dedicated signup store."""
     if key_id is None:
         raise HTTPException(status_code=401, detail="API key required.")
     if not AUTH_ENABLED:
         raise HTTPException(status_code=403, detail="Endpoint requires authentication to be enabled.")
-    entries = audit_chain.get_recent(limit=500, event_type="beta_signup")
-    emails = [
-        {
-            "email": e["data"].get("email", "unknown"),
-            "timestamp": e["timestamp"],
-            "source": e["data"].get("source", "unknown"),
-        }
-        for e in entries
-    ]
+    # Backfill historical signups that were stored in the audit chain before
+    # privacy hardening moved raw emails into the dedicated signup store.
+    legacy_entries = audit_chain.get_recent(limit=500, event_type="beta_signup")
+    for entry in legacy_entries:
+        legacy_email = entry["data"].get("email")
+        if legacy_email:
+            signup_store.add(legacy_email, source=entry["data"].get("source", "website"))
+
+    emails = signup_store.get_recent(limit=500)
     return {"total": len(emails), "signups": emails}
 
 
@@ -492,7 +513,10 @@ async def scan_text(
             "severity": result["severity"],
             "pit_tier": result["pit_tier"],
             "domain": request.domain,
+            "scan_mode": result["scan_mode"],
+            "source": result["source"],
             "flags_count": len(result["flags"]),
+            "flag_ids": [flag["pattern_id"] for flag in result["flags"]],
             "key_id": key_id,
             "provider_used": _scan_provider,
         },
@@ -833,7 +857,7 @@ async def health():
     all_learned = learning_ring.get_all_patterns()
     audit_count = audit_chain.get_count()
 
-    total_scans = audit_count
+    total_scans = audit_chain.get_count(event_prefix="scan_")
 
     # Check LLM availability via circuit breaker state AND recent success
     llm_available = True
@@ -883,7 +907,7 @@ async def health():
 
     return {
         "status": "operational",
-        "version": "1.2.0",
+        "version": APP_VERSION,
         "core_version": CORE_VERSION,
         "llm_provider": settings.LLM_PROVIDER,
         "llm_provider_actual": actual_provider,
@@ -943,6 +967,12 @@ async def stats():
                 score_buckets["81-100"] += 1
 
         # Pattern fire frequency
+        flag_ids = data.get("flag_ids")
+        if isinstance(flag_ids, list):
+            for pid in flag_ids:
+                pattern_fires[pid] = pattern_fires.get(pid, 0) + 1
+            continue
+
         for flag in data.get("flags", []):
             pid = flag.get("pattern_id", "unknown")
             pattern_fires[pid] = pattern_fires.get(pid, 0) + 1
@@ -962,10 +992,11 @@ async def stats():
     )
 
     total_audit = audit_chain.get_count()
+    total_scans_exact = audit_chain.get_count(event_prefix="scan_")
     all_learned = learning_ring.get_all_patterns()
 
     return {
-        "total_scans": len(scans),
+        "total_scans": total_scans_exact,
         "total_audit_entries": total_audit,
         "scans_by_mode": mode_counts,
         "score_distribution": score_buckets,
@@ -1068,7 +1099,7 @@ async def add_security_headers(request: Request, call_next):
     """Add security and version headers to all responses."""
     response = await call_next(request)
     # Version headers
-    response.headers["X-BiasClear-Version"] = "1.1.0"
+    response.headers["X-BiasClear-Version"] = APP_VERSION
     response.headers["X-Core-Version"] = CORE_VERSION
     # Security headers
     response.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains; preload"

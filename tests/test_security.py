@@ -244,6 +244,30 @@ class TestAuditLockdown:
             for entry in data.get("entries", []):
                 assert "prev_hash" not in entry
 
+    def test_beta_signup_audit_masks_email(self, client):
+        """Beta signup audit entries should not store raw emails."""
+        email = f"privacy-test-{int(time.time())}@example.com"
+        res = client.post("/beta-signup", json={"email": email})
+        assert res.status_code == 200
+
+        audit = client.get("/audit?limit=5&event_type=beta_signup")
+        assert audit.status_code == 200
+        entries = audit.json().get("entries", [])
+        assert entries
+        data = entries[0]["data"]
+        assert "email" not in data
+        assert "email_masked" in data
+        assert "email_sha256" in data
+
+
+class TestPublicPrivacySurface:
+    """Verify public privacy materials are available."""
+
+    def test_privacy_page_exists(self, client):
+        res = client.get("/privacy")
+        assert res.status_code == 200
+        assert "Privacy Policy" in res.text
+
 
 # ============================================================
 # AUDIT HASH VALIDATION
