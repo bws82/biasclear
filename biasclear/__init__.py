@@ -20,7 +20,9 @@ Usage:
     from biasclear import LLMProvider
 """
 
-__version__ = "1.1.0"
+from biasclear.config import APP_VERSION
+
+__version__ = APP_VERSION
 
 from biasclear.frozen_core import (
     frozen_core,
