@@ -176,6 +176,8 @@ class HealthResponse(BaseModel):
     version: str
     core_version: str
     llm_provider: str
+    llm_provider_actual: str = ""
+    llm_provider_fallback_active: bool = False
     llm_available: bool
     llm_status: str = "unknown"
     llm_last_success_ago: Optional[int] = None
