@@ -134,6 +134,28 @@ async def lifespan(app: FastAPI):
 
     logger.info("BiasClear API starting",
                 extra={"core_version": CORE_VERSION, "auth_enabled": AUTH_ENABLED})
+
+    # ── Startup LLM smoke check ──────────────────────────────────
+    # Fire a lightweight probe so we know immediately if credentials are broken.
+    # Non-blocking: failures are logged but don't prevent startup.
+    global _llm_last_success
+    try:
+        provider = _get_llm()
+        probe_result = await provider.generate(
+            prompt="Respond with exactly: OK",
+            temperature=0.0,
+        )
+        if probe_result and "OK" in probe_result.upper():
+            _llm_last_success = time.time()
+            logger.info("LLM smoke check PASSED (provider=%s)", settings.LLM_PROVIDER)
+        else:
+            logger.warning("LLM smoke check returned unexpected response: %s", probe_result[:100] if probe_result else "(empty)")
+    except Exception as e:
+        logger.error(
+            "LLM smoke check FAILED on startup — deep/full scans will degrade to local-only. "
+            "Error: %s", e,
+        )
+
     yield
     cleanup_task.cancel()
     logger.info("BiasClear API shutting down")
@@ -409,6 +431,15 @@ async def scan_text(
         if request.mode in ("deep", "full"):
             _llm_last_success = time.time()
 
+    # Tag which provider actually handled this scan — provider truth per request
+    _scan_provider = settings.LLM_PROVIDER
+    try:
+        p = _get_llm()
+        if hasattr(p, "_primary_failed") and p._primary_failed:
+            _scan_provider = f"{p._fallback_name} (fallback)"
+    except Exception:
+        pass
+
     audit_hash = audit_chain.log(
         event_type=f"scan_{request.mode}",
         data={
@@ -419,13 +450,16 @@ async def scan_text(
             "domain": request.domain,
             "flags_count": len(result["flags"]),
             "key_id": key_id,
+            "provider_used": _scan_provider,
         },
         core_version=CORE_VERSION,
     )
     result["audit_hash"] = audit_hash
 
-    # Store in cache for future identical scans
-    await scan_cache.put(request.text, request.domain, request.mode, result, extra=lr_version)
+    # Store in cache — but NEVER cache degraded results. When the LLM recovers,
+    # users should get full-quality results, not stale local-only fallbacks.
+    if not result.get("degraded"):
+        await scan_cache.put(request.text, request.domain, request.mode, result, extra=lr_version)
 
     duration = int((time.time() - start) * 1000)
     logger.info(
@@ -757,7 +791,7 @@ async def health():
 
     total_scans = audit_count
 
-    # Check LLM availability via circuit breaker state
+    # Check LLM availability via circuit breaker state AND recent success
     llm_available = True
     llm_status = "ready"
     try:
@@ -775,14 +809,41 @@ async def health():
     llm_last_success_ago = None
     if _llm_last_success > 0:
         llm_last_success_ago = int(time.time() - _llm_last_success)
+        # Truthfulness: if LLM hasn't succeeded in >5 minutes despite being
+        # "ready" (circuit breaker resets after 60s), mark as stale/unavailable
+        if llm_last_success_ago > 300 and llm_available:
+            llm_available = False
+            llm_status = "stale"
     elif llm_available:
-        llm_status = "no_requests_yet"
+        # No successful LLM call ever recorded — check uptime to distinguish
+        # fresh start from long-running failure
+        uptime = int(time.time() - _STARTUP_TIME)
+        if uptime > 300:
+            # Running >5 min with zero LLM successes — something is wrong
+            llm_available = False
+            llm_status = "never_succeeded"
+        else:
+            llm_status = "no_requests_yet"
+
+    # Report the ACTUAL provider in use, not just the configured one.
+    # If the FallbackProvider has silently switched, surface that truth.
+    actual_provider = settings.LLM_PROVIDER
+    provider_fallback_active = False
+    try:
+        p = _get_llm()
+        if hasattr(p, "_primary_failed") and p._primary_failed:
+            actual_provider = f"{p._fallback_name} (fallback)"
+            provider_fallback_active = True
+    except Exception:
+        pass
 
     return {
         "status": "operational",
         "version": "1.1.0",
         "core_version": CORE_VERSION,
         "llm_provider": settings.LLM_PROVIDER,
+        "llm_provider_actual": actual_provider,
+        "llm_provider_fallback_active": provider_fallback_active,
         "llm_available": llm_available,
         "llm_status": llm_status,
         "llm_last_success_ago": llm_last_success_ago,
