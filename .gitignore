@@ -45,3 +45,8 @@ Thumbs.db
 # Calibration reports (regenerated on demand)
 calibration/reports/
 .claude/
+
+# Internal grant docs (not for public repo)
+docs/GRANT_PITCHES.md
+docs/GRANT_SUBMISSION_ORDER.md
+docs/TRUTH_SAFE_MESSAGING.md
