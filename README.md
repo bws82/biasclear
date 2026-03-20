@@ -1,4 +1,4 @@
-# BiasClear API
+# BiasClear
 
 ![CI](https://github.com/bws82/biasclear/actions/workflows/ci.yml/badge.svg)
 ![License](https://img.shields.io/badge/license-AGPL--3.0-blue)
@@ -10,6 +10,25 @@ Structural bias detection engine built on [Persistent Influence Theory (PIT)](ht
 BiasClear scans text for rhetorical manipulation patterns — manufactured consensus, authority substitution, false urgency, dissent dismissal — and explains exactly how the text is structured to influence the reader.
 
 **Live:** [biasclear.com](https://biasclear.com) | **Paper:** [DOI 10.5281/zenodo.18676405](https://doi.org/10.5281/zenodo.18676405) | **EA Forum:** [I Built an Open-Source Tool That Audits AI Persuasion](https://forum.effectivealtruism.org/posts/zByjJ3cJZpHKjhxxY/i-built-an-open-source-tool-that-audits-ai-persuasion)
+
+## Reviewer Quick Links
+
+| Resource | Link |
+|----------|------|
+| Reviewer Packet | [docs/REVIEWER_PACKET.md](docs/REVIEWER_PACKET.md) — architecture, validation, case studies, known limits |
+| Live Health | [biasclear.com/health](https://biasclear.com/health) — real-time LLM status and canary results |
+| API Documentation | [biasclear.com/docs](https://biasclear.com/docs) — full OpenAPI spec |
+| Production Guide | [docs/PRODUCTION_DEPLOYMENT_SOURCE_OF_TRUTH.md](docs/PRODUCTION_DEPLOYMENT_SOURCE_OF_TRUTH.md) |
+| Operations Checklist | [docs/OPERATIONS_CHECKLIST.md](docs/OPERATIONS_CHECKLIST.md) |
+| PIT Preprint | [Zenodo](https://doi.org/10.5281/zenodo.18676405) · [SSRN](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6270159) |
+
+## Why This Is Different
+
+1. **Structural, not statistical.** BiasClear detects the *mechanism* of persuasion — manufactured consensus, authority substitution, dissent dismissal — not surface sentiment or toxicity.
+2. **Deterministic core.** 42 hand-authored patterns fire identically every time. No ML weights, no model drift, no training data.
+3. **Identity-neutral.** "Trump is ruining everything" and "Biden is ruining everything" trigger the same patterns. Validated by 38 symmetry tests.
+4. **Auditable.** Every scan produces a SHA-256 hash-chained audit entry with full score breakdown.
+5. **Theoretically grounded.** Built on Persistent Influence Theory (PIT), published as a preprint on Zenodo and SSRN. PIT has not yet undergone formal peer review.
 
 ## Quick Start
 
@@ -25,20 +44,18 @@ pip install ".[api]"
 
 BiasClear supports multiple LLM providers for contextual/deep analysis.
 
-- **Production default:** Amazon Bedrock
-- **Fallback / optional:** Gemini
-
-Set the provider and credentials you want to use:
+- **Production default:** Amazon Bedrock (Claude Sonnet)
+- **Fallback:** Gemini
 
 ```bash
-# Option A — Amazon Bedrock (recommended)
+# Amazon Bedrock (recommended)
 export BIASCLEAR_LLM_PROVIDER=bedrock
 export AWS_REGION=us-east-1
 export BEDROCK_MODEL_ID=us.anthropic.claude-sonnet-4-6
 export AWS_ACCESS_KEY_ID=your_access_key_id
 export AWS_SECRET_ACCESS_KEY=your_secret_access_key
 
-# Option B — Gemini (fallback / optional)
+# Or Gemini (fallback / optional)
 export BIASCLEAR_LLM_PROVIDER=gemini
 export GEMINI_API_KEY=your_gemini_api_key
 ```
@@ -55,6 +72,12 @@ print(result["truth_score"], result["flags"])
 # For deep/full scans, configure an LLM provider (see Configuration)
 ```
 
+### Start the API server
+
+```bash
+uvicorn api.main:app --host 127.0.0.1 --port 8000
+```
+
 ## Architecture
 
 ```
@@ -64,7 +87,7 @@ print(result["truth_score"], result["flags"])
 ├──────────┬──────────────┬───────────────────┤
 │  Local   │    Deep      │      Full         │
 │  Scan    │    Scan      │      Scan         │
-│  (free)  │  (LLM call)  │  (local + deep)   │
+│  (free)  │  (1 LLM call)│  (1–2 LLM calls) │
 ├──────────┴──────────────┴───────────────────┤
 │              Frozen Core (v1.2.0)           │
 │     42 structural patterns · 4 domains      │
@@ -78,38 +101,13 @@ print(result["truth_score"], result["flags"])
 └─────────────────────────────────────────────┘
 ```
 
-## Runtime
-
-BiasClear uses a provider-flexible architecture for contextual and deep analysis.
-
-- **Current production default:** Amazon Bedrock
-- **Current model path:** Anthropic Claude via Bedrock
-- **Fallback option:** Gemini
-
-The deterministic core scan remains rule-based and reproducible regardless of provider choice. Provider-backed analysis is used to extend contextual interpretation, not to replace the core structural audit layer.
-
 ## Scan Modes
 
 | Mode | Cost | What it does |
 |------|------|-------------|
-| **local** | Free | Frozen core patterns + keyword markers. Deterministic. |
+| **local** | Free | Frozen core patterns only. Fully deterministic. |
 | **deep** | 1 API call | LLM analysis guided by PIT principles. |
-| **full** | 1–2 API calls | Local + deep combined. Adds impact projection if truth score < 80. Triggers learning ring. |
-
-## API Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/scan` | Scan text for bias |
-| `POST` | `/scan/batch` | Batch scan multiple texts |
-| `POST` | `/correct` | Rewrite text to remove detected bias |
-| `GET` | `/patterns` | List active detection patterns |
-| `GET` | `/audit` | Recent audit chain entries |
-| `GET` | `/audit/verify` | Verify audit chain integrity |
-| `POST` | `/certificate` | Generate a bias scan certificate |
-| `GET` | `/certificate/verify/{hash}` | Verify a certificate by audit hash |
-| `GET` | `/patterns/learned` | List learned (non-frozen) patterns |
-| `GET` | `/health` | Health check |
+| **full** | 1–2 API calls | Local + deep combined. Adds impact projection if truth score < 80. |
 
 ## Detection Domains
 
@@ -120,6 +118,21 @@ The deterministic core scan remains rule-based and reproducible regardless of pr
 | Media | 9 | Editorial-as-news, anonymous attribution, weasel quantifiers |
 | Financial | 5 | Survivorship bias, anchoring, cherry-picked timeframes |
 
+## API Endpoints
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| `POST` | `/scan` | Scan text for bias | API key required |
+| `POST` | `/scan/batch` | Batch scan multiple texts | API key required |
+| `POST` | `/correct` | Rewrite text to remove detected bias | API key required |
+| `GET` | `/patterns` | List active detection patterns | No |
+| `GET` | `/audit` | Recent audit chain entries | No |
+| `GET` | `/audit/verify` | Verify audit chain integrity | No |
+| `POST` | `/certificate` | Generate a bias scan certificate | API key required |
+| `GET` | `/certificate/verify/{hash}` | Verify a certificate by audit hash | No |
+| `GET` | `/patterns/learned` | List learned (non-frozen) patterns | No |
+| `GET` | `/health` | Health check | No |
+
 ## Configuration
 
 ### Core settings
@@ -127,39 +140,12 @@ The deterministic core scan remains rule-based and reproducible regardless of pr
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `BIASCLEAR_API_KEYS` | Yes (for hosted API use) | API keys authorized to access protected endpoints |
-| `BIASCLEAR_LLM_PROVIDER` | No | LLM provider for contextual/deep analysis. Supported values: `bedrock`, `gemini` |
-| `AWS_REGION` | Required for Bedrock | AWS region for Bedrock runtime (default recommended: `us-east-1`) |
-| `BEDROCK_MODEL_ID` | Required for Bedrock | Bedrock model ID used for deep analysis |
-| `AWS_ACCESS_KEY_ID` | Required for Bedrock | AWS access key (or use IAM role / `~/.aws/credentials`) |
-| `AWS_SECRET_ACCESS_KEY` | Required for Bedrock | AWS secret key (or use IAM role / `~/.aws/credentials`) |
-| `GEMINI_API_KEY` | Required only for Gemini | Gemini API key if using Gemini as provider |
-
-### Notes
-
-- **Production default:** Bedrock
-- **Current recommended provider:** Amazon Bedrock
-- **Gemini remains supported as a fallback**
-- If `BIASCLEAR_LLM_PROVIDER` is not set, it defaults to `bedrock`
-- Do not commit secrets to source control; use environment variables or your deployment platform's secret manager
-
-### Example environment configuration
-
-#### Bedrock (recommended)
-
-```bash
-BIASCLEAR_LLM_PROVIDER=bedrock
-AWS_REGION=us-east-1
-BEDROCK_MODEL_ID=us.anthropic.claude-sonnet-4-6
-AWS_ACCESS_KEY_ID=your_access_key_id
-AWS_SECRET_ACCESS_KEY=your_secret_access_key
-```
-
-#### Gemini (fallback)
-
-```bash
-BIASCLEAR_LLM_PROVIDER=gemini
-GEMINI_API_KEY=your_gemini_api_key
-```
+| `BIASCLEAR_LLM_PROVIDER` | No | LLM provider: `bedrock` (default) or `gemini` |
+| `AWS_REGION` | Required for Bedrock | AWS region (recommended: `us-east-1`) |
+| `BEDROCK_MODEL_ID` | Required for Bedrock | Bedrock model ID for deep analysis |
+| `AWS_ACCESS_KEY_ID` | Required for Bedrock | AWS access key |
+| `AWS_SECRET_ACCESS_KEY` | Required for Bedrock | AWS secret key |
+| `GEMINI_API_KEY` | Required only for Gemini | Gemini API key if using Gemini |
 
 See `.env.example` for the full list.
 
@@ -182,6 +168,16 @@ python run_calibration.py --optimize
 docker build -t biasclear .
 docker run -p 8000:8000 --env-file .env biasclear
 ```
+
+## Known Limits
+
+These are stated honestly:
+
+1. **PIT is a preprint.** Not yet formally peer-reviewed.
+2. **Calibration corpus is small.** 118 samples. Systematic precision/recall on large corpora has not been completed.
+3. **LLM layer introduces variance.** The deterministic core is fully symmetric; the LLM layer is not.
+4. **Solo developer.** Built and maintained by one person.
+5. **Long documents untested.** Validated on passages and short documents, not 10K+ word texts.
 
 ## Security
 
