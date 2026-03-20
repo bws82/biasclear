@@ -171,6 +171,14 @@ class CertificateVerifyResponse(BaseModel):
 # HEALTH
 # ============================================================
 
+class CanaryStatus(BaseModel):
+    enabled: bool = True
+    interval_seconds: int = 240
+    last_passed: bool = False
+    last_run_ago: Optional[int] = None
+    consecutive_failures: int = 0
+
+
 class HealthResponse(BaseModel):
     status: str
     version: str
@@ -181,6 +189,7 @@ class HealthResponse(BaseModel):
     llm_available: bool
     llm_status: str = "unknown"
     llm_last_success_ago: Optional[int] = None
+    llm_canary: Optional[CanaryStatus] = None
     audit_entries: int
     total_scans: int
     learned_patterns_active: int

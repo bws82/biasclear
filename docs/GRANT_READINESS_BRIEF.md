@@ -32,7 +32,7 @@ It is not a sentiment classifier. It does not flag opinions for being unpopular.
 | Explanation Generation | Natural language explanation of findings | No — LLM-generated |
 | Bias Correction | Suggests debiased rewrites | No — LLM-generated |
 
-In `local` mode, BiasClear runs without any LLM — fully deterministic, zero external dependencies. In `full` mode, both layers work together.
+In `local` mode, BiasClear runs without any LLM — fully deterministic, zero external dependencies. In `full` mode, both layers work together: one LLM call for deep analysis, plus a conditional second call for impact projection when the truth score falls below 80.
 
 ## What Is Already Validated
 

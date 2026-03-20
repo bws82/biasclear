@@ -67,7 +67,7 @@ print(result["truth_score"], result["flags"])
 │  (free)  │  (LLM call)  │  (local + deep)   │
 ├──────────┴──────────────┴───────────────────┤
 │              Frozen Core (v1.2.0)           │
-│     39 structural patterns · 4 domains      │
+│     42 structural patterns · 4 domains      │
 │        Deterministic · Immutable            │
 ├─────────────────────────────────────────────┤
 │             Learning Ring                   │
@@ -94,7 +94,7 @@ The deterministic core scan remains rule-based and reproducible regardless of pr
 |------|------|-------------|
 | **local** | Free | Frozen core patterns + keyword markers. Deterministic. |
 | **deep** | 1 API call | LLM analysis guided by PIT principles. |
-| **full** | 1 API call | Local + deep combined. Triggers learning ring. |
+| **full** | 1–2 API calls | Local + deep combined. Adds impact projection if truth score < 80. Triggers learning ring. |
 
 ## API Endpoints
 
@@ -115,7 +115,7 @@ The deterministic core scan remains rule-based and reproducible regardless of pr
 
 | Domain | Patterns | Example Targets |
 |--------|----------|----------------|
-| General | 19 | Consensus-as-evidence, false binary, fear urgency, shame lever |
+| General | 22 | Consensus-as-evidence, false binary, fear urgency, shame lever |
 | Legal | 6 | Settled-law dismissal, sanctions threats, straw man arguments |
 | Media | 9 | Editorial-as-news, anonymous attribution, weasel quantifiers |
 | Financial | 5 | Survivorship bias, anchoring, cherry-picked timeframes |
