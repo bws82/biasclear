@@ -1553,7 +1553,6 @@
       <a href="#playground">Playground</a>
       <a href="#how-it-works">Architecture</a>
       <a href="#domains">Domains</a>
-      <a href="#pricing">Pricing</a>
       <a href="#about">About</a>
       <a href="https://github.com/bws82/biasclear" target="_blank">GitHub</a>
       <a href="https://biasclear.com/docs" class="btn-nav" target="_blank">API Docs</a>
@@ -1567,6 +1566,7 @@
     <div class="hero-actions">
       <a href="#playground" class="btn btn-primary">Try the Playground</a>
       <a href="https://doi.org/10.5281/zenodo.18676405" class="btn btn-outline" target="_blank">Read the Preprint</a>
+      <a href="https://forum.effectivealtruism.org/posts/zByjJ3cJZpHKjhxxY/i-built-an-open-source-tool-that-audits-ai-persuasion" class="btn btn-outline" target="_blank">EA Forum Post</a>
       <button class="btn-self-scan" id="btn-self-scan" onclick="selfScan()">⚡ Scan This Page</button>
     </div>
     <div style="margin-top:1.5rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
@@ -1836,10 +1836,12 @@
         <span class="comment"># pip install biasclear  (Python client SDK)</span><br>
         <span class="kw">import</span> requests<br><br>
         <span class="var">response</span> = requests.<span class="fn">post</span>(<span
-          class="str">"https://biasclear.com/scan"</span>, json={<br>
-        &nbsp;&nbsp;<span class="str">"text"</span>: <span class="str">"Your document text here..."</span>,<br>
-        &nbsp;&nbsp;<span class="str">"domain"</span>: <span class="str">"legal"</span>,<br>
-        &nbsp;&nbsp;<span class="str">"mode"</span>: <span class="str">"deep"</span><br>
+          class="str">"https://biasclear.com/scan"</span>,<br>
+        &nbsp;&nbsp;headers={<span class="str">"X-API-Key"</span>: <span class="str">"YOUR_API_KEY"</span>},<br>
+        &nbsp;&nbsp;json={<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"text"</span>: <span class="str">"Your document text here..."</span>,<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"domain"</span>: <span class="str">"legal"</span>,<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"mode"</span>: <span class="str">"deep"</span><br>
         })<br><br>
         <span class="var">result</span> = response.<span class="fn">json</span>()<br>
         <span class="fn">print</span>(<span class="kw">f</span><span class="str">"Integrity Score: {<span
@@ -1858,6 +1860,7 @@
       <div class="code-body">
         <span class="fn">curl</span> -X POST https://biasclear.com/scan \<br>
         &nbsp;&nbsp;-H <span class="str">"Content-Type: application/json"</span> \<br>
+        &nbsp;&nbsp;-H <span class="str">"X-API-Key: YOUR_API_KEY"</span> \<br>
         &nbsp;&nbsp;-d <span class="str">'{"text": "...", "domain": "legal", "mode": "deep"}'</span>
       </div>
     </div>
@@ -1904,8 +1907,7 @@
           <li>Unlimited scans</li>
           <li>Custom detection patterns</li>
           <li>Alignment reports (SB 205, EU AI Act)</li>
-          <li>SLA guarantee</li>
-          <li>Dedicated support</li>
+          <li>Priority support</li>
           <li>On-premise deployment</li>
         </ul>
         <a href="#beta" class="pricing-cta secondary">Contact Us</a>
@@ -1948,11 +1950,57 @@
     </div>
   </div>
 
+  <!-- REVIEWER QUICK LINKS -->
+  <div style="max-width:900px;margin:4rem auto 2rem;padding:0 2rem;">
+    <h2 style="text-align:center;font-size:1.75rem;font-weight:700;letter-spacing:-0.02em;margin-bottom:0.5rem;">For Reviewers and Evaluators</h2>
+    <p style="color:var(--text-muted);text-align:center;max-width:600px;margin:0 auto 2rem;font-size:0.95rem;">
+      Everything you need to evaluate BiasClear in 5 minutes.
+    </p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;">
+      <a href="https://github.com/bws82/biasclear/blob/main/docs/REVIEWER_PACKET.md" target="_blank" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;text-decoration:none;color:var(--text);transition:border-color 0.2s;">
+        <div style="font-size:1.25rem;margin-bottom:0.5rem;">📋</div>
+        <div style="font-weight:600;margin-bottom:0.25rem;">Reviewer Packet</div>
+        <div style="font-size:0.8rem;color:var(--text-muted);">Architecture, validation, known limits, case studies</div>
+      </a>
+      <a href="https://biasclear.com/health" target="_blank" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;text-decoration:none;color:var(--text);transition:border-color 0.2s;">
+        <div style="font-size:1.25rem;margin-bottom:0.5rem;">💚</div>
+        <div style="font-weight:600;margin-bottom:0.25rem;">Live Health Status</div>
+        <div style="font-size:0.8rem;color:var(--text-muted);">Real-time system health, LLM status, canary results</div>
+      </a>
+      <a href="https://biasclear.com/docs" target="_blank" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;text-decoration:none;color:var(--text);transition:border-color 0.2s;">
+        <div style="font-size:1.25rem;margin-bottom:0.5rem;">📡</div>
+        <div style="font-weight:600;margin-bottom:0.25rem;">API Documentation</div>
+        <div style="font-size:0.8rem;color:var(--text-muted);">Full OpenAPI spec — scan, audit, certificate endpoints</div>
+      </a>
+      <a href="https://doi.org/10.5281/zenodo.18676405" target="_blank" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;text-decoration:none;color:var(--text);transition:border-color 0.2s;">
+        <div style="font-size:1.25rem;margin-bottom:0.5rem;">📄</div>
+        <div style="font-weight:600;margin-bottom:0.25rem;">PIT Preprint</div>
+        <div style="font-size:0.8rem;color:var(--text-muted);">Persistent Influence Theory — Zenodo DOI (not yet peer-reviewed)</div>
+      </a>
+      <a href="https://github.com/bws82/biasclear" target="_blank" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;text-decoration:none;color:var(--text);transition:border-color 0.2s;">
+        <div style="font-size:1.25rem;margin-bottom:0.5rem;">💻</div>
+        <div style="font-weight:600;margin-bottom:0.25rem;">Source Code</div>
+        <div style="font-size:0.8rem;color:var(--text-muted);">AGPL-3.0 — full engine, tests, CI pipeline</div>
+      </a>
+      <a href="https://forum.effectivealtruism.org/posts/zByjJ3cJZpHKjhxxY/i-built-an-open-source-tool-that-audits-ai-persuasion" target="_blank" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;text-decoration:none;color:var(--text);transition:border-color 0.2s;">
+        <div style="font-size:1.25rem;margin-bottom:0.5rem;">🌍</div>
+        <div style="font-weight:600;margin-bottom:0.25rem;">EA Forum Post</div>
+        <div style="font-size:0.8rem;color:var(--text-muted);">Background, motivation, and community discussion</div>
+      </a>
+    </div>
+    <div style="margin-top:1.5rem;text-align:center;">
+      <p style="font-size:0.8rem;color:var(--text-muted);">
+        318 passing tests · 38 symmetry tests · 118-sample calibration corpus · SHA-256 audit chain · Live since February 2026
+      </p>
+    </div>
+  </div>
+
   <footer>
     <div class="links">
       <a href="https://github.com/bws82/biasclear">GitHub</a>
-      <a href="https://doi.org/10.5281/zenodo.18676405">Zenodo</a>
-      <a href="https://biasclear.com/docs" target="_blank">API Reference</a>
+      <a href="https://doi.org/10.5281/zenodo.18676405">Preprint</a>
+      <a href="https://biasclear.com/docs" target="_blank">API Docs</a>
+      <a href="https://github.com/bws82/biasclear/blob/main/docs/REVIEWER_PACKET.md" target="_blank">Reviewer Packet</a>
     </div>
     <p>BiasClear v1.2.0 · Built on Persistent Influence Theory · AGPL-3.0<br>
       © 2026 Brad Slimp</p>
