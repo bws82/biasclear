@@ -44,3 +44,4 @@ Thumbs.db
 
 # Calibration reports (regenerated on demand)
 calibration/reports/
+.claude/
