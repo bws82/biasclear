@@ -159,6 +159,33 @@ curl -X POST https://biasclear.com/scan \
 
 **Why it matters:** Investment materials frequently use these patterns to create confidence that is not supported by the underlying data. Regulatory frameworks (SEC, FCA) require that projections be clearly labeled; BiasClear detects when the structural framing undermines that distinction.
 
+## What Support Enables
+
+BiasClear is past prototype — it has a working public API, a published theoretical framework, a deterministic detection engine, an LLM-assisted analysis layer, cryptographic auditability, and 318 passing tests. It is deployed on AWS infrastructure and serving real scans.
+
+What it needs to reach the next level of credibility:
+
+1. **Calibration corpus development.** Labeled datasets for systematic precision/recall validation across all 4 domains. The current corpus (118 samples) demonstrates the approach works; a 500-1000 sample corpus per domain would provide statistically meaningful confidence numbers.
+2. **LLM consistency research.** Structured output experiments to reduce AI-layer variance across entity swaps. The deterministic core is fully symmetric; the LLM layer is not. Prompt engineering and structured constraints can reduce this, which requires compute credits for systematic testing.
+3. **Academic collaboration.** Co-authorship on a peer-reviewed publication of the PIT framework would strengthen the theoretical foundation.
+4. **Security audit.** Third-party review of the audit chain and API security model.
+5. **Domain expansion.** Expert-authored patterns for healthcare and government communications — natural next domains that require domain-specific knowledge to author responsibly.
+
+## Technical Stack
+
+| Component | Detail |
+|-----------|--------|
+| Language | Python 3.12 |
+| Framework | FastAPI + uvicorn |
+| LLM Primary | AWS Bedrock (Claude Sonnet 4.6) |
+| LLM Fallback | Google Gemini 2.5 Flash |
+| Hosting | Render (Docker) |
+| Database | SQLite (audit chain, learned patterns) |
+| License | AGPL-3.0 |
+| Package | [PyPI](https://pypi.org/project/biasclear) |
+| Source | [GitHub](https://github.com/bws82/biasclear) |
+| Preprint | [Zenodo](https://doi.org/10.5281/zenodo.18676405) · [SSRN](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6270159) |
+
 ## Contact
 
 Bradley Slimp — [brad@biasclear.com](mailto:brad@biasclear.com) — [LinkedIn](https://www.linkedin.com/in/brad-s-82694021/)
