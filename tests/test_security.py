@@ -269,7 +269,7 @@ class TestAuditLockdown:
         """Form-encoded POST to /beta-signup succeeds."""
         res = client.post(
             "/beta-signup",
-            data={"email": "form-test@example.com"},
+            content="email=form-test%40example.com",
             headers={"Content-Type": "application/x-www-form-urlencoded"},
         )
         assert res.status_code == 200
@@ -280,7 +280,7 @@ class TestAuditLockdown:
         email = f"form-privacy-{int(time.time())}@example.com"
         client.post(
             "/beta-signup",
-            data={"email": email},
+            content=f"email={email}",
             headers={"Content-Type": "application/x-www-form-urlencoded"},
         )
         audit = client.get("/audit?limit=5&event_type=beta_signup")
