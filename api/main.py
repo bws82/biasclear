@@ -279,8 +279,13 @@ async def demo_redirect():
 async def beta_signup(request: Request):
     """Log beta signup interest with privacy-safer audit metadata."""
     try:
-        body = await request.json()
-        email = body.get("email", "").strip().lower()
+        content_type = (request.headers.get("content-type") or "").lower()
+        if "application/json" in content_type:
+            body = await request.json()
+            email = body.get("email", "").strip().lower()
+        else:
+            form = await request.form()
+            email = str(form.get("email", "")).strip().lower()
         if not email or "@" not in email:
             return JSONResponse({"status": "error", "message": "Invalid email"}, status_code=400)
         signup = signup_store.add(email, source="website")

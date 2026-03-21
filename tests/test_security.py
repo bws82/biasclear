@@ -259,6 +259,38 @@ class TestAuditLockdown:
         assert "email_masked" in data
         assert "email_sha256" in data
 
+    def test_beta_signup_json_works(self, client):
+        """JSON POST to /beta-signup succeeds."""
+        res = client.post("/beta-signup", json={"email": "json-test@example.com"})
+        assert res.status_code == 200
+        assert res.json()["status"] == "ok"
+
+    def test_beta_signup_form_encoded_works(self, client):
+        """Form-encoded POST to /beta-signup succeeds."""
+        res = client.post(
+            "/beta-signup",
+            data={"email": "form-test@example.com"},
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+        assert res.status_code == 200
+        assert res.json()["status"] == "ok"
+
+    def test_beta_signup_form_encoded_audit_masked(self, client):
+        """Form-encoded signup audit entries also mask the email."""
+        email = f"form-privacy-{int(time.time())}@example.com"
+        client.post(
+            "/beta-signup",
+            data={"email": email},
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+        audit = client.get("/audit?limit=5&event_type=beta_signup")
+        entries = audit.json().get("entries", [])
+        assert entries
+        data = entries[0]["data"]
+        assert "email" not in data
+        assert "email_masked" in data
+        assert "email_sha256" in data
+
 
 class TestPublicPrivacySurface:
     """Verify public privacy materials are available."""
