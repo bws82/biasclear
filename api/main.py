@@ -284,8 +284,11 @@ async def beta_signup(request: Request):
             body = await request.json()
             email = body.get("email", "").strip().lower()
         else:
-            form = await request.form()
-            email = str(form.get("email", "")).strip().lower()
+            # Parse form-encoded body without requiring python-multipart
+            from urllib.parse import parse_qs
+            raw = (await request.body()).decode()
+            parsed = parse_qs(raw)
+            email = parsed.get("email", [""])[0].strip().lower()
         if not email or "@" not in email:
             return JSONResponse({"status": "error", "message": "Invalid email"}, status_code=400)
         signup = signup_store.add(email, source="website")
