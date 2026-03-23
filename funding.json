@@ -1,0 +1,75 @@
+{
+  "$schema": "https://fundingjson.org/schema/v1.1.0/funding.schema.json",
+  "version": "1.2.0",
+  "entity": {
+    "type": "individual",
+    "role": "owner",
+    "name": "Bradley Slimp",
+    "email": "brad@biasclear.com",
+    "description": "Independent researcher and developer building open-source tools for structural bias detection in text. Creator of BiasClear and the Persistent Influence Theory framework.",
+    "webpageUrl": {
+      "url": "https://biasclear.com"
+    }
+  },
+  "projects": [
+    {
+      "guid": "biasclear",
+      "name": "BiasClear",
+      "description": "Structural bias detection engine built on Persistent Influence Theory. Combines 42 deterministic detection patterns with governed LLM analysis across legal, media, financial, and general domains. SHA-256 audit chain. AGPL-3.0 licensed.",
+      "webpageUrl": {
+        "url": "https://biasclear.com",
+        "wellKnown": "https://biasclear.com/.well-known/funding-manifest-urls"
+      },
+      "repositoryUrl": {
+        "url": "https://github.com/bws82/biasclear"
+      },
+      "licenses": [
+        "spdx:AGPL-3.0-only"
+      ],
+      "tags": [
+        "ai-safety",
+        "bias-detection",
+        "nlp",
+        "open-source",
+        "python",
+        "ethics"
+      ]
+    }
+  ],
+  "funding": {
+    "channels": [
+      {
+        "guid": "github-sponsors",
+        "type": "payment-provider",
+        "address": "https://github.com/sponsors/bws82",
+        "description": "GitHub Sponsors — recurring or one-time support"
+      }
+    ],
+    "plans": [
+      {
+        "guid": "any-amount",
+        "status": "active",
+        "name": "Support BiasClear development",
+        "description": "Any contribution supports calibration, validation, and continued open-source development.",
+        "amount": 0,
+        "currency": "USD",
+        "frequency": "one-time",
+        "channels": [
+          "github-sponsors"
+        ]
+      },
+      {
+        "guid": "monthly-supporter",
+        "status": "active",
+        "name": "Monthly supporter",
+        "description": "Recurring monthly support for ongoing development and infrastructure costs.",
+        "amount": 0,
+        "currency": "USD",
+        "frequency": "monthly",
+        "channels": [
+          "github-sponsors"
+        ]
+      }
+    ]
+  }
+}
