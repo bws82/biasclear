@@ -6,7 +6,7 @@
     "role": "owner",
     "name": "Bradley Slimp",
     "email": "brad@biasclear.com",
-    "description": "Independent researcher and developer building open-source tools for structural bias detection in text. Creator of BiasClear and the Persistent Influence Theory framework.",
+    "description": "Independent researcher and software maintainer building open-source AI governance infrastructure. Creator of BiasClear and the Persistent Influence Theory (PIT) framework, published on SSRN and Zenodo with a DOI. BiasClear is maintained as a solo public-interest project without institutional backing.",
     "webpageUrl": {
       "url": "https://biasclear.com"
     }
@@ -15,7 +15,7 @@
     {
       "guid": "biasclear",
       "name": "BiasClear",
-      "description": "Structural bias detection engine built on Persistent Influence Theory. Combines 42 deterministic detection patterns with governed LLM analysis across legal, media, financial, and general domains. SHA-256 audit chain. AGPL-3.0 licensed.",
+      "description": "BiasClear is open-source structural persuasion detection infrastructure for the AI ecosystem. It audits text for rhetorical manipulation patterns such as manufactured consensus, authority substitution, false urgency, and dissent dismissal—patterns that sentiment, toxicity, and fact-checking tools do not target well. The system combines a deterministic frozen core of 42 hand-authored detection patterns across legal, media, financial, and general domains with governed LLM-assisted analysis, SHA-256 hash-chained auditability, and a live public deployment at biasclear.com. Funding would support validation, independent security review, and broader adoption of this public-interest governance layer.",
       "webpageUrl": {
         "url": "https://biasclear.com",
         "wellKnown": "https://biasclear.com/.well-known/funding-manifest-urls"
@@ -27,12 +27,14 @@
         "spdx:AGPL-3.0-only"
       ],
       "tags": [
+        "ai-governance",
         "ai-safety",
         "bias-detection",
         "nlp",
         "open-source",
         "python",
-        "ethics"
+        "audit-infrastructure",
+        "text-analysis"
       ]
     }
   ],
@@ -42,32 +44,40 @@
         "guid": "github-sponsors",
         "type": "payment-provider",
         "address": "https://github.com/sponsors/bws82",
-        "description": "GitHub Sponsors — recurring or one-time support"
+        "description": "GitHub Sponsors for recurring or one-time open-source support."
+      },
+      {
+        "guid": "direct-grants",
+        "type": "other",
+        "address": "brad@biasclear.com",
+        "description": "For grants, sponsorships, or larger support requiring invoicing, tax documentation, or bank transfer coordination, contact the maintainer directly."
       }
     ],
     "plans": [
       {
-        "guid": "any-amount",
+        "guid": "validation-and-audit",
         "status": "active",
-        "name": "Support BiasClear development",
-        "description": "Any contribution supports calibration, validation, and continued open-source development.",
-        "amount": 0,
+        "name": "Validation and external audit",
+        "description": "Funds calibration corpus expansion, external annotation, reproducible evaluation, and an independent security review. This is the highest-leverage step for moving BiasClear from an early production artifact to a stronger public reference tool.",
+        "amount": 25000,
         "currency": "USD",
         "frequency": "one-time",
         "channels": [
+          "direct-grants",
           "github-sponsors"
         ]
       },
       {
-        "guid": "monthly-supporter",
+        "guid": "infrastructure-sustainer",
         "status": "active",
-        "name": "Monthly supporter",
-        "description": "Recurring monthly support for ongoing development and infrastructure costs.",
-        "amount": 0,
+        "name": "Infrastructure and maintenance",
+        "description": "Supports hosting, compute, CI, documentation, and ongoing maintenance of the live public API and open-source codebase so BiasClear remains available to researchers, reviewers, and downstream integrators.",
+        "amount": 500,
         "currency": "USD",
         "frequency": "monthly",
         "channels": [
-          "github-sponsors"
+          "github-sponsors",
+          "direct-grants"
         ]
       }
     ]
