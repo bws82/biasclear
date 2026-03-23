@@ -26,7 +26,7 @@ BiasClear scans text for rhetorical manipulation patterns — manufactured conse
 
 1. **Structural, not statistical.** BiasClear detects the *mechanism* of persuasion — manufactured consensus, authority substitution, dissent dismissal — not surface sentiment or toxicity.
 2. **Deterministic core.** 42 hand-authored patterns fire identically every time. No ML weights, no model drift, no training data.
-3. **Identity-neutral.** "Trump is ruining everything" and "Biden is ruining everything" trigger the same patterns. Validated by 38 symmetry tests.
+3. **Identity-neutral.** "Trump is ruining everything" and "Biden is ruining everything" trigger the same patterns. Validated by 32 symmetry and boundary tests.
 4. **Auditable.** Every scan produces a SHA-256 hash-chained audit entry with full score breakdown.
 5. **Theoretically grounded.** Built on Persistent Influence Theory (PIT), published as a preprint on Zenodo and SSRN. PIT has not yet undergone formal peer review.
 
