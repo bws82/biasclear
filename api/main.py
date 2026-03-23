@@ -22,7 +22,7 @@ from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Query, Depends, Header
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, FileResponse, RedirectResponse
+from fastapi.responses import JSONResponse, FileResponse, RedirectResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.requests import Request
 from pathlib import Path
@@ -258,6 +258,21 @@ async def root():
     if index.exists():
         return FileResponse(str(index), media_type="text/html")
     return JSONResponse({"message": "BiasClear API", "docs": "/docs"})
+
+
+@app.get("/funding.json", include_in_schema=False)
+async def funding_json():
+    """Serve the FLOSS/fund funding manifest."""
+    manifest = Path(__file__).resolve().parent.parent / "funding.json"
+    if manifest.exists():
+        return FileResponse(str(manifest), media_type="application/json")
+    return JSONResponse({"error": "funding.json not found"}, status_code=404)
+
+
+@app.get("/.well-known/funding-manifest-urls", include_in_schema=False)
+async def well_known_funding():
+    """FLOSS/fund well-known verification file."""
+    return PlainTextResponse("https://biasclear.com/funding.json\n")
 
 
 @app.get("/privacy", include_in_schema=False)
