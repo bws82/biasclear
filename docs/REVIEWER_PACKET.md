@@ -49,7 +49,7 @@ BiasClear uses a hybrid architecture with two distinct layers:
 
 1. **Structural, not statistical.** Detects the *mechanism* of persuasion, not just surface sentiment.
 2. **Deterministic core.** 42 patterns fire identically every time. No model variance on the core layer.
-3. **Identity-neutral.** "Trump is ruining everything" and "Biden is ruining everything" trigger the same patterns. Validated by 38 symmetry tests.
+3. **Identity-neutral.** "Trump is ruining everything" and "Biden is ruining everything" trigger the same patterns. Validated by 32 symmetry and boundary tests.
 4. **Auditable.** Every scan produces a SHA-256 hash-chained audit entry with full score breakdown.
 5. **Theoretically grounded.** Built on Persistent Influence Theory, published on [Zenodo](https://doi.org/10.5281/zenodo.18676405) and [SSRN](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6270159).
 
@@ -69,8 +69,8 @@ BiasClear uses a hybrid architecture with two distinct layers:
 
 ## Validation and Testing
 
-- **318 passing tests** across the full test suite
-- **38 causal-blame symmetry and boundary tests** — political figures, authority figures, institutions treated identically
+- **326 passing tests** across the full test suite
+- **32 causal-blame symmetry and boundary tests** — political figures, authority figures, institutions treated identically
 - **118-sample calibration corpus** with 100% accuracy, precision, recall, F1 on the deterministic core
 - **31.7-point truth score separation** between clean and biased samples in calibration
 - **Boundary control tests** — bounded factual claims verified clean of false positives
@@ -161,7 +161,7 @@ curl -X POST https://biasclear.com/scan \
 
 ## What Support Enables
 
-BiasClear is past prototype — it has a working public API, a published theoretical framework, a deterministic detection engine, an LLM-assisted analysis layer, cryptographic auditability, and 318 passing tests. It is deployed on AWS infrastructure and serving real scans.
+BiasClear is past prototype — it has a working public API, a published theoretical framework, a deterministic detection engine, an LLM-assisted analysis layer, cryptographic auditability, and 326 passing tests. It is deployed on AWS infrastructure and serving real scans.
 
 What it needs to reach the next level of credibility:
 
