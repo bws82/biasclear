@@ -183,6 +183,10 @@ These are stated honestly:
 
 Do not place live credentials in source code, examples, issue threads, or pull requests. Use environment variables and deployment-platform secret storage only.
 
+## Support
+
+BiasClear is an independent public-interest project. If you find it useful, you can support continued development via [GitHub Sponsors](https://github.com/sponsors/bws82).
+
 ## License
 
 AGPL-3.0 — see [LICENSE](LICENSE).
