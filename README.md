@@ -40,6 +40,28 @@ cd biasclear
 pip install ".[api]"
 ```
 
+### Reviewer / Full Test Setup
+
+If you are reviewing the repository or running the full test suite, use the same install path as CI.
+
+- **Python:** 3.11+ required
+- **CI runtime:** Python 3.12
+- **Canonical reviewer install:** `pip install -e ".[api,dev]"`
+
+```bash
+python3.12 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -e ".[api,dev]"
+python -m pytest tests/ -q
+```
+
+Or use the one-command bootstrap:
+
+```bash
+bash scripts/reviewer_bootstrap.sh
+```
+
 ### Configure
 
 BiasClear supports multiple LLM providers for contextual/deep analysis.
@@ -152,14 +174,21 @@ See `.env.example` for the full list.
 ## Testing
 
 ```bash
-# Run all tests
-pytest tests/ -v
+# Reviewer / CI-equivalent path
+python -m pip install -e ".[api,dev]"
+python -m pytest tests/ -v
 
 # Run calibration benchmark
 python run_calibration.py
 
 # Run calibration with optimization recommendations
 python run_calibration.py --optimize
+```
+
+For a public no-secrets verification of the live deployment, run:
+
+```bash
+bash scripts/reviewer_check.sh
 ```
 
 ## Docker
