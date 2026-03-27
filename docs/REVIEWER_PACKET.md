@@ -123,6 +123,34 @@ curl -X POST https://biasclear.com/scan \
 
 **5. Review the code:** [github.com/bws82/biasclear](https://github.com/bws82/biasclear)
 
+## Reproducible Reviewer Setup
+
+For local verification of the repository and full test suite, use the same install path as CI:
+
+- **Python:** 3.11+ required
+- **CI runtime:** Python 3.12
+- **Canonical command:** `pip install -e ".[api,dev]"`
+
+```bash
+python3.12 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -e ".[api,dev]"
+python -m pytest tests/ -q
+```
+
+Or run:
+
+```bash
+bash scripts/reviewer_bootstrap.sh
+```
+
+For a public no-secrets verification of the live deployment, run:
+
+```bash
+bash scripts/reviewer_check.sh
+```
+
 ## Case Studies
 
 ### Case Study 1: Legal — Opposing Counsel Rhetoric
