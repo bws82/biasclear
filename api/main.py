@@ -260,7 +260,7 @@ async def root():
     return JSONResponse({"message": "BiasClear API", "docs": "/docs"})
 
 
-@app.get("/funding.json", include_in_schema=False)
+@app.api_route("/funding.json", methods=["GET", "HEAD"], include_in_schema=False)
 async def funding_json():
     """Serve the FLOSS/fund funding manifest."""
     manifest = Path(__file__).resolve().parent.parent / "funding.json"
@@ -269,7 +269,11 @@ async def funding_json():
     return JSONResponse({"error": "funding.json not found"}, status_code=404)
 
 
-@app.get("/.well-known/funding-manifest-urls", include_in_schema=False)
+@app.api_route(
+    "/.well-known/funding-manifest-urls",
+    methods=["GET", "HEAD"],
+    include_in_schema=False,
+)
 async def well_known_funding():
     """FLOSS/fund well-known verification file."""
     return PlainTextResponse("https://biasclear.com/funding.json\n")
