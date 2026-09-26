@@ -12,7 +12,7 @@ Closes #
 ## Found along the way
 <!-- Problems you noticed but did not fix. -->
 
-## Questions for @pm
+## Questions for the PM
 <!-- Anything you need decided. Write "None" if you have no questions. -->
 
 ## Airtight self-check

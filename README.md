@@ -8,7 +8,7 @@ A rule-based persuasion linter built on [Persistent Influence Theory (PIT)](http
 
 > **Status: v2 in progress (September 2026).** The v1 hosted service is offline. While rebuilding, we audited our own public claims, and several didn't hold up:
 >
-> - **Accuracy figures withdrawn.** The "100% F1" and "98.6% F1" figures came from sample sets the rules were tuned on. An independent held-out check scored far lower. v2 will publish per-rule precision and recall on public, externally labeled benchmarks.
+> - **Accuracy figures withdrawn.** The "100% F1" and "98.6% F1" figures came from sample sets the rules were tuned on. A held-out check we ran ourselves, on texts the rules had not seen, scored far lower. v2 will publish per-rule precision and recall on public, externally labeled benchmarks.
 > - **Neutrality claim withdrawn.** v1 flags some institutions and credentials but not their mirror images (for example, "The CDC has concluded" is flagged while "The Heritage Foundation has concluded" is not). v2 replaces named-entity lists with structural rules and ships a swapped-pair symmetry suite as a release gate.
 > - **Compliance and certificate claims withdrawn.** BiasClear is not a compliance product, and v1 "certificates" are not a verification mechanism.
 >
@@ -16,7 +16,7 @@ A rule-based persuasion linter built on [Persistent Influence Theory (PIT)](http
 
 ## What v2 will be
 
-- **Runs in your browser.** The rule engine ships as a static page. Your text never leaves your device.
+- **Runs in your browser.** The rule engine ships as a static page. Your text never leaves your device unless you turn on the optional second opinion, which sends it to your own AI provider with your own key.
 - **Deterministic.** The same input always gets the same output, stamped with a versioned rule pack.
 - **Measured, not claimed.** Published benchmark results, including what it misses.
 - **Symmetric by test.** Every release has to pass swapped-pair tests across parties, institutions and ideologies.
@@ -125,12 +125,6 @@ python run_calibration.py
 python run_calibration.py --optimize
 ```
 
-For a public no-secrets verification of the live deployment, run:
-
-```bash
-bash scripts/reviewer_check.sh
-```
-
 ## Docker
 
 ```bash
@@ -154,7 +148,7 @@ Do not place live credentials in source code, examples, issue threads, or pull r
 
 ## Support
 
-BiasClear is an independent public-interest project. If you find it useful, you can support continued development via [GitHub Sponsors](https://github.com/sponsors/bws82).
+BiasClear is an independent public-interest project. It has no server to fund; the best support right now is testing v2 and reporting misses or asymmetries as GitHub issues.
 
 ## License
 

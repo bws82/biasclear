@@ -11,7 +11,7 @@ These are the only tasks that need the owner's own hands, because they involve a
 Leave auto-renew **off** until the February 1 decision.
 
 ## 2. Render: shut down v1 for good (5 min)
-The old server is suspended. An old API key for it is visible in public git history, and its disk holds the beta-signup list. Deleting the service kills the key and the data together.
+The old server is suspended. An old API key for it is visible in public git history, and its disk holds the beta-signup list. Signups stored before the March 20 fix were also readable without any key through v1's public `/audit` endpoint until the suspension. Deleting the service kills the key and the data together.
 1. Go to dashboard.render.com and open **biasclear-api**.
 2. Decide whether you want the beta-signup list. If yes, **stop here and tell the PM**, and we'll export it safely together first.
 3. Go to **Settings**, scroll to the bottom, and click **Delete Web Service**. Confirm. This also deletes the 1 GB disk.
@@ -30,8 +30,17 @@ v2 doesn't need any server-side AI keys.
 1. Go to github.com, **Settings > Emails**.
 2. Tick **Keep my email addresses private** and **Block command line pushes that expose my email**.
 
-## 5. Decision only, no clicks yet: a clean home for v2
+## 5. Protect `main` (3 min, before any agent merges)
+1. Go to github.com/bws82/biasclear, then **Settings > Branches** (or **Rules > Rulesets**), and add a rule for `main`.
+2. Turn on **Require a pull request before merging** and **Require review from Code Owners**.
+3. Turn on **Require status checks to pass** and pick `test`, `security`, `secret-scan` and `sast`.
+4. Leave force pushes and deletions **blocked**.
+
+## 6. Contact address (2 min)
+In Namecheap, open **Domain List > biasclear.com > Manage > Redirect Email** and add an alias `hello` that forwards to your inbox. The site and repo use `hello@biasclear.com` as the only public contact.
+
+## 7. Decision only, no clicks yet: a clean home for v2
 Tell the PM which option you want. The PM will write the exact steps.
-- **A (PM's pick):** Create a free GitHub organization named `biasclear` and start v2 there as a fresh repo with clean history (no personal email in any commit, no old key). Archive the old repo as private.
+- **A (PM's pick):** Create a free GitHub organization named `biasclear` and start v2 there as a fresh repo with clean history (no personal email in any commit, no old key). Point PIT v2 (same Zenodo concept DOI) at the new repo first, then archive the old repo as **public** read-only, because the published preprint links to it under Data Availability.
 - **B:** Transfer this repo to the `biasclear` org as it is. Old links redirect, but the old history, including the personal email in commits, comes along.
 - **C:** Stay under the personal account.

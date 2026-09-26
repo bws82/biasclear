@@ -7,7 +7,7 @@ Every agent reads this first: Codex, Claude, and any other agent. It sits above 
 | Role | Who | Owns |
 |---|---|---|
 | Owner | The project owner (human) | Vision, final calls, gate approvals. Never the bottleneck for routine work. |
-| PM / lead reviewer | Claude | The board (`ops/BOARD.md`), tickets, design direction, code review, merges into the integration branch |
+| PM / lead reviewer | Claude | The board (`ops/BOARD.md`), tickets, design direction, code review. Merges only after the owner grants merge rights, and only once branch protection and `CODEOWNERS` are in place |
 | Builder | Codex | Implementing tickets as pull requests |
 
 Agents never ask the owner directly. Questions go to the PM, who batches anything that truly needs the owner.
@@ -19,7 +19,7 @@ Agents never ask the owner directly. Questions go to the PM, who batches anythin
 3. **Base branch:** `main`, unless the ticket names another.
 4. **One ticket per PR.** Keep diffs focused and don't fix unrelated things; note them in the PR under "Found along the way".
 5. **Mark the PR ready for review** once the Definition of Done below holds. The PM reviews, then merges or requests changes.
-6. **Talking to the PM:** comment on your own PR with a line that starts `@pm`. The PM is subscribed to PR activity, while issue comments may go unseen. For a blocking question, post it and keep working on whatever isn't blocked.
+6. **Talking to the PM:** comment on your own PR with a line that starts `PM:` and add the `question-for-pm` label. Never write `@pm`, since that could notify a stranger's GitHub account. The PM is subscribed to PR activity, while issue comments may go unseen. For a blocking question, post it and keep working on whatever isn't blocked.
 
 ## Definition of done
 
