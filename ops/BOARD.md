@@ -2,7 +2,7 @@
 
 Maintained by the PM (Claude). Last updated: 2026-09-26.
 
-**Goal:** a free, browser-only persuasion checker whose numbers are measured and whose neutrality is proven by tests. It should feel remarkable the first time someone pastes text into it.
+**Goal:** a free, browser-only persuasion checker whose numbers are measured and whose neutrality is tested on every release. It should feel remarkable the first time someone pastes text into it.
 
 **Launch window:** week of November 16, 2026 (after the November 3 election).
 **Renewal decision:** February 1, 2027 (the domain renews February 18, 2027).
@@ -22,6 +22,7 @@ Maintained by the PM (Claude). Last updated: 2026-09-26.
 - [x] Fix the README quick start (async) and the citation
 - [x] Agent charter (`AGENTS.md`), PR template, this board
 - [ ] Owner click-paths: Render cleanup, Namecheap two-factor, GitHub org (see `ops/OWNER_STEPS.md`)
+- [ ] Owner: branch protection on `main` (PR required, all four checks required, no force-push) before any agent merge
 - [ ] Relicense proposal (Apache-2.0 engine, CC BY 4.0 rule pack) as its own PR for the owner
 
 ### 1: Engine v2 (Codex builds, PM reviews)
