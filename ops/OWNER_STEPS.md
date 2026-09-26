@@ -16,6 +16,7 @@ The old server is suspended. An old API key for it is visible in public git hist
 2. Decide whether you want the beta-signup list. If yes, **stop here and tell the PM**, and we'll export it safely together first.
 3. Go to **Settings**, scroll to the bottom, and click **Delete Web Service**. Confirm. This also deletes the 1 GB disk.
 4. **Delete only the service, never the account.** The Render account and its credit (about $500) stay for later use.
+5. Tidy the account: **Account Settings > Security**, turn on two-factor (authenticator app). Under **Workspace settings**, rename the workspace to `BiasClear`. Under **Billing**, confirm the credit balance and its expiration date, and tell the PM.
 
 ## 3. Kill the old cloud keys (5 min)
 v2 doesn't need any server-side AI keys.
@@ -39,7 +40,12 @@ v2 doesn't need any server-side AI keys.
 ## 6. Contact address (2 min)
 In Namecheap, open **Domain List > biasclear.com > Manage > Redirect Email** and add an alias `hello` that forwards to your inbox. The site and repo use `hello@biasclear.com` as the only public contact.
 
-## 7. Decision only, no clicks yet: a clean home for v2
+## 7. PyPI account (10 min, after step 6 works)
+1. Go to pypi.org, click **Register**, and use `hello@biasclear.com` with username `biasclear`. If that's taken, pick something with no personal name in it.
+2. Verify the email. Then **Account settings > Two factor authentication > Add TOTP application**.
+3. Tell the PM "PyPI ready". The PM then gives you four fields to paste into **Publishing > Add a new pending publisher**. That reserves the name `biasclear` with no password or token ever stored.
+
+## 8. Decision only, no clicks yet: a clean home for v2
 Tell the PM which option you want. The PM will write the exact steps.
 - **A (PM's pick):** Create a free GitHub organization named `biasclear` and start v2 there as a fresh repo with clean history (no personal email in any commit, no old key). Point PIT v2 (same Zenodo concept DOI) at the new repo first, then archive the old repo as **public** read-only, because the published preprint links to it under Data Availability.
 - **B:** Transfer this repo to the `biasclear` org as it is. Old links redirect, but the old history, including the personal email in commits, comes along.

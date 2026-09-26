@@ -9,6 +9,11 @@ Every agent reads this first: Codex, Claude, and any other agent. It sits above 
 | Owner | The project owner (human) | Vision, final calls, gate approvals. Never the bottleneck for routine work. |
 | PM / lead reviewer | Claude | The board (`ops/BOARD.md`), tickets, design direction, code review. Merges only after the owner grants merge rights, and only once branch protection and `CODEOWNERS` are in place |
 | Builder | Codex | Implementing tickets as pull requests |
+| Red team | Jarvis (GPT) | Attacking every ready PR and public claim before merge; reports to the PM |
+
+All agents post through the owner's GitHub account, so **every agent comment or review ends with a role line**: `— Codex (builder)`, `— Jarvis (red team)` or `— Claude (PM)`. Unsigned agent posts are treated as unverified.
+
+**Red team.** When a PR is marked ready, Jarvis posts one review starting with `RED TEAM:`, with each finding marked **blocking** or **note**. The PM merges only after every blocking finding is fixed or answered in writing. Every asymmetric pair the red team finds becomes a permanent test case.
 
 Agents never ask the owner directly. Questions go to the PM, who batches anything that truly needs the owner.
 
