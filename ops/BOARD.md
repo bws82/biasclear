@@ -39,7 +39,7 @@ Maintained by the PM (Claude). Last updated: 2026-09-26.
 - [ ] **L2** Separation of duties: the rules are frozen and hashed *before* labeling. Labels come from a separate agent session that never sees the rules. The owner spot-checks a random 10%. Labels, guide and hash are all published so anyone can challenge them.
 
 ### 3: Brand and site (PM designs, Codex builds)
-- [ ] **B1** Owner picks a brand direction from the live prototypes
+- [x] **B1** Brand direction: Lightbox (PM, delegated by owner)
 - [ ] **B2** Design tokens and wordmark (SVG), tier colors, type (self-hosted)
 - [ ] **S1** Static site (Home checker, Field Guide, Method, Developers, About) on Cloudflare Pages through Git integration (no deploy tokens in the repo)
 - [ ] **S2** Share cards rendered locally (no server), poster PDF of the Field Guide
@@ -60,3 +60,5 @@ Maintained by the PM (Claude). Last updated: 2026-09-26.
 | 2026-09-26 | Agents may push branches and open PRs | Owner |
 | 2026-09-26 | Labeling is done in-house (no paid labelers) | Owner |
 | 2026-09-26 | Owner is not featured on the site; small citation plus a contact address only | Owner |
+| 2026-09-26 | Brand design delegated to PM. Direction: **Lightbox** (paper-and-ink page; a loupe reveals persuasion structure as a film negative, colored by PIT tier). Strings dropped: it reads as intent, not structure | Owner → PM |
+| 2026-09-26 | New GitHub organization `biasclear`; retire old repos once nothing depends on them | Owner |
