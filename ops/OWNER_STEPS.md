@@ -15,12 +15,16 @@ The old server is suspended. An old API key for it is visible in public git hist
 1. Go to dashboard.render.com and open **biasclear-api**.
 2. Decide whether you want the beta-signup list. If yes, **stop here and tell the PM**, and we'll export it safely together first.
 3. Go to **Settings**, scroll to the bottom, and click **Delete Web Service**. Confirm. This also deletes the 1 GB disk.
-4. Your credits stay on the account for later use.
+4. **Delete only the service, never the account.** The Render account and its credit (about $500) stay for later use.
 
 ## 3. Kill the old cloud keys (5 min)
 v2 doesn't need any server-side AI keys.
-1. **AWS:** console.aws.amazon.com, then **IAM > Users**, then the user BiasClear used, then **Security credentials**. Deactivate the access key, then delete it.
-2. **Gemini:** aistudio.google.com, then **Get API key**. Delete the key used for BiasClear.
+1. **Gemini:** done (key deleted).
+2. **AWS:** the account needs a card to reactivate. Do these in order, and don't add the card first:
+   1. Sign in, open **Billing and Cost Management > Credits**, and note the balance, the **expiration date**, and which services the credits cover. Check specifically for Amazon Bedrock.
+   2. If the credits are gone, expired, or don't cover Bedrock, stop here. v2 doesn't need AWS.
+   3. If they're live, add the card, then right away open **IAM > Users > (the BiasClear user) > Security credentials**. Deactivate the old access key, then delete it.
+   4. Open **Billing > Budgets** and create a $5 monthly cost budget with an email alert. It's a tripwire in case anything ever bills past the credits.
 
 ## 4. GitHub privacy settings (3 min)
 1. Go to github.com, **Settings > Emails**.
