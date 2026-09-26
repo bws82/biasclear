@@ -1,5 +1,7 @@
 # BiasClear — Reviewer Packet
 
+> **Archived v1 document (September 2026).** This describes the retired v1 hosted service. Its accuracy, neutrality and compliance claims have been withdrawn; see the status notice in the [README](../README.md).
+
 **Version:** 1.2.0 | **Date:** March 2026 | **Status:** Live at [biasclear.com](https://biasclear.com)
 
 ## What BiasClear Is
