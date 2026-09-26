@@ -1,5 +1,7 @@
 # BiasClear — Production Deployment Guide
 
+> **Archived v1 document (September 2026).** This describes the retired v1 hosted service. Its accuracy, neutrality and compliance claims have been withdrawn; see the status notice in the [README](../README.md).
+
 **Last updated:** 2026-03-20
 
 ## Production Service

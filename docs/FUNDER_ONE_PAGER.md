@@ -1,5 +1,7 @@
 # BiasClear — Funder Brief
 
+> **Archived v1 document (September 2026).** This describes the retired v1 hosted service. Its accuracy, neutrality and compliance claims have been withdrawn; see the status notice in the [README](../README.md).
+
 ## What It Is
 
 BiasClear is an open-source structural bias detection engine. It scans text for rhetorical manipulation patterns — manufactured consensus, authority substitution, false urgency, dissent dismissal — and explains exactly how the text is structured to influence the reader.
