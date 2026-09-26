@@ -2,6 +2,8 @@
 
 Maintained by the PM (Claude). Last updated: 2026-09-26.
 
+**Blueprint:** [`ops/BLUEPRINT.md`](BLUEPRINT.md) settles accounts, keys, the AI model, hosting and agent roles. Build tickets follow it.
+
 **Goal:** a free, browser-only persuasion checker whose numbers are measured and whose neutrality is tested on every release. It should feel remarkable the first time someone pastes text into it.
 
 **Launch window:** week of November 16, 2026 (after the November 3 election).
