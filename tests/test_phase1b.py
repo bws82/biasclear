@@ -105,6 +105,7 @@ class TestLearningRing:
             activation_threshold=3,  # Lower threshold for testing
             fp_limit=0.20,
             json_path=str(json_file),
+            auto_activate=True,
         )
         yield ring
 
@@ -149,6 +150,26 @@ class TestLearningRing:
             )
         assert result["action"] == "activated"
         assert result["pattern_id"] == "TEST_ACTIVATE"
+
+    def test_default_ring_holds_for_human_review(self, tmp_path):
+        """Without auto_activate, threshold holds the pattern until approve()."""
+        from biasclear.patterns.learned import LearningRing
+        ring = LearningRing(
+            db_path=str(tmp_path / "review.db"),
+            activation_threshold=3,
+            json_path=str(tmp_path / "review.json"),
+        )
+        for i in range(3):
+            result = ring.propose(
+                pattern_id="TEST_REVIEW", name="Test", description="Test",
+                pit_tier=2, severity="high", principle="Agency",
+                regex=r"\breview\s+test\b", source_scan_hash=f"scan{i}",
+            )
+        assert result["action"] == "awaiting_review"
+        assert ring.get_active_patterns() == []
+        assert ring.approve("TEST_REVIEW")["action"] == "activated"
+        assert len(ring.get_active_patterns()) == 1
+        assert ring.approve("TEST_REVIEW")["accepted"] is False
 
     def test_active_patterns_returned_as_structural(self, ring):
         """Active patterns should be compatible with frozen core evaluation."""
