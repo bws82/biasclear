@@ -11,7 +11,7 @@ Public API:
   - correct_bias: Flag-aware iterative correction with verification
   - calculate_truth_score: Composite truth score from evaluation flags
   - AuditChain:   SHA-256 hash-chained tamper-evident logging
-  - LearningRing: Governed pattern expansion with auto-activation/deactivation
+  - LearningRing: Governed pattern expansion; activation requires human approval
   - LLMProvider:  Abstract LLM interface for provider swapping
 
 Usage:

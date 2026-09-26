@@ -1,106 +1,46 @@
 # BiasClear
 
 ![CI](https://github.com/bws82/biasclear/actions/workflows/ci.yml/badge.svg)
-![License](https://img.shields.io/badge/license-AGPL--3.0-blue)
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18676405.svg)](https://doi.org/10.5281/zenodo.18676405)
 
-Structural bias detection engine built on [Persistent Influence Theory (PIT)](https://doi.org/10.5281/zenodo.18676405).
+A rule-based persuasion linter built on [Persistent Influence Theory (PIT)](https://doi.org/10.5281/zenodo.18676405). BiasClear marks the structural moves a text makes to move its reader (manufactured consensus, authority substitution, false urgency, dissent dismissal) and names each one.
 
-BiasClear scans text for rhetorical manipulation patterns — manufactured consensus, authority substitution, false urgency, dissent dismissal — and explains exactly how the text is structured to influence the reader.
+> **Status: v2 in progress (September 2026).** The v1 hosted service is offline. While rebuilding, we audited our own public claims, and several didn't hold up:
+>
+> - **Accuracy figures withdrawn.** The "100% F1" and "98.6% F1" figures came from sample sets the rules were tuned on. An independent held-out check scored far lower. v2 will publish per-rule precision and recall on public, externally labeled benchmarks.
+> - **Neutrality claim withdrawn.** v1 flags some institutions and credentials but not their mirror images (for example, "The CDC has concluded" is flagged while "The Heritage Foundation has concluded" is not). v2 replaces named-entity lists with structural rules and ships a swapped-pair symmetry suite as a release gate.
+> - **Compliance and certificate claims withdrawn.** BiasClear is not a compliance product, and v1 "certificates" are not a verification mechanism.
+>
+> Everything v1 got wrong, and how v2 fixes it, will be published with the v2 release.
 
-**Live:** [biasclear.com](https://biasclear.com) | **Paper:** [DOI 10.5281/zenodo.18676405](https://doi.org/10.5281/zenodo.18676405) | **EA Forum:** [I Built an Open-Source Tool That Audits AI Persuasion](https://forum.effectivealtruism.org/posts/zByjJ3cJZpHKjhxxY/i-built-an-open-source-tool-that-audits-ai-persuasion)
+## What v2 will be
 
-## Reviewer Quick Links
+- **Runs in your browser.** The rule engine ships as a static page. Your text never leaves your device.
+- **Deterministic.** The same input always gets the same output, stamped with a versioned rule pack.
+- **Measured, not claimed.** Published benchmark results, including what it misses.
+- **Symmetric by test.** Every release has to pass swapped-pair tests across parties, institutions and ideologies.
 
-| Resource | Link |
-|----------|------|
-| Reviewer Packet | [docs/REVIEWER_PACKET.md](docs/REVIEWER_PACKET.md) — architecture, validation, case studies, known limits |
-| Live Health | [biasclear.com/health](https://biasclear.com/health) — real-time LLM status and canary results |
-| API Documentation | [biasclear.com/docs](https://biasclear.com/docs) — full OpenAPI spec |
-| Production Guide | [docs/PRODUCTION_DEPLOYMENT_SOURCE_OF_TRUTH.md](docs/PRODUCTION_DEPLOYMENT_SOURCE_OF_TRUTH.md) |
-| Operations Checklist | [docs/OPERATIONS_CHECKLIST.md](docs/OPERATIONS_CHECKLIST.md) |
-| PIT Preprint | [Zenodo](https://doi.org/10.5281/zenodo.18676405) · [SSRN](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6270159) |
-
-## Why This Is Different
-
-1. **Structural, not statistical.** BiasClear detects the *mechanism* of persuasion — manufactured consensus, authority substitution, dissent dismissal — not surface sentiment or toxicity.
-2. **Deterministic core.** 42 hand-authored patterns fire identically every time. No ML weights, no model drift, no training data.
-3. **Identity-neutral.** "Trump is ruining everything" and "Biden is ruining everything" trigger the same patterns. Validated by 32 symmetry and boundary tests.
-4. **Auditable.** Every scan produces a SHA-256 hash-chained audit entry with full score breakdown.
-5. **Theoretically grounded.** Built on Persistent Influence Theory (PIT), published as a preprint on Zenodo and SSRN. PIT has not yet undergone formal peer review.
-
-## Quick Start
-
-### Install
+## Quick start (v1 engine)
 
 ```bash
 git clone https://github.com/bws82/biasclear.git
 cd biasclear
-pip install ".[api]"
-```
-
-### Reviewer / Full Test Setup
-
-If you are reviewing the repository or running the full test suite, use the same install path as CI.
-
-- **Python:** 3.11+ required
-- **CI runtime:** Python 3.12
-- **Canonical reviewer install:** `pip install -e ".[api,dev]"`
-
-```bash
-python3.12 -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
 python -m pip install -e ".[api,dev]"
 python -m pytest tests/ -q
 ```
 
-Or use the one-command bootstrap:
-
-```bash
-bash scripts/reviewer_bootstrap.sh
-```
-
-### Configure
-
-BiasClear supports multiple LLM providers for contextual/deep analysis.
-
-- **Production default:** Amazon Bedrock (Claude Sonnet)
-- **Fallback:** Gemini
-
-```bash
-# Amazon Bedrock (recommended)
-export BIASCLEAR_LLM_PROVIDER=bedrock
-export AWS_REGION=us-east-1
-export BEDROCK_MODEL_ID=us.anthropic.claude-sonnet-4-6
-export AWS_ACCESS_KEY_ID=your_access_key_id
-export AWS_SECRET_ACCESS_KEY=your_secret_access_key
-
-# Or Gemini (fallback / optional)
-export BIASCLEAR_LLM_PROVIDER=gemini
-export GEMINI_API_KEY=your_gemini_api_key
-```
-
-### Run a scan
-
 ```python
+import asyncio
 from biasclear import scan_local
 
-# Local scan — deterministic, zero API cost
-result = scan_local("Experts agree there is no reasonable alternative.")
-print(result["truth_score"], result["flags"])
-
-# For deep/full scans, configure an LLM provider (see Configuration)
+result = asyncio.run(scan_local("Experts agree there is no reasonable alternative."))
+print(result["flags"])
 ```
 
-### Start the API server
+`scan_local` is deterministic and needs no API key. The `deep` and `full` modes call an LLM provider and are being redesigned for v2.
 
-```bash
-uvicorn api.main:app --host 127.0.0.1 --port 8000
-```
-
-## Architecture
+## v1 architecture (archived)
 
 ```
 ┌─────────────────────────────────────────────┐
@@ -204,8 +144,8 @@ These are stated honestly:
 
 1. **PIT is a preprint.** Not yet formally peer-reviewed.
 2. **Calibration corpus is small.** 118 samples. Systematic precision/recall on large corpora has not been completed.
-3. **LLM layer introduces variance.** The deterministic core is fully symmetric; the LLM layer is not.
-4. **Solo developer.** Built and maintained by one person.
+3. **Known asymmetries in v1 rules.** Some institution and credential rules are not symmetric (see the status notice above).
+4. **LLM layer introduces variance.** Deep and full scans are not deterministic.
 5. **Long documents untested.** Validated on passages and short documents, not 10K+ word texts.
 
 ## Security
@@ -223,10 +163,13 @@ AGPL-3.0 — see [LICENSE](LICENSE).
 ## Citation
 
 ```bibtex
-@misc{slimp2025pit,
-  title={Persistent Influence Theory: A Framework for Detecting Structural Bias in Text},
+@misc{slimp2026pit,
+  title={Persistent Influence Theory: A Hierarchical Framework for Structural Persuasion and Information Fidelity},
   author={Slimp, Bradley},
-  year={2025},
+  year={2026},
+  publisher={Zenodo},
   doi={10.5281/zenodo.18676405}
 }
 ```
+
+A revised PIT v2 preprint is in preparation under the same Zenodo concept DOI.

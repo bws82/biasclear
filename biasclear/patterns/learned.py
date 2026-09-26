@@ -76,9 +76,13 @@ class LearningRing:
         activation_threshold: int = 5,
         fp_limit: float = 0.15,
         json_path: str = "data/learned_patterns.json",
+        auto_activate: bool = False,
     ):
         self.db_path = db_path
         self.activation_threshold = activation_threshold
+        # Off by default: LLM-proposed rules must never enter deterministic
+        # scans without a human approving them via approve().
+        self.auto_activate = auto_activate
         self.fp_limit = fp_limit
         self.json_path = json_path
         self._lock = threading.Lock()
@@ -239,12 +243,20 @@ class LearningRing:
                         "source_scan_hash": source_scan_hash,
                     })
 
-                    # Check for auto-activation
+                    # Threshold reached: activate only if explicitly allowed,
+                    # otherwise hold for human review.
                     if (
                         existing[1] == "staging"
                         and new_confirmations >= self.activation_threshold
                     ):
-                        return self._activate(conn, pattern_id)
+                        if self.auto_activate:
+                            return self._activate(conn, pattern_id)
+                        return {
+                            "accepted": True,
+                            "action": "awaiting_review",
+                            "confirmations": new_confirmations,
+                            "threshold": self.activation_threshold,
+                        }
 
                     return {
                         "accepted": True,
@@ -284,6 +296,20 @@ class LearningRing:
                         "confirmations": 1,
                         "threshold": self.activation_threshold,
                     }
+
+    def approve(self, pattern_id: str) -> dict:
+        """Human-approved activation of a staging pattern."""
+        with self._lock:
+            with self._get_conn() as conn:
+                row = conn.execute(
+                    "SELECT status FROM learned_patterns WHERE pattern_id = ?",
+                    (pattern_id,),
+                ).fetchone()
+                if row is None:
+                    return {"accepted": False, "reason": "unknown pattern"}
+                if row[0] != "staging":
+                    return {"accepted": False, "reason": f"pattern is {row[0]}"}
+                return self._activate(conn, pattern_id)
 
     def _activate(self, conn: sqlite3.Connection, pattern_id: str) -> dict:
         """Activate a staging pattern that has reached the confirmation threshold."""
