@@ -47,6 +47,7 @@ A PR that breaks any of these gets closed, not fixed in review.
 - No keys, tokens, passwords or credentials anywhere: code, tests, fixtures, scripts, docs, commit messages, PR text or logs. Not even "example" values that look real.
 - Package publishing (npm, PyPI) uses **GitHub OIDC Trusted Publishing only**. Never create or store a publish token.
 - No new external service, account, webhook or third-party API without PM approval in the ticket.
+- **Payments and approvals belong to the owner.** No agent, including browser agents, ever enters payment details, completes a purchase, accepts terms, or approves anything on the owner's behalf. Agents prepare everything up to that point, then stop and hand over.
 
 **Privacy of people**
 - Don't add personal information about anyone to the repo or the site: no personal names beyond the paper citation `Slimp, 2026`, no personal email addresses, phone numbers, locations, employers, or legal matters.

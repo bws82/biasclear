@@ -4,6 +4,8 @@ The only tasks that need the owner's own hands. **Web clicks and decisions only*
 
 Never paste a password, key, code or card number into chat. If a step shows one, it stays on that page.
 
+**You pay and you approve; agents build.** Any helper agent, including a browser agent, prepares everything up to a payment, a terms acceptance, an approval or a delete, and then stops for you.
+
 ---
 
 ## Sitting 1: safety first (15 min). Safe to do now.
