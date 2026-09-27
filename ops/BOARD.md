@@ -74,6 +74,8 @@ Maintained by the PM (Claude). Last updated: 2026-09-26.
 | 2026-09-26 | Owner is not featured on the site; small citation plus a contact address only | Owner |
 | 2026-09-26 | Brand design delegated to PM. Direction: **Lightbox** (paper-and-ink page; a loupe reveals persuasion structure as a film negative, colored by PIT tier). Strings dropped: it reads as intent, not structure | Owner → PM |
 | 2026-09-26 | New GitHub organization `biasclear`; retire old repos once nothing depends on them | Owner |
+| 2026-09-27 | Blueprint revision 2 approved | Owner |
+| 2026-09-27 | First PyPI release is a clean v2 alpha (rules only, zero dependencies); retired v1 code kept as a scrubbed `v1-final` snapshot for the preprint | PM |
 
 ## Owner time log
 
