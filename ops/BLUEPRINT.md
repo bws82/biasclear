@@ -47,7 +47,7 @@ Nothing is decided unless it's written here. Changing a decision means changing 
 |---|---|---|
 | Domain `biasclear.com` | Namecheap | Paid to Feb 18, 2027. Two-factor on. **Auto-renew on** while any project account recovers through the domain. |
 | DNS | Namecheap | Today it still points at Render. **The DNS records are removed in the same sitting the Render services are deleted**, or someone else could claim the domain on Render. |
-| Project mailbox `hello@biasclear.com` | Namecheap Private Email Starter (one mailbox; same account as the domain) | Replaces forwarding, so replies go out as hello@ instead of from a personal inbox. SPF, DKIM and DMARC records set when it's created. Recovery address for every project account. |
+| Project mailbox `hello@biasclear.com` | Namecheap Private Email, Launch plan (one mailbox; same account as the domain) | Replaces forwarding, so replies go out as hello@ instead of from a personal inbox. SPF, DKIM and DMARC records set when it's created. Recovery address for every project account. |
 | Code | New GitHub organization `biasclear`, repo `biasclear/biasclear` | Seeded from a **scrubbed snapshot** (no old history, no personal data). The old `bws82/biasclear` becomes a one-file stub pointing to it, because the published preprint links there. |
 | `bws82/biasclear-action` | Old GitHub Action | **Delete first.** It runs `pip install biasclear` while that name is unclaimed. Nothing depends on it (GitHub code search: 0 users). |
 | Website | **GitHub Pages** on `biasclear/biasclear` | Free, no bandwidth tier to watch, no extra vendor, no deploy secrets. (Render's free tier now caps outbound bandwidth at 5 GB a month.) |
@@ -110,11 +110,11 @@ Nothing is decided unless it's written here. Changing a decision means changing 
 
 GitHub can't transfer issues between different owners, deleting a repo can't be undone, and the published preprint links to `github.com/bws82/biasclear`. So the move goes in this order:
 
-1. **Owner:** check that `github.com/biasclear` is free, and create the free organization.
+1. **Owner:** check that `github.com/biasclear` is free, create the free organization, and create the empty public repository `biasclear` inside it. The Claude GitHub App can push but can't create repositories.
 2. **Owner:** install the Claude GitHub App and the ChatGPT Codex connector on that organization.
 3. **PM:** build the seed snapshot with `git archive` from `main`. Scrub personal data from the tree (the bio, location, employer, LinkedIn, personal email, `funding.json`, the Sponsors link, `pyproject` authors). Run a grep gate. Push it as the first commit of `biasclear/biasclear` with the approved blueprint, the rulebook and the chosen license.
 4. **PM:** recreate issues #18 to #20 there. Close the five stale dependabot PRs. Open the release workflow for PyPI.
-5. **Owner:** turn on the `main` ruleset in the new repo once CI has run there once: require the four checks, block force pushes and deletions, no bypass, and zero required approvals.
+5. **Owner:** create the `pypi` environment with the owner as its required reviewer, so every release waits for the owner's Approve click. Then turn on the `main` ruleset in the new repo once CI has run there once: require the four checks, block force pushes and deletions, no bypass, and zero required approvals.
 6. **Access test:** a Codex draft PR, a red-team review and a PM-opened PR must all work in the new repo before anything old is deleted.
 7. **PM:** export the old repo's full history and PR discussions into one archive file in the owner's private Drive folder. It never goes to GitHub.
 8. **Owner:** add a related link on the Zenodo record's metadata pointing to the new repo. This is a metadata edit only: no new version, no new DOI.
@@ -167,4 +167,4 @@ In this order:
 1. **Blueprint revision 2:** approved.
 2. **License:** Apache-2.0 for the code, CC BY 4.0 for the rule pack.
 3. **Signup notice:** one short email to the affected signups, plus a public note; the list is deleted after sending. Draft in `ops/SIGNUP_NOTICE.md`.
-4. **Project mailbox:** Namecheap Private Email Starter (about $12 for the first year, about $15 a year after; 60-day free trial).
+4. **Project mailbox:** Namecheap Private Email, Launch plan (about $15 a year; 30-day free trial).

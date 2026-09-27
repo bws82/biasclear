@@ -46,9 +46,9 @@ Blueprint approved; Apache-2.0 plus CC BY 4.0; email the signups plus a public n
 
 ## Sitting 4: project mailbox (20 min)
 
-Namecheap Private Email **Starter**: one mailbox, about $12 for the first year and about $15 a year after, with a 60-day free trial.
+Namecheap Private Email **Launch** plan (called Starter on older pages): one mailbox, about $15 a year, with a 30-day free trial.
 
-1. namecheap.com → **Email → Private Email** → **Starter** → choose **biasclear.com** (use existing domain) → checkout. You enter the payment yourself.
+1. namecheap.com → **Email → Private Email** → **Get Launch** → **Use a domain I own with Namecheap** → **biasclear.com** → checkout. You enter the payment yourself.
 2. **Before switching mail over**, write down every address that forwards today. Namecheap → **Domain List → biasclear.com → Manage → Redirect Email** lists them (for example `brad@`).
 3. In the Private Email setup, create the mailbox **hello@biasclear.com** with a new strong password (store it in your password manager). Display name: **BiasClear**. Then add each address from step 2 as an **alias** of this mailbox, so nothing that arrives today gets lost.
 4. Namecheap → **Domain List → biasclear.com → Advanced DNS → Mail Settings** → choose **Private Email**. Namecheap adds the mail records (MX and SPF) for you.
