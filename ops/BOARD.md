@@ -6,7 +6,8 @@ Maintained by the PM (Claude). Last updated: 2026-09-26.
 
 **Goal:** a free, browser-only persuasion checker whose numbers are measured and whose neutrality is tested on every release. It should feel remarkable the first time someone pastes text into it.
 
-**Launch window:** week of November 16, 2026 (after the November 3 election).
+**Launch window:** week of November 16, 2026 (after the November 3 election). Phase 0 by Oct 9, engine (E1–E3) by Oct 30, staging site by Nov 6, go/no-go Nov 9.
+**Launch floor:** mode A checker, Field Guide, Method (benchmark numbers or an honest "not measured yet"), Privacy, About. Everything else can slip past launch.
 **Renewal decision:** February 1, 2027 (the domain renews February 18, 2027).
 
 ## Gates
@@ -27,6 +28,17 @@ Maintained by the PM (Claude). Last updated: 2026-09-26.
 - [ ] Owner: branch protection on `main` (PR required, all four checks required, no force-push) before any agent merge
 - [ ] Relicense proposal (Apache-2.0 engine, CC BY 4.0 rule pack) as its own PR for the owner
 
+### 0b: Move and cleanup (see `ops/BLUEPRINT.md` §6 and `ops/OWNER_STEPS.md`)
+- [ ] Owner sitting 1: Namecheap two-factor + auto-renew, GitHub email privacy, delete `bws82/biasclear-action`
+- [ ] Owner sitting 2: create org `biasclear`, install Claude and Codex apps
+- [ ] PM: scrubbed seed snapshot → `biasclear/biasclear` (license per owner decision)
+- [ ] PM: recreate issues #18–#20 in the new repo; close stale dependabot PRs; open release workflow
+- [ ] Owner sittings 4–5: project mailbox, PyPI account; PM publishes first release (claims the name)
+- [ ] Owner sitting 6: Render + DNS cleanup (both services), after the signup-notice decision
+- [ ] Owner sitting 7: ruleset on `main` in the new repo
+- [ ] Access test in the new repo (Codex PR, red-team review, PM PR)
+- [ ] Owner sitting 8: archive to Drive, Zenodo related link, delete old repo, create stub, profile + EA Forum notes
+
 ### 1: Engine v2 (Codex builds, PM reviews)
 - [ ] **E1** Extract all rules into one versioned rule pack (`rules/biasclear-rules.json`); the Python engine loads it; output unchanged on all existing tests
 - [ ] **E2** Zero-dependency TypeScript engine (`packages/engine`) that reads the same rule pack, including citation suppression; golden-file parity with Python
@@ -41,7 +53,7 @@ Maintained by the PM (Claude). Last updated: 2026-09-26.
 ### 3: Brand and site (PM designs, Codex builds)
 - [x] **B1** Brand direction: Lightbox (PM, delegated by owner)
 - [ ] **B2** Design tokens and wordmark (SVG), tier colors, type (self-hosted)
-- [ ] **S1** Static site (Home checker, Field Guide, Method, Developers, About) on Cloudflare Pages through Git integration (no deploy tokens in the repo)
+- [ ] **S1** Static site (Home checker, Field Guide, Method, Developers, About) on GitHub Pages in `biasclear/biasclear`, deployed by Actions (no deploy secrets)
 - [ ] **S2** Share cards rendered locally (no server), poster PDF of the Field Guide
 
 ### 4: Distribution (after Gate A)
@@ -62,3 +74,10 @@ Maintained by the PM (Claude). Last updated: 2026-09-26.
 | 2026-09-26 | Owner is not featured on the site; small citation plus a contact address only | Owner |
 | 2026-09-26 | Brand design delegated to PM. Direction: **Lightbox** (paper-and-ink page; a loupe reveals persuasion structure as a film negative, colored by PIT tier). Strings dropped: it reads as intent, not structure | Owner → PM |
 | 2026-09-26 | New GitHub organization `biasclear`; retire old repos once nothing depends on them | Owner |
+
+## Owner time log
+
+Budget: at most 2 hours a week, at most 30 minutes per sitting, web clicks and decisions only.
+
+| Date | Task | Estimate | Actual |
+|---|---|---|---|
