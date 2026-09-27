@@ -75,6 +75,9 @@ Maintained by the PM (Claude). Last updated: 2026-09-26.
 | 2026-09-26 | Brand design delegated to PM. Direction: **Lightbox** (paper-and-ink page; a loupe reveals persuasion structure as a film negative, colored by PIT tier). Strings dropped: it reads as intent, not structure | Owner → PM |
 | 2026-09-26 | New GitHub organization `biasclear`; retire old repos once nothing depends on them | Owner |
 | 2026-09-27 | Blueprint revision 2 approved | Owner |
+| 2026-09-27 | License: Apache-2.0 for code, CC BY 4.0 for the rule pack | Owner |
+| 2026-09-27 | Signup notice: email the affected signups once, plus a short public note; delete the list after sending | Owner |
+| 2026-09-27 | Project mailbox: Namecheap Private Email Starter for hello@biasclear.com | Owner |
 | 2026-09-27 | First PyPI release is a clean v2 alpha (rules only, zero dependencies); retired v1 code kept as a scrubbed `v1-final` snapshot for the preprint | PM |
 
 ## Owner time log
