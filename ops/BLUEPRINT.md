@@ -1,19 +1,21 @@
 # BiasClear v2 blueprint
 
-Owner: the project owner. Author: the PM (Claude). Status: **proposed**, pending owner approval. Date: 2026-09-26.
+Owner: the project owner. Author: the PM (Claude). Status: **proposed (revision 2)**, pending owner approval. Date: 2026-09-27.
 
-This page settles every account, key, model, agent and hosting choice before anything more gets built. Anything not written here isn't decided. Changing a decision means changing this page first.
+Revision 2 incorporates a red-team pass: six independent reviewers, with every finding checked by three skeptics. 72 of 73 findings held up. The owner's click-list lives in [`ops/OWNER_STEPS.md`](OWNER_STEPS.md). This page is the reasoning behind it.
+
+Nothing is decided unless it's written here. Changing a decision means changing this page first.
 
 ---
 
 ## 1. Principles
 
 1. **Measure before cutting.** No build ticket starts until this page and the ticket agree.
-2. **Nothing to steal.** The public product holds no user data, no secrets and no server state. What doesn't exist can't leak.
-3. **No stored credentials where a keyless option exists.** Build and publish jobs use short-lived identity tokens (OIDC). A stored key is allowed only where no keyless path exists, and then it's scoped, spend-capped, and lives in one place.
-4. **Every public claim is produced by a script.** Numbers come from code in the repo, never from memory or marketing.
-5. **The owner holds the keys; agents hold the tools.** Account creation, passwords, two-factor, payment methods and first-time key creation stay with the owner. Agents do everything after that.
-6. **Three sets of eyes on every change:** the builder writes it, the red team attacks it, the PM decides. The owner approves at gates.
+2. **Nothing stored that could be stolen.** The launch product runs in the visitor's browser: no server, no database, no user data, no secrets. (This is a design goal with named exceptions in §4, not a slogan.)
+3. **No stored credentials where a keyless option exists.** Publishing and CI use short-lived GitHub identity tokens (OIDC), scoped to one repo, one workflow and one protected environment.
+4. **Every public number is produced by a script in the repo.** If the script isn't there, the number isn't published.
+5. **The owner holds the keys; agents hold the tools.** Accounts, passwords, two-factor, payment methods and deletions are the owner's clicks. Owner steps are **web clicks and decisions only**: no terminal, no code, at most 30 minutes per sitting, at most 2 hours a week.
+6. **Accessible to everyone.** WCAG 2.2 AA is a launch requirement, not polish.
 
 ---
 
@@ -21,57 +23,68 @@ This page settles every account, key, model, agent and hosting choice before any
 
 | Role | Who | Does | Never does |
 |---|---|---|---|
-| Owner | The project owner | Vision, gate approvals, account security, payment methods | Routine code review |
-| PM | Claude | Plan, tickets, design, code review, merges (once `main` is protected) | Hold passwords, create accounts, spend money |
-| Builder | Codex | Implements tickets as PRs | Merge, touch accounts, change `AGENTS.md` |
-| Red team | Jarvis (GPT) | Attacks every PR and every public claim before merge. Hunts asymmetric pairs, leaks, overclaims and security holes | Write product code, merge |
-| Memory | The owner's Super Brain vault | Long-term project history the PM reads before big decisions | — |
+| Owner | The project owner | Vision, gate approvals, account security, payment, deletions, merges on protected paths | Terminal work, code review |
+| PM | Claude | Plan, tickets, design, code review, merges on unprotected paths, starts Codex tasks | Create accounts, spend money, bypass rulesets, merge protected paths |
+| Builder | Codex | Implements tickets as PRs | Merge, touch accounts, edit `AGENTS.md` or rulesets |
+| Red team | An independent Claude review session run by the PM on every PR, plus Jarvis (GPT) as a second opinion at gates | Attack changes and public claims | Write product code, merge |
+| Memory | The owner's Super Brain vault | Project history the PM reads before big decisions | — |
 
-**Signatures.** All three agents post through the owner's GitHub account, so every agent comment or review must end with its role line: `— Codex (builder)`, `— Jarvis (red team)` or `— Claude (PM)`. An unsigned agent post is treated as unverified.
+**One GitHub identity.** Claude, Codex and the owner all act through the owner's GitHub account, so GitHub can't tell them apart. That means:
+- **Code-owner review can't be enforced by GitHub.** The author and the code owner are the same account, and GitHub won't let an account approve its own PR. The ruleset on `main` therefore requires status checks, not approvals.
+- **Protection comes from process plus required checks.** The PM never merges a PR that touches a protected path (`AGENTS.md`, `CLAUDE.md`, `LICENSE`, `README.md`, `.github/`, `ops/BLUEPRINT.md`, `ops/OWNER_STEPS.md`). For those, the PM posts a plain-language summary page, and the owner clicks Merge.
+- **Signatures label, they don't authenticate.** Every agent post ends with a role line (`— Codex (builder)`, `— Red team`, `— Jarvis (red team)`, `— Claude (PM)`). Anyone can type a role line on a public repo, so only posts from the owner's account count.
+- **Later, optional:** a separate machine account for agents would let GitHub enforce owner review. It costs the owner a second account and reconnecting both agents, so it waits until the workflow proves itself.
 
-**Red-team loop.** When Codex marks a PR ready, Jarvis reviews it and posts one review that starts with `RED TEAM:`. It lists findings as **blocking** or **note**. Every red-team pair that exposes asymmetry becomes a permanent test case. The PM merges only when every blocking finding is fixed or answered in writing.
+**How Codex gets work.** Codex cloud doesn't poll for tickets. The PM opens a stub draft PR for the ticket and comments `@codex implement #N per AGENTS.md`. If that trigger fails, the fallback is the owner pasting one fixed line into Codex. Codex needs its GitHub connector installed on the new organization first (owner step).
 
----
-
-## 3. Accounts map (the single list)
-
-| Asset | Where | Owner action | Status |
-|---|---|---|---|
-| Domain `biasclear.com` | Namecheap | Two-factor on (step 1) | Paid to Feb 18, 2027 |
-| Public contact `hello@biasclear.com` | Namecheap email forwarding | Add alias (step 6) | To do |
-| Code | GitHub `bws82/biasclear`, moving to a `biasclear` organization | Create org (step 7, option A) | Decision pending |
-| Website hosting | **Render**, as a free Static Site on the existing account | Keep account, delete v1 service (step 2) | Recommended below |
-| Python package | **New PyPI account** under the project, publishing by Trusted Publishing | Create account + two-factor (new step) | To do |
-| npm package | New npm account/org `@biasclear`, Trusted Publishing | Create account + two-factor (later, before D1) | Later |
-| AI (internal jobs) | AWS Bedrock if the ~$1,000 credit is live, otherwise the Anthropic API | Check credits (step 3) | Waiting on owner |
-| AI (hosted second opinion) | Anthropic API, own workspace with a hard monthly spend limit | Create console org + limit (later, after Gate A) | Later |
-
-**Why Render for the site.** The owner is keeping the Render account anyway. Static Sites there are free, and the ~$500 credit stays in reserve for the one server we might add later (section 4, mode C). That's one fewer vendor. DNS stays at Namecheap. If the owner prefers Cloudflare Pages, the site is plain static files, so switching takes an hour.
+**How the red team works.** The ChatGPT GitHub connector is read-only, so Jarvis probably can't post reviews. The standing red team is therefore an independent Claude review session (a separate multi-agent pass like the one that produced this revision). It posts one `RED TEAM:` review per ready PR with each finding marked **blocking** or **note**, and sets a `redteam` label (`redteam:clear` or `redteam:blocking`). Jarvis reviews at gates: the PM prepares a link, the owner shares it with Jarvis, and Jarvis's answer is posted verbatim, labeled as his. Every asymmetric pair any reviewer finds becomes a permanent test case.
 
 ---
 
-## 4. The AI layer
+## 3. Accounts map
 
-**Model: Claude Opus 5.5 (`claude-opus-5-5`)**, per the owner's pick. It costs $4 per million input tokens and $20 per million output. A typical second-opinion check (about 1,500 tokens in, 600 out) costs roughly **1.8 cents**.
+| Asset | Where | Status / next |
+|---|---|---|
+| Domain `biasclear.com` | Namecheap | Paid to Feb 18, 2027. Two-factor on. **Auto-renew on** while any project account recovers through the domain. |
+| DNS | Namecheap | Today it still points at Render. **The DNS records are removed in the same sitting the Render services are deleted**, or someone else could claim the domain on Render. |
+| Project mailbox `hello@biasclear.com` | A real mailbox on the domain (Namecheap Private Email or equivalent; the PM confirms current price) | Replaces forwarding, so replies go out as hello@ instead of from a personal inbox. SPF, DKIM and DMARC records set when it's created. Recovery address for every project account. |
+| Code | New GitHub organization `biasclear`, repo `biasclear/biasclear` | Seeded from a **scrubbed snapshot** (no old history, no personal data). The old `bws82/biasclear` becomes a one-file stub pointing to it, because the published preprint links there. |
+| `bws82/biasclear-action` | Old GitHub Action | **Delete first.** It runs `pip install biasclear` while that name is unclaimed. Nothing depends on it (GitHub code search: 0 users). |
+| Website | **GitHub Pages** on `biasclear/biasclear` | Free, no bandwidth tier to watch, no extra vendor, no deploy secrets. (Render's free tier now caps outbound bandwidth at 5 GB a month.) |
+| Render | Existing account, about $500 credit | Both v1 services (`biasclear` and `biasclear-api`) deleted; account kept. Credit held for a possible hosted AI mode after launch, if it hasn't expired by then. |
+| PyPI `biasclear` | New project account on the project mailbox | **Claimed by publishing, not by a pending publisher.** PyPI's docs say a pending publisher doesn't reserve a name. A small working release goes out within days of the new repo existing. The project is never deleted, only archived, because the preprint's install line is permanent. |
+| npm `@biasclear` | Later (after launch) | npm Trusted Publishing can't make a first publish, so the first npm release gets its own plan when it's needed. |
+| AI accounts | Not needed before launch | See §4. AWS is optional and read-only for now. |
 
-Three things to know about this model:
-- It always thinks. You control depth with `effort`, which defaults to `medium`, so set it explicitly.
-- Forced tool calls aren't allowed. Use structured outputs for JSON results.
-- It's newly launched, so confirm Bedrock carries it (Bedrock console, **Model access**) before we plan on the credit.
+---
 
-**Three modes, launched in order:**
+## 4. The AI layer (after launch)
 
-| Mode | What | Who pays | Keys | When |
-|---|---|---|---|---|
-| **A. Rules only** | The deterministic checker, in the browser | Nobody | None | Launch |
-| **B. Bring your own key** | Visitor pastes their own Anthropic key; the browser calls Anthropic directly; the key stays in their browser | The visitor | Visitor's own | Launch (optional switch) |
-| **C. Hosted second opinion** | A tiny Render service calls Opus 5.5 for visitors without a key: per-visitor daily cap, input-length cap, stores nothing, logs no text | Project (credit first) | One project key in Render's secret store, workspace spend limit $50/mo | Only after Gate A, only if people ask for it |
+**Launch ships rules only.** The checker, the Field Guide and the benchmark are all deterministic and need no AI account, key or bill. The AI layer is post-launch work, planned now so the choices are settled.
 
-**Internal AI jobs** (the blind labeler, benchmark runs, red-team sweeps) run from GitHub Actions:
-- **If the AWS credit is live:** Bedrock through GitHub OIDC into an IAM role that can call Bedrock and nothing else. **No stored AWS keys anywhere.**
-- **Otherwise:** the Anthropic API through Workload Identity Federation from GitHub Actions, which is also keyless. Fallback is one key stored as a GitHub Actions secret, in its own spend-limited workspace.
+**Model: Claude Opus 5.5 (`claude-opus-5-5`)**, the owner's pick. It costs $4 per million input tokens and $20 per million output tokens. Thinking can't be turned off, and thinking tokens bill as output, so a second-opinion check costs a few cents, not the 1.8 cents revision 1 claimed. The real number gets measured by a script before any page quotes it. Refusals come back as ordinary responses (`stop_reason: "refusal"`), so the UI must handle them.
 
-**Turnkey for the owner.** Each account step is a click-path of 10 minutes or less in `ops/OWNER_STEPS.md`. The owner never copies a key into chat, a document or a file. Where a key must exist, the owner pastes it straight from the provider's page into Render's or GitHub's secret field, following the exact field names the PM gives.
+| Mode | What | When |
+|---|---|---|
+| **A. Rules only** | Deterministic checker in the browser | Launch |
+| **B. Bring your own key** | The visitor's own Anthropic key calls Anthropic straight from their browser | After launch, with its own security spec (below) |
+| **C. Hosted second opinion** | A small server calls the AI for visitors without a key | Only if people ask, and only after rewriting the privacy rule to allow it as a labeled opt-in |
+
+**Mode B security spec** (required before it ships):
+- The key box and the AI call live on a separate origin (for example `ai.biasclear.com`) with no analytics or third-party scripts. The main page talks to it by `postMessage` with exact origin checks.
+- Strict Content-Security-Policy on that origin: connections only to `api.anthropic.com`, no inline scripts, and framing only by biasclear.com.
+- The key is kept in memory by default, with no localStorage, cookies or URL. There's a visible Forget key button. Visitors are told to use a dedicated, spend-limited key.
+- Model output is rendered as text, never as HTML.
+- The `anthropic-dangerous-direct-browser-access` header is recorded as an accepted risk: bring-your-own-key only, never a project key.
+
+**Mode C honesty.** Mode C sends the visitor's text to a server we run and to Anthropic. That breaks today's "your text never leaves the tab" rule, so the rule and the page copy must change first, and the switch must say plainly where the text goes. We'd store nothing, but Anthropic's API retention policy applies. The $50 workspace limit is the real abuse control, and when it's hit the feature pauses for everyone.
+
+**Internal AI jobs** (a blind labeler for the in-house test set, red-team sweeps):
+- Use the Anthropic API from GitHub Actions through Workload Identity Federation (keyless), in a spend-limited workspace.
+- The trust rule is scoped to the `biasclear/biasclear` repo, the `main` branch, one workflow file and a protected environment, so no agent-pushed branch can mint credentials.
+- This needs an Anthropic Console account, which is a post-launch owner step.
+
+**AWS.** The old account is suspended. Claude on Bedrock bills through AWS Marketplace, and ordinary promotional credits usually don't cover Marketplace charges. The owner's only AWS step for now is reading the bill and the credit terms, and adding **no card**. The plan doesn't depend on AWS.
 
 ---
 
@@ -79,45 +92,79 @@ Three things to know about this model:
 
 | Threat | Control |
 |---|---|
-| A secret committed to the repo | Secret scan on every PR; the `AGENTS.md` hard rule; keyless publishing and CI |
-| A stolen key running up a bill | Keyless where possible; spend limits per workspace; AWS $5 budget tripwire |
-| User text leaking | Rules run in the browser; mode C stores and logs nothing; no cookies or trackers |
-| An agent loosening its own rules | `CODEOWNERS` requires owner review on `AGENTS.md`, `ops/`, `.github/`, `LICENSE`, `README.md`; `main` is protected |
-| A package name squatted | Reserve `biasclear` on PyPI as a pending Trusted Publisher before first release |
-| Personal information exposed | No bio on the site; noreply commits; contact via `hello@` only; clean-history repo (option A) |
-| Rules that tilt politically | Structural-only rules; 120+ swapped pairs as a CI gate; red team adds new pairs every review |
-| Account takeover | Two-factor (authenticator app) on Namecheap, GitHub, Render, PyPI, npm, AWS and the Anthropic console |
+| A squatter takes `pip install biasclear` (the preprint and the old Action point there) | Delete the Action now. Claim the name by publishing a real release within days. Never delete the PyPI project. |
+| The domain claimed on Render after the services are deleted | Remove the custom domains and the Namecheap DNS records in the same sitting as the deletion |
+| Old keys and data surviving | Delete **both** Render services and any environment groups; delete the old AWS access key after reading the bill; the Gemini key is already deleted |
+| A secret committed | Pinned secret scanner plus a custom rule for BiasClear-style keys (`bc_…`); checkout without persisted credentials; `AGENTS.md` hard rule |
+| An agent loosening its own rules | Protected paths are merged by the owner only; the ruleset requires checks and allows no bypass; the PM never edits rulesets |
+| Keyless CI tokens misused | OIDC trust scoped to repo + branch + workflow + protected environment |
+| Personal data republished | The new repo is seeded from a scrubbed snapshot built with `git archive`, never a working folder, after a grep gate for personal identifiers |
+| Replies exposing a personal inbox; spoofed mail to exposed signups | Real project mailbox with SPF, DKIM and DMARC |
+| Account takeover | Two-factor (authenticator app) on Namecheap, GitHub, Render, PyPI and the mailbox. Recovery through the project mailbox, and the domain stays renewed while that's true. |
+| Rules that tilt politically | Structural rules only; 120+ swapped pairs as a required check; red-team pairs added as tests |
+| Inaccessible design | WCAG 2.2 AA: every result is also available as a keyboard-reachable list; tier is never shown by color alone; contrast is checked by a script against the design tokens |
 
 ---
 
-## 6. The years of prior work (the desktop folder)
+## 6. Moving to the new organization (safe order)
 
-The owner's desktop folder is the project's history, with the Sophos system already stripped out and replaced by the Super Brain. Intake plan:
+GitHub can't transfer issues between different owners, deleting a repo can't be undone, and the published preprint links to `github.com/bws82/biasclear`. So the move goes in this order:
 
-1. The owner zips the folder and puts it in a private Google Drive folder named `BiasClear Archive`. It never goes into GitHub.
-2. The PM reads it, lists what's there, and flags anything that looks like a secret for the owner to rotate. Nothing gets copied into the repo without a ticket.
-3. Worth salvaging goes into tickets: early pattern ideas, labeled examples, PIT drafts, design assets.
+1. **Owner:** check that `github.com/biasclear` is free, and create the free organization.
+2. **Owner:** install the Claude GitHub App and the ChatGPT Codex connector on that organization.
+3. **PM:** build the seed snapshot with `git archive` from `main`. Scrub personal data from the tree (the bio, location, employer, LinkedIn, personal email, `funding.json`, the Sponsors link, `pyproject` authors). Run a grep gate. Push it as the first commit of `biasclear/biasclear` with the approved blueprint, the rulebook and the chosen license.
+4. **PM:** recreate issues #18 to #20 there. Close the five stale dependabot PRs. Open the release workflow for PyPI.
+5. **Owner:** turn on the `main` ruleset in the new repo once CI has run there once: require the four checks, block force pushes and deletions, no bypass, and zero required approvals.
+6. **Access test:** a Codex draft PR, a red-team review and a PM-opened PR must all work in the new repo before anything old is deleted.
+7. **PM:** export the old repo's full history and PR discussions into one archive file in the owner's private Drive folder. It never goes to GitHub.
+8. **Owner:** add a related link on the Zenodo record's metadata pointing to the new repo. This is a metadata edit only: no new version, no new DOI.
+9. **Owner:** delete `bws82/biasclear` (confirm it still has 0 forks). Then create a new public `bws82/biasclear` with a single README: "BiasClear moved to github.com/biasclear/biasclear". Archive the stub.
+10. **Owner:** update the profile README link and add a dated note to the EA Forum post withdrawing the v1 claims.
+
+Copies of the old history in third-party archives (for example, Software Heritage) are outside our control. Deleting the repo limits exposure but can't erase them. The owner's `bws82` account must never be renamed or deleted, because the stub and the preprint depend on it.
 
 ---
 
-## 7. Build order
+## 7. Build order and dates
 
-| Phase | Work | Gate |
+| Phase | Work | Target |
 |---|---|---|
-| 0 | This blueprint approved; owner steps 1–6 done; merge rights live | Owner says "approved" |
-| 1 | E1 rule pack, E2 browser engine, E3 symmetry | Red team finds no asymmetric pair it can't turn into a passing test |
-| 2 | Brand pick, design system, site on Render (mode A + B) | Owner reviews the staging URL |
-| 3 | E4 benchmark + blind-labeled set; PIT v2 preprint | Numbers published by script |
-| **Gate A** | Launch, week of November 16 | Owner |
-| 4 | PyPI and npm through Trusted Publishing; MCP server; mode C if wanted | Owner |
-| **Gate B** | February 1, 2027: keep going or shelve | Owner |
+| 0 | Owner sittings 1-4; new org and repo seeded; PyPI name claimed; Render and DNS cleaned up | **Oct 9** |
+| 1 | E1 rule pack, E2 browser engine, E3 symmetry | **Oct 30** |
+| 2 | Lightbox site on GitHub Pages, staging URL for the owner | **Nov 6** |
+| Go/no-go | Owner reviews staging | **Nov 9** |
+| **Gate A** | Launch | **Week of Nov 16** |
+| After launch | Mode B, share cards, poster, in-house labeled set, PIT v2 preprint, npm, MCP server | — |
+| **Gate B** | Keep going or shelve | **Feb 1, 2027** |
+
+**Launch floor** (ships even if everything else slips):
+- the mode A checker
+- the Field Guide
+- a Method page, with published benchmark numbers or an honest "not measured yet"
+- Privacy
+- About
+
+**Slip rule:** if the Nov 9 go/no-go fails, set one new launch date and move Gate B to about 10 weeks after launch.
+
+**Benchmarks.** E4 uses public, externally labeled datasets. SemEval propaganda data usually requires registration and a research-use agreement, so the PM checks each dataset's terms. Where registration needs a person, it's a 5-minute owner click, and the data is never redistributed. The in-house labeled set is self-graded however carefully it's built, so it's published as secondary evidence and labeled that way.
+
+**PIT v2 preprint.** It goes out under the owner's name, so it needs his full read and a stated AI-assistance note first. That's after launch.
 
 ---
 
-## 8. Open decisions (owner)
+## 8. Shelving (if Gate B says stop)
 
-1. Approve this blueprint as written, or mark changes.
-2. Brand direction: A, B, C or a mix.
-3. Repo home: option A (new `biasclear` org, clean history) is the PM's pick.
-4. License: Apache-2.0 for the engine plus CC BY 4.0 for the rule pack, as its own PR.
-5. Signup notice: send the short note to pre-March-20 signups, yes or no.
+In this order:
+1. Move every project account's recovery email off the domain.
+2. Archive the repo, leaving the PyPI project in place.
+3. Leave the stub and the preprint links working.
+4. Then let the domain lapse, or keep it for about $20 a year to prevent squatting.
+
+---
+
+## 9. Decisions for the owner
+
+1. **Approve this blueprint** (revision 2), or mark changes.
+2. **License for the new repo** (needed before the seed commit): Apache-2.0 for the code plus CC BY 4.0 for the rule list (recommended), or keep AGPL-3.0.
+3. **Signup notice** (needed before the Render sitting): email the affected signups, post a public notice on the site and repo instead, or both.
+4. **Project mailbox:** approve a small paid mailbox on the domain (the PM confirms the price first).

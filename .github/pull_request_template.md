@@ -21,3 +21,4 @@ Closes #
 - [ ] No network calls from the engine; no cookies, third-party scripts or trackers on the site
 - [ ] Rules match structure only (no named people, parties, outlets or institutions); swapped-pair tests added
 - [ ] Every public number traces to a script in this repo
+- [ ] Accessible: keyboard path, tier not shown by color alone, contrast checked, reduced motion respected

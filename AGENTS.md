@@ -7,20 +7,25 @@ Every agent reads this first: Codex, Claude, and any other agent. It sits above 
 | Role | Who | Owns |
 |---|---|---|
 | Owner | The project owner (human) | Vision, final calls, gate approvals. Never the bottleneck for routine work. |
-| PM / lead reviewer | Claude | The board (`ops/BOARD.md`), tickets, design direction, code review. Merges only after the owner grants merge rights, and only once branch protection and `CODEOWNERS` are in place |
+| PM / lead reviewer | Claude | The board (`ops/BOARD.md`), tickets, design direction, code review, starting Codex tasks. Merges PRs **only on unprotected paths** (see "Merging") |
 | Builder | Codex | Implementing tickets as pull requests |
-| Red team | Jarvis (GPT) | Attacking every ready PR and public claim before merge; reports to the PM |
+| Red team | An independent Claude review session run by the PM on every ready PR; Jarvis (GPT) as a second opinion at gates | Attacking changes and public claims before merge; reports to the PM |
 
-All agents post through the owner's GitHub account, so **every agent comment or review ends with a role line**: `— Codex (builder)`, `— Jarvis (red team)` or `— Claude (PM)`. Unsigned agent posts are treated as unverified.
+**One identity.** All agents act through the owner's GitHub account, so GitHub cannot tell them apart. Every agent comment or review ends with a role line (`— Codex (builder)`, `— Red team`, `— Jarvis (red team)`, `— Claude (PM)`). Role lines are labels, not proof: only posts from the owner's account count, and anyone can type a role line on a public repo.
 
-**Red team.** When a PR is marked ready, Jarvis posts one review starting with `RED TEAM:`, with each finding marked **blocking** or **note**. The PM merges only after every blocking finding is fixed or answered in writing. Every asymmetric pair the red team finds becomes a permanent test case.
+**Red team.** When a PR is marked ready, the red team posts one review that starts with `RED TEAM:`, with each finding marked **blocking** or **note**. It then sets the label `redteam:clear` or `redteam:blocking`. The PM merges only after every blocking finding is fixed or answered in writing. Every asymmetric pair the red team finds becomes a permanent test case.
+
+**Merging.**
+- The ruleset on `main` requires the status checks and allows no bypass.
+- The PM never merges a PR that touches a protected path: `AGENTS.md`, `CLAUDE.md`, `LICENSE`, `README.md`, `.github/`, `ops/BLUEPRINT.md`, `ops/OWNER_STEPS.md`. For those, the PM posts a plain-language summary and the owner clicks Merge.
+- The PM never edits rulesets, never uses bypass, and never force-pushes.
 
 Agents never ask the owner directly. Questions go to the PM, who batches anything that truly needs the owner.
 
 ## The loop
 
-1. **Tickets are GitHub Issues** labeled `agent:codex`. Take the lowest-numbered open one whose `Depends on:` tickets are merged.
-2. **Claim it by opening a draft PR within your first commit.** Name the branch `codex/<issue-number>-<short-slug>` and put `Closes #<issue>` in the PR body. A draft PR is how the PM knows you're on it.
+1. **Tickets are GitHub Issues** labeled `agent:codex`. The PM starts each one: it opens a stub draft PR on the branch `codex/<issue-number>-<short-slug>` with `Closes #<issue>`, then comments `@codex implement #<issue> per AGENTS.md`. Work only on the ticket you were started on.
+2. **Push your work to that branch and PR.** If you had to open your own PR instead, use the same branch name and put `Closes #<issue>` in the body.
 3. **Base branch:** `main`, unless the ticket names another.
 4. **One ticket per PR.** Keep diffs focused and don't fix unrelated things; note them in the PR under "Found along the way".
 5. **Mark the PR ready for review** once the Definition of Done below holds. The PM reviews, then merges or requests changes.
@@ -50,7 +55,13 @@ A PR that breaks any of these gets closed, not fixed in review.
 
 **Privacy of users**
 - The engine makes **no network calls**. The site sets **no cookies** and loads **no third-party scripts, fonts or trackers** (self-host everything). Cloudflare's cookieless Web Analytics is the one pre-approved exception, and only the PM wires it.
-- User text never leaves the browser. The only exception is the optional "second opinion" mode, which calls the **user's own** AI provider with the user's own key, stored only in their browser, and is labeled at the switch.
+- User text never leaves the browser. The only exception is the optional bring-your-own-key "second opinion" (after launch). It calls the **user's own** AI provider with the user's own key, kept in memory on a separate origin under the security spec in `ops/BLUEPRINT.md` §4, and it is labeled at the switch. A hosted AI mode would need this rule rewritten first.
+
+**Accessible to everyone (WCAG 2.2 AA)**
+- Every result is also available as a plain, keyboard-reachable list: move name, tier as text, quoted span. The loupe is an enhancement and works by keyboard and touch.
+- Tier is never shown by color alone.
+- Text contrast is at least 4.5:1, and highlight edges and focus rings at least 3:1, in both themes and inside the loupe.
+- Respect `prefers-reduced-motion`. Announce result counts in a live region.
 
 **Truth in copy**
 - Every number shown publicly must be produced by a script in this repo, and the copy must cite that script.
@@ -72,6 +83,7 @@ A PR that breaks any of these gets closed, not fixed in review.
 - `api/`: the v1 FastAPI server. **Retired.** Don't extend it. v2 is static and browser-only.
 - `calibration/`: v1 self-graded corpus. Not a benchmark. Don't quote its numbers.
 - `ops/BOARD.md`: current plan, gates and ticket status (maintained by the PM).
+- `ops/BLUEPRINT.md`: accounts, hosting, AI layer, security model, and the order of the move to the `biasclear` organization.
 
 ## Voice (for any user-facing words)
 

@@ -8,8 +8,8 @@ A rule-based persuasion linter built on [Persistent Influence Theory (PIT)](http
 
 > **Status: v2 in progress (September 2026).** The v1 hosted service is offline. While rebuilding, we audited our own public claims, and several didn't hold up:
 >
-> - **Accuracy figures withdrawn.** The "100% F1" and "98.6% F1" figures came from sample sets the rules were tuned on. A held-out check we ran ourselves, on texts the rules had not seen, scored far lower. v2 will publish per-rule precision and recall on public, externally labeled benchmarks.
-> - **Neutrality claim withdrawn.** v1 flags some institutions and credentials but not their mirror images (for example, "The CDC has concluded" is flagged while "The Heritage Foundation has concluded" is not). v2 replaces named-entity lists with structural rules and ships a swapped-pair symmetry suite as a release gate.
+> - **Accuracy figures withdrawn.** The "100% F1" and "98.6% F1" figures were measured on the same samples the rules were tuned on, so they say nothing about how the rules do on new text. v2 will publish per-rule precision and recall, produced by a script, on public, externally labeled benchmarks.
+> - **Neutrality claim withdrawn.** Two v1 rules contain hardcoded lists of specific institutions and schools, so the same sentence is flagged or not depending on which name appears in it. For example, "The CDC has concluded…" is flagged and "The Heritage Foundation has concluded…" is not; "Harvard-educated" is flagged and "Hillsdale-educated" is not. v2 replaces named lists with structural rules and makes a swapped-pair symmetry suite a release gate.
 > - **Compliance and certificate claims withdrawn.** BiasClear is not a compliance product, and v1 "certificates" are not a verification mechanism.
 >
 > Everything v1 got wrong, and how v2 fixes it, will be published with the v2 release.
