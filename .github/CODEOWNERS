@@ -1,7 +1,10 @@
-# Changes to the rules agents work under, the license, and public claims need the owner's review.
-/AGENTS.md    @bws82
-/CLAUDE.md    @bws82
-/LICENSE      @bws82
-/README.md    @bws82
-/.github/     @bws82
-/ops/         @bws82
+# Informational only. GitHub can't enforce code-owner review while every agent acts
+# through the owner's account, so code-owner review is off in the ruleset.
+# The rule lives in AGENTS.md ("Merging"): the owner merges any PR that touches these paths.
+# Keep this list identical to the protected-path list in AGENTS.md; change both together.
+/AGENTS.md            @bws82
+/CLAUDE.md            @bws82
+LICENSE*              @bws82
+/README.md            @bws82
+/.github/             @bws82
+/ops/BLUEPRINT.md     @bws82
