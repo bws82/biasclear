@@ -1,9 +1,0 @@
-# Temporary probe: checks whether this session may push workflow files. Removed in the next commit.
-name: permission-probe
-on: workflow_dispatch
-permissions: {}
-jobs:
-  noop:
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo probe
