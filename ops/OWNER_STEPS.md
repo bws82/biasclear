@@ -36,20 +36,24 @@ Never paste a password, key, code or card number into chat. If a step shows one,
 
 ---
 
-## Sitting 3: three decisions (5 min, just reply in chat)
+## Sitting 3: decisions ✅ done 2026-09-27
 
-1. **Blueprint:** approve revision 2 (the readable page), or mark changes.
-2. **License:** "Apache" (recommended: anyone can use it with credit) or "keep AGPL".
-3. **Signup notice:** "email them", "public notice only" or "both". The PM explains the three options on the readable page.
-4. **Mailbox:** OK to buy a small paid mailbox for hello@biasclear.com, once the PM confirms the price.
-
-*Unblocks:* the seed commit (needs 1 and 2), the Render sitting (needs 3), the PyPI account (needs 4).
+Blueprint approved; Apache-2.0 plus CC BY 4.0; email the signups plus a public note; Namecheap Private Email for hello@.
 
 ---
 
-## Sitting 4: project mailbox (20 min, after the PM confirms price and steps)
+## Sitting 4: project mailbox (20 min)
 
-The PM will give you exact clicks for the chosen provider, plus three DNS records (MX, SPF, DKIM) and a DMARC record to paste into **Namecheap → Advanced DNS**. You'll test sending and receiving, and then replies to the public go out as hello@biasclear.com, not from your personal inbox.
+Namecheap Private Email **Starter**: one mailbox, about $12 for the first year and about $15 a year after, with a 60-day free trial.
+
+1. namecheap.com → **Email → Private Email** → **Starter** → choose **biasclear.com** (use existing domain) → checkout. You enter the payment yourself.
+2. **Before switching mail over**, write down every address that forwards today. Namecheap → **Domain List → biasclear.com → Manage → Redirect Email** lists them (for example `brad@`).
+3. In the Private Email setup, create the mailbox **hello@biasclear.com** with a new strong password (store it in your password manager). Display name: **BiasClear**. Then add each address from step 2 as an **alias** of this mailbox, so nothing that arrives today gets lost.
+4. Namecheap → **Domain List → biasclear.com → Advanced DNS → Mail Settings** → choose **Private Email**. Namecheap adds the mail records (MX and SPF) for you.
+5. In the Private Email admin, turn on **DKIM** for the domain and follow its prompt to add the DKIM record. Tell the PM when it shows as active.
+6. Tell the PM "mailbox up". The PM gives you one DMARC line to add as a TXT record, then asks you to send a test mail to and from hello@.
+
+From then on, you answer anything BiasClear-related from hello@biasclear.com, never from your personal inbox.
 
 *Unblocks:* PyPI account, signup notice.
 

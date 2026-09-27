@@ -47,7 +47,7 @@ Nothing is decided unless it's written here. Changing a decision means changing 
 |---|---|---|
 | Domain `biasclear.com` | Namecheap | Paid to Feb 18, 2027. Two-factor on. **Auto-renew on** while any project account recovers through the domain. |
 | DNS | Namecheap | Today it still points at Render. **The DNS records are removed in the same sitting the Render services are deleted**, or someone else could claim the domain on Render. |
-| Project mailbox `hello@biasclear.com` | A real mailbox on the domain (Namecheap Private Email or equivalent; the PM confirms current price) | Replaces forwarding, so replies go out as hello@ instead of from a personal inbox. SPF, DKIM and DMARC records set when it's created. Recovery address for every project account. |
+| Project mailbox `hello@biasclear.com` | Namecheap Private Email Starter (one mailbox; same account as the domain) | Replaces forwarding, so replies go out as hello@ instead of from a personal inbox. SPF, DKIM and DMARC records set when it's created. Recovery address for every project account. |
 | Code | New GitHub organization `biasclear`, repo `biasclear/biasclear` | Seeded from a **scrubbed snapshot** (no old history, no personal data). The old `bws82/biasclear` becomes a one-file stub pointing to it, because the published preprint links there. |
 | `bws82/biasclear-action` | Old GitHub Action | **Delete first.** It runs `pip install biasclear` while that name is unclaimed. Nothing depends on it (GitHub code search: 0 users). |
 | Website | **GitHub Pages** on `biasclear/biasclear` | Free, no bandwidth tier to watch, no extra vendor, no deploy secrets. (Render's free tier now caps outbound bandwidth at 5 GB a month.) |
@@ -162,9 +162,9 @@ In this order:
 
 ---
 
-## 9. Decisions for the owner
+## 9. Owner decisions (answered 2026-09-27)
 
-1. **Approve this blueprint** (revision 2), or mark changes.
-2. **License for the new repo** (needed before the seed commit): Apache-2.0 for the code plus CC BY 4.0 for the rule list (recommended), or keep AGPL-3.0.
-3. **Signup notice** (needed before the Render sitting): email the affected signups, post a public notice on the site and repo instead, or both.
-4. **Project mailbox:** approve a small paid mailbox on the domain (the PM confirms the price first).
+1. **Blueprint revision 2:** approved.
+2. **License:** Apache-2.0 for the code, CC BY 4.0 for the rule pack.
+3. **Signup notice:** one short email to the affected signups, plus a public note; the list is deleted after sending. Draft in `ops/SIGNUP_NOTICE.md`.
+4. **Project mailbox:** Namecheap Private Email Starter (about $12 for the first year, about $15 a year after; 60-day free trial).
