@@ -10,7 +10,7 @@ What it does, in one line: sets the new repository's settings through GitHub's o
 
 Also, on purpose: hides the unused Wiki and Projects tabs, deletes a work branch automatically after it's merged (restorable), and saves its output to biasclear-easy-button.txt on the Desktop.
 
-Where to run: it needs the owner's real GitHub sign-in, so run it in the Terminal app, not a sandbox. The preferred way is for Hands to type it into Terminal (the owner allows the control prompt once).
+Where to run: it needs the owner's real GitHub sign-in, so it must run in his Mac's own Terminal, never in a sandbox. Show the command in a code box so he can press its ▷ run button, then wait for him to say "pressed".
 
 Needs: GitHub's command-line tool `gh`. If it isn't installed, install it first with `brew install gh` if Homebrew is present; otherwise tell the owner to get the macOS installer from https://cli.github.com and stop. If `gh` asks to sign in, run `gh auth login --hostname github.com --git-protocol https --web` in an interactive terminal and walk the owner through it (copy the code, press Return, paste it in the browser, touch the key).
 
