@@ -17,6 +17,13 @@
 
 set -u
 
+# Everything this button prints is also saved to a file on your Desktop, so you
+# (or your PM) can always see whether it ran and what happened.
+LOG="$HOME/Desktop/biasclear-easy-button.txt"
+[ -d "$HOME/Desktop" ] || LOG="$HOME/biasclear-easy-button.txt"
+exec > >(tee "$LOG") 2>&1
+printf 'Saved to %s\n' "$LOG"
+
 OWNER="biasclear"
 REPO="biasclear"
 R="repos/$OWNER/$REPO"
@@ -40,16 +47,30 @@ if ! command -v gh >/dev/null 2>&1; then
     say "Installing the GitHub command-line tool (gh) with Homebrew..."
     brew install gh || { say "Couldn't install gh. Tell your PM: 'gh install failed'."; exit 1; }
   else
-    say "This needs the GitHub command-line tool (gh)."
-    say "Install it from https://cli.github.com (download the macOS installer,"
-    say "double-click it), then press the button again."
+    say "STOPPED: this needs GitHub's command-line tool (gh), and it isn't installed."
+    say "Nothing was changed. To install it: open https://cli.github.com , download"
+    say "the macOS installer (.pkg), double-click it, then press the button again."
     exit 1
   fi
 fi
 
 if ! gh auth status --hostname github.com >/dev/null 2>&1; then
-  say "Signing you in to GitHub. A browser window opens: confirm with your key."
-  gh auth login --hostname github.com --git-protocol https --web || { say "Sign-in didn't finish. Press the button again."; exit 1; }
+  say ""
+  say "ONE-TIME SIGN-IN. What to do:"
+  say "  1. Below, GitHub prints a one-time code (like ABCD-1234). Copy it."
+  say "  2. Press Return. Your browser opens github.com/login/device."
+  say "  3. Paste the code, press Continue, then Authorize, and confirm with your key."
+  say "  4. Come back here: the button carries on by itself."
+  say ""
+  if ! { : </dev/tty; } 2>/dev/null; then
+    say "STOPPED: sign-in needs a normal terminal window. Nothing was changed."
+    say "Open the Terminal app, paste the same command, and press Return."
+    exit 1
+  fi
+  if ! gh auth login --hostname github.com --git-protocol https --web </dev/tty; then
+    say "Sign-in didn't finish. Nothing was changed. Press the button again."
+    exit 1
+  fi
 fi
 
 LOGIN=$(gh api user --jq .login 2>/dev/null)
