@@ -4,7 +4,9 @@ The PM (a cloud Claude session) prepares each item. The BiasClear "hands" thread
 
 Status values: `ready` (run it next), `done`, `hold` (don't run).
 
-## 1. Repository settings, in the browser — ready (browser)
+## 1. Repository settings, in the browser — done (2026-09-28), except step 4
+
+Result: steps 1, 2 done; steps 3, 5, 6 were already set. Step 4 (the pypi approval rule) was blocked by the browser helper's permission layer; the environment exists with no rules. It moves to the release sitting.
 
 What it does, in one line: sets the new repository's settings on GitHub's website, in the owner's own Chrome (description and topics, tidy defaults, read-only checks, the release approval switch, the free security scanners).
 
@@ -49,7 +51,9 @@ curl -fsSL https://raw.githubusercontent.com/bws82/biasclear/899c3fc453dcbdac230
 
 Done when: it prints "Finished: 9 done, 0 not done". Show the owner the "Report for your PM" lines.
 
-## 2. Two web-only settings — ready (browser)
+## 2. Two web-only settings — hold (moves to the mailbox run)
+
+The browser helper's permission layer blocks org admin changes and Namecheap. Steps 1 to 3 and 5 go into the mailbox run; step 4 (require 2FA) is the owner's own tick.
 
 What it does: locks biasclear.com to the GitHub organization (adds one TXT record at Namecheap) and turns on the organization's two safety switches. GitHub only allows these on its website.
 
