@@ -1,0 +1,1915 @@
+<title>BiasClear</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&display=swap">
+<style>
+/* ------------------------------------------------------------------
+   BiasClear / Lightbox / Editorial, finished
+   Paper and ink. One loupe. Everything else stays out of the way.
+   ------------------------------------------------------------------ */
+:root{
+  --paper:#EDF0F1;
+  --paper-2:#F6F8F8;
+  --ink:#0F1317;
+  --ink-2:#343C44;
+  --ink-3:#59626B;
+  --rule:#C2C9CE;
+  --rule-2:#DADFE2;
+  --focus:#1D4ED8;
+
+  --film:#07131F;
+  --film-ink:#D3E3EC;
+  --band:#11161B;
+  --band-ink:#DCE3E7;
+  --band-line:rgba(220,227,231,.28);
+  --sprocket:var(--paper);
+  --lift:0 26px 50px -18px rgba(12,22,32,.42), 0 3px 10px rgba(12,22,32,.16);
+
+  /* PIT tiers: one hue each, three jobs each */
+  --t1:#FFC53A;
+  --t2:#FF6D9E;
+  --t3:#36DDB5;
+  --t1-hl:rgba(255,206,52,.60);
+  --t2-hl:rgba(255,128,174,.46);
+  --t3-hl:rgba(72,220,184,.46);
+  --t1-ink:#7A5700;
+  --t2-ink:#A11D4D;
+  --t3-ink:#0A6C58;
+
+  --serif:"Newsreader","Charter","Bitstream Charter","Iowan Old Style","Sitka Text",Cambria,Georgia,serif;
+  --mono:"DM Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,"Liberation Mono",monospace;
+  --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --grain-paper:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --gut:clamp(16px,4.4vw,64px);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0D1114; --paper-2:#141A1F; --ink:#DCE2E6; --ink-2:#AFB9C0; --ink-3:#8A96A0;
+    --rule:#2C343A; --rule-2:#1D2429; --focus:#8EB1FF;
+    --film:#05182C; --film-ink:#EAF6FC; --band:#D3DADF; --band-ink:#0D1114; --band-line:rgba(13,17,20,.3); --sprocket:rgba(214,224,230,.3);
+    --lift:0 0 0 1px rgba(255,255,255,.05), 0 28px 60px -16px rgba(0,0,0,.75);
+    --t1-hl:rgba(255,197,58,.30); --t2-hl:rgba(255,109,158,.30); --t3-hl:rgba(54,221,181,.26);
+    --t1-ink:#FFCB4D; --t2-ink:#FF8DB4; --t3-ink:#4FE0BD;
+    --grain-paper:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .035 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0D1114; --paper-2:#141A1F; --ink:#DCE2E6; --ink-2:#AFB9C0; --ink-3:#8A96A0;
+  --rule:#2C343A; --rule-2:#1D2429; --focus:#8EB1FF;
+  --film:#05182C; --film-ink:#EAF6FC; --band:#D3DADF; --band-ink:#0D1114; --band-line:rgba(13,17,20,.3); --sprocket:rgba(214,224,230,.3);
+  --lift:0 0 0 1px rgba(255,255,255,.05), 0 28px 60px -16px rgba(0,0,0,.75);
+  --t1-hl:rgba(255,197,58,.30); --t2-hl:rgba(255,109,158,.30); --t3-hl:rgba(54,221,181,.26);
+  --t1-ink:#FFCB4D; --t2-ink:#FF8DB4; --t3-ink:#4FE0BD;
+  --grain-paper:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .035 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  color-scheme:dark;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{
+  margin:0;background-color:var(--paper);color:var(--ink);
+  font:400 18px/1.6 var(--serif);font-optical-sizing:auto;
+  font-kerning:normal;text-rendering:optimizeLegibility;
+  background-image:var(--grain-paper);background-size:220px;
+}
+::selection{background:var(--t1-hl);color:inherit}
+a{color:inherit;text-decoration-thickness:1px;text-underline-offset:.2em}
+a:hover{text-decoration-thickness:2px}
+:focus-visible{outline:2px solid var(--focus);outline-offset:3px;border-radius:1px}
+button{font:inherit;color:inherit}
+p{margin:0}
+h1,h2,h3{margin:0;font-weight:400;text-wrap:balance}
+.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.skip{position:absolute;left:16px;top:-60px;background:var(--ink);color:var(--paper);padding:10px 14px;font:500 13px/1 var(--mono);z-index:10;text-decoration:none}
+.skip:focus{top:12px}
+
+.wrap{max-width:1296px;margin-inline:auto;padding-inline:var(--gut)}
+.g12{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:clamp(16px,2.2vw,32px)}
+
+/* The tracked mono label is kept for folios, the readout and the barrel. */
+.lab{font:500 11px/1.35 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+.lab b{font-weight:500;color:var(--ink)}
+/* The quieter voice for everything else */
+.cap-i{font-style:italic;color:var(--ink-3)}
+
+/* ---------- masthead ---------- */
+.mast{display:flex;align-items:center;gap:24px;padding-block:20px 16px;border-bottom:1px solid var(--rule)}
+.wm{font:560 25px/1 var(--serif);letter-spacing:-.018em;text-decoration:none;color:var(--ink);white-space:nowrap}
+.wm em{font-style:italic;font-weight:430;letter-spacing:-.01em}
+.mast nav{margin-left:auto;display:flex;gap:24px}
+.mast nav a{font-size:16.5px;line-height:1;text-decoration:none;color:var(--ink-2);padding-block:6px}
+.mast nav a:hover{color:var(--ink);text-decoration:underline}
+.tone{display:flex;border:1px solid var(--rule);border-radius:2px}
+.tone button{background:none;border:0;padding:6px 10px;font:500 12px/1 var(--mono);color:var(--ink-3);cursor:pointer}
+.tone button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.folio{display:flex;justify-content:space-between;gap:16px;padding-block:10px 0}
+.folio .lab{text-wrap:balance}
+
+/* ---------- hero ---------- */
+.hero{overflow-x:clip}
+.hero>.wrap{padding-top:clamp(30px,3.3vw,48px);padding-bottom:clamp(36px,4vw,56px)}
+.hero-top{align-items:end;row-gap:22px}
+h1{grid-column:1/span 8;font-size:clamp(44px,6vw,88px);line-height:.98;letter-spacing:-.028em;font-weight:360}
+h1 em{font-style:italic;font-weight:340;letter-spacing:-.02em}
+.dek{grid-column:10/span 3;display:grid;gap:12px;padding-bottom:.4em}
+.dek p{font-size:18px;line-height:1.5;color:var(--ink-2)}
+.dek p:first-child{color:var(--ink)}
+
+.hero-body{margin-top:clamp(30px,2.9vw,42px);row-gap:0;align-items:start}
+.spec-col{grid-column:1/span 8;grid-row:1;min-width:0}
+.side{grid-column:10/span 3;grid-row:1}
+
+/* texts to try, directly above the specimen */
+.tabs{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 24px;border-bottom:1px solid var(--rule)}
+.chip{background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;padding:6px 0 8px;cursor:pointer;font-size:18px;line-height:1.3;color:var(--ink-2);white-space:nowrap}
+.chip .ct{font-style:normal;font-size:.86em;font-variant-numeric:lining-nums tabular-nums;color:var(--ink-3);margin-left:.3em}
+.chip:hover{color:var(--ink)}
+.chip[aria-pressed="true"]{color:var(--ink);border-bottom-color:var(--ink)}
+.chip.own{font-style:italic}
+
+.spec-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px 16px;padding-top:12px}
+.sh-l{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 14px}
+.dotsep{margin-inline:6px;color:var(--ink-3)}
+#nMoves:empty+.dotsep{display:none}
+.edit-own{background:none;border:0;padding:0;cursor:pointer;font-size:16px;font-style:italic;line-height:1.2;color:var(--ink-2);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.2em}
+.edit-own:hover{color:var(--ink);text-decoration-thickness:2px}
+.edit-foot{display:none}
+.spec-head .cut{flex-basis:100%;font-size:15.5px;line-height:1.4;font-style:italic;color:var(--ink-3)}
+/* while the editor is open, nothing around it describes a specimen that is not on screen */
+.hero-body.editing .spec-head,.hero-body.editing .handoff,.hero-body.editing .spec-foot .cap,.hero-body.editing .movelist{display:none}
+.switch{display:inline-flex;align-items:center;gap:10px;background:none;border:0;padding:4px 0;cursor:pointer;font-size:16px;line-height:1.2;color:var(--ink-2)}
+.switch:hover{color:var(--ink)}
+.switch .track{position:relative;flex:none;width:30px;height:17px;border:1px solid var(--ink-3);border-radius:9px;transition:background-color .2s,border-color .2s}
+.switch .knob{position:absolute;top:2px;left:2px;width:11px;height:11px;border-radius:50%;background:var(--ink-3);transition:transform .2s,background-color .2s}
+.switch[aria-checked="true"] .track{background:var(--t1-hl);border-color:var(--ink)}
+.switch[aria-checked="true"] .knob{transform:translateX(13px);background:var(--ink)}
+
+/* the editor opens in the specimen's place */
+.editor{display:grid;gap:10px;margin-top:18px;margin-bottom:8px}
+.editor label{font-size:17px;font-style:italic;color:var(--ink-2)}
+.editor textarea{
+  width:100%;min-height:180px;resize:vertical;padding:14px 16px;border:1px solid var(--rule);border-radius:2px;
+  background:var(--paper-2);color:var(--ink);font:400 18px/1.55 var(--serif);
+}
+.editor textarea::placeholder{color:var(--ink-3);font-style:italic}
+.editor textarea:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+.ed-foot{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px}
+.ed-foot .note{flex:1 1 auto;font-size:15px;font-style:italic;color:var(--ink-3)}
+.ed-foot .count{font-size:15px;font-style:italic;line-height:1;font-variant-numeric:lining-nums tabular-nums;color:var(--ink-3)}
+.ed-btns{display:flex;gap:10px;margin-left:auto}
+.btn{background:var(--ink);color:var(--paper);border:1px solid var(--ink);border-radius:2px;padding:11px 16px 10px;font:500 13px/1 var(--mono);cursor:pointer}
+.btn:hover{background:var(--ink-2);border-color:var(--ink-2)}
+.btn.quiet{background:none;color:var(--ink-2);border-color:var(--rule)}
+.btn.quiet:hover{color:var(--ink);border-color:var(--ink-3);background:none}
+
+/* The stage: print underneath, film on top, loupe above both */
+.stage{position:relative;--E:140px;margin-top:24px;margin-bottom:20px;margin-inline:max(0px,calc(44px - var(--gut)));touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:crosshair}
+.spec{
+  margin:0;font-family:var(--serif);font-weight:400;font-style:normal;
+  font-size:clamp(21px,2.2vw,31px);line-height:1.86;letter-spacing:-.004em;
+  white-space:pre-wrap;overflow-wrap:break-word;hyphens:none;text-wrap:pretty;
+  font-feature-settings:"kern" 1,"liga" 1;
+}
+.stage[data-size="m"] .spec{font-size:clamp(18px,1.6vw,22px);line-height:1.95}
+.stage[data-size="s"] .spec{font-size:17px;line-height:2.1}
+/* both layers break a phrase the same way whether or not it is marked on paper, so the lines never re-flow */
+.spec .mv{font:inherit;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.spec .mv.nw{white-space:pre}
+.base{color:var(--ink);position:relative;z-index:0}
+/* Mark all on paper: the no-drag view of every move */
+.stage.all .base .mv{
+  background-image:linear-gradient(100deg,transparent .06em,var(--hlc) .24em,var(--hlc) calc(100% - .24em),transparent calc(100% - .06em));
+  background-repeat:no-repeat;background-size:100% .66em;background-position:0 80%;
+}
+.nums{position:absolute;left:0;top:0;width:0;height:0;z-index:1;pointer-events:none}
+.sn{position:absolute;font:500 11px/1 var(--mono);letter-spacing:.04em;color:var(--ic);opacity:0;transition:opacity .9s ease}
+.sn.show{opacity:1;transition:opacity .3s ease .25s}
+.film{
+  position:absolute;inset:calc(-1 * var(--E));padding:var(--E);
+  background-color:var(--film);background-image:var(--grain);background-size:180px;
+  clip-path:circle(0px at 50% 50%);pointer-events:none;z-index:2;
+  -webkit-font-smoothing:antialiased;
+}
+.neg{color:var(--film-ink);text-shadow:0 0 14px rgba(110,180,255,.28)}
+.neg .mv.t1{color:var(--t1);text-shadow:0 0 12px color-mix(in srgb,var(--t1) 60%,transparent)}
+.neg .mv.t2{color:var(--t2);text-shadow:0 0 12px color-mix(in srgb,var(--t2) 60%,transparent)}
+.neg .mv.t3{color:var(--t3);text-shadow:0 0 12px color-mix(in srgb,var(--t3) 60%,transparent)}
+.marks{position:absolute;left:var(--E);top:var(--E);width:0;height:0}
+.mk{position:absolute;border:1px solid var(--c);border-radius:3px;transition:opacity .15s ease;
+  background:color-mix(in srgb,var(--c) 8%,transparent);
+  box-shadow:0 0 16px -2px color-mix(in srgb,var(--c) 70%,transparent),inset 0 0 14px -8px var(--c)}
+.mk.sl{opacity:0}
+.ml{position:absolute;white-space:nowrap;font:500 11px/1 var(--mono);letter-spacing:.02em;color:var(--c);
+  text-shadow:0 0 10px color-mix(in srgb,var(--c) 60%,transparent);display:flex;align-items:center;gap:6px;
+  opacity:0;transition:opacity .16s ease}
+.ml.vis{opacity:1}
+.ml.short span{display:none}
+.ml b{font-weight:500;font-size:inherit;border:1px solid currentColor;border-radius:2px;padding:1px 3px;line-height:1;letter-spacing:0}
+.t1{--c:var(--t1);--hlc:var(--t1-hl);--ic:var(--t1-ink)}
+.t2{--c:var(--t2);--hlc:var(--t2-hl);--ic:var(--t2-ink)}
+.t3{--c:var(--t3);--hlc:var(--t3-hl);--ic:var(--t3-ink)}
+
+.loupe{
+  position:absolute;left:0;top:0;border-radius:50%;z-index:3;cursor:grab;touch-action:none;
+  box-shadow:var(--lift);opacity:0;transition:opacity .35s ease, box-shadow .25s ease;will-change:transform;
+}
+.loupe.on{opacity:1}
+.loupe.drag{cursor:grabbing;box-shadow:0 34px 60px -18px rgba(12,22,32,.5),0 4px 12px rgba(12,22,32,.2)}
+.loupe:focus{outline:none}
+.loupe:focus-visible{box-shadow:0 0 0 3px var(--paper),0 0 0 5px var(--focus),var(--lift)}
+/* taken up by a pointer: no focus ring (the browser counts the scripted focus as a keyboard one); any key brings it back */
+.loupe.ptr:focus-visible{box-shadow:var(--lift)}
+.loupe.ptr.drag{box-shadow:0 34px 60px -18px rgba(12,22,32,.5),0 4px 12px rgba(12,22,32,.2)}
+.loupe svg{position:absolute;inset:0;display:block;pointer-events:none;overflow:visible}
+.glass{position:absolute;border-radius:50%;pointer-events:none;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.07),inset 0 0 30px 2px rgba(0,0,0,.5);
+  background:radial-gradient(circle at 32% 24%,rgba(255,255,255,.11),rgba(255,255,255,0) 38%),
+             radial-gradient(circle at 70% 82%,rgba(120,180,255,.06),rgba(0,0,0,0) 45%)}
+.band{fill:none;stroke:var(--band)}
+.hair{fill:none;stroke:var(--band-line);stroke-width:1}
+.ticks{fill:none;stroke:var(--band-line)}
+.rtext{font-family:var(--mono);font-weight:500;fill:var(--band-ink);text-transform:uppercase}
+
+.spec-foot{display:grid;gap:8px;padding-top:12px;border-top:1px solid var(--rule-2)}
+.handoff{font-size:17px;line-height:1.4;color:var(--ink-2);opacity:0;transform:translateY(4px);transition:opacity .6s ease,transform .6s ease}
+.handoff b{font-weight:560;color:var(--ink)}
+.handoff.on{opacity:1;transform:none}
+.touch{display:none}
+.req{display:flex;align-items:baseline;gap:9px;font-size:15.5px;line-height:1.45;font-style:italic;color:var(--ink-3)}
+.req .dot{flex:none;width:6px;height:6px;border-radius:50%;background:var(--t3);box-shadow:0 0 0 2px color-mix(in srgb,var(--t3) 25%,transparent);transform:translateY(-2px)}
+.req .nw{white-space:nowrap}
+.req output{font-style:normal;font-weight:560;font-size:17px;font-variant-numeric:lining-nums tabular-nums;color:var(--ink)}
+.instant,.instant li{transition:none!important}
+.dek-m{display:none}
+.spec-foot .cap{max-width:60ch;font-size:15.5px;line-height:1.5;font-style:italic;color:var(--ink-3)}
+.spec-foot .cap i{font-style:normal}
+
+/* sidenote */
+.ro-top{display:flex;justify-content:space-between;gap:8px;padding-bottom:14px;border-bottom:1px solid var(--ink)}
+.ro-name{font-size:clamp(26px,2.3vw,34px);line-height:1.05;font-style:italic;font-weight:380;letter-spacing:-.015em;margin-top:clamp(18px,2vw,28px);text-wrap:balance}
+.ro-tier{margin-top:12px;display:flex;align-items:center;gap:10px;color:var(--ic,var(--ink-3))}
+.ro-tier:empty{display:none}
+.ro-desc{margin-top:12px;font-size:17px;line-height:1.5;color:var(--ink-2)}
+.ro-quote{margin-top:10px;font-size:17px;line-height:1.45;font-style:italic}
+.ro-quote:empty{display:none}
+.sw{display:inline-block;width:26px;height:10px;background:var(--hlc);transform:skewX(-14deg);border-radius:1px 3px 1px 2px;flex:none}
+.movelist{margin-top:clamp(32px,3.2vw,48px)}
+.movelist h2{display:flex;justify-content:space-between;border-bottom:1px solid var(--rule);padding-bottom:10px}
+#moves{list-style:none;margin:0;padding:0}
+#moves li{border-bottom:1px solid var(--rule-2);opacity:0;transform:translateX(-14px);transition:opacity .45s ease,transform .5s cubic-bezier(.2,.7,.2,1)}
+#moves li.in{opacity:1;transform:none}
+#moves button{all:unset;box-sizing:border-box;display:grid;grid-template-columns:24px 1fr auto;column-gap:10px;row-gap:2px;width:100%;padding:8px 6px 8px 0;cursor:pointer;position:relative}
+#moves button::before{content:"";position:absolute;left:-12px;top:11px;bottom:11px;width:3px;background:var(--hlc);opacity:0;transition:opacity .2s}
+#moves button[aria-current="true"]::before{opacity:1}
+#moves button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+#moves .n{font:500 11.5px/1.9 var(--mono);color:var(--ink-3)}
+#moves .nm{font-size:17px;line-height:1.3;justify-self:start}
+#moves button[aria-current="true"] .nm{background:linear-gradient(var(--hlc),var(--hlc)) no-repeat 0 78%/100% 44%}
+#moves .tg{font:500 11px/1.9 var(--mono);color:var(--ic)}
+#moves q{grid-column:2/4;font-size:15px;font-style:italic;color:var(--ink-3);line-height:1.35}
+#moves .none{padding:12px 0;color:var(--ink-3);font-style:italic;font-size:16px;opacity:1;transform:none}
+
+/* ---------- sections ---------- */
+.sec{padding-block:clamp(34px,3.9vw,48px)}
+.sec-rule{border-top:1px solid var(--ink)}
+.sec-head{row-gap:14px;align-items:start;padding-top:22px}
+.sec-head .lab{grid-column:1/span 3;padding-top:12px}
+.sec-head h2{grid-column:4/span 9;font-size:clamp(34px,4vw,58px);line-height:1.03;letter-spacing:-.024em;font-weight:360}
+.sec-head h2 em{font-style:italic}
+.lede{grid-column:4/span 7;font-size:clamp(19px,1.5vw,21px);line-height:1.55;color:var(--ink-2);margin-top:12px}
+.lede+.lede{margin-top:4px}
+
+.steps{grid-column:4/span 9;list-style:none;margin:28px 0 0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px;counter-reset:s}
+.steps li{border-top:1px solid var(--rule);padding-top:12px;font-size:17px;line-height:1.45;color:var(--ink-2)}
+.steps li::before{counter-increment:s;content:"0" counter(s);display:block;font:500 12px/1 var(--mono);color:var(--ink-3);margin-bottom:10px}
+
+.tiers{margin-top:clamp(34px,4vw,48px);row-gap:34px}
+.tier{grid-column:span 4;border-top:1px solid var(--ink);padding-top:14px;min-width:0}
+.tier .num{display:flex;justify-content:space-between;align-items:center}
+.tier h3{font-size:clamp(28px,2.4vw,36px);line-height:1.1;letter-spacing:-.015em;margin-top:14px;font-style:italic;font-weight:400}
+.hl{background-image:linear-gradient(100deg,transparent .08em,var(--hlc) .3em,var(--hlc) calc(100% - .3em),transparent calc(100% - .08em));
+  background-repeat:no-repeat;background-size:100% .72em;background-position:0 78%;
+  -webkit-box-decoration-break:clone;box-decoration-break:clone;padding-inline:.14em;margin-inline:-.14em;color:inherit}
+.tier .plain{margin-top:10px;font-size:17.5px;line-height:1.5;color:var(--ink-2);max-width:36ch}
+
+/* film and print pairs */
+.pair{margin:22px 0 0;display:grid;gap:12px}
+.strip{position:relative;margin:0;padding:44px 16px 26px;border-radius:2px;background-color:var(--film);background-image:var(--grain);background-size:180px;color:var(--film-ink);-webkit-font-smoothing:antialiased}
+.strip::before,.strip::after{content:"";position:absolute;left:8px;right:8px;height:7px;border-radius:1px;
+  background:repeating-linear-gradient(90deg,var(--sprocket) 0 9px,transparent 9px 19px)}
+.strip::before{top:8px}.strip::after{bottom:8px}
+.strip p{font-size:19px;line-height:1.7;text-wrap:pretty;text-shadow:0 0 12px rgba(110,180,255,.28)}
+.strip .ftag{position:absolute;right:14px;top:22px;font-size:13.5px;line-height:1;font-style:italic;color:var(--film-ink);opacity:.55}
+.strip mark{position:relative;background:color-mix(in srgb,var(--c) 8%,transparent);color:var(--c);border-radius:3px;
+  box-shadow:0 0 0 1px var(--c),0 0 16px -2px color-mix(in srgb,var(--c) 70%,transparent);
+  text-shadow:0 0 12px color-mix(in srgb,var(--c) 60%,transparent);padding-inline:2px;margin-inline:1px 2px}
+.strip .fl{position:absolute;left:-2px;bottom:calc(100% + 6px);white-space:nowrap;display:flex;align-items:center;gap:6px;
+  font:500 11px/1 var(--mono);color:var(--c);text-shadow:0 0 10px color-mix(in srgb,var(--c) 60%,transparent)}
+.strip .fl b{font-weight:500;border:1px solid currentColor;border-radius:2px;padding:1px 3px}
+/* the print gets the film's measure, so the same sentence breaks in the same place */
+.print{position:relative;padding:22px 16px 12px;border-bottom:1px solid var(--rule)}
+.print p{font-size:19px;line-height:1.45}
+.print .ptag{position:absolute;right:14px;top:0;font-size:13.5px;line-height:1;font-style:italic;color:var(--ink-3)}
+.mhead{margin-top:18px;font-size:15px;font-style:italic;color:var(--ink-3)}
+.mline{list-style:none;margin:6px 0 0;padding:0;font-size:16.5px;line-height:1.55;color:var(--ink-2)}
+.mline li{display:inline}
+.mline li:not(:last-child)::after{content:"\00A0\00B7\0020";color:var(--ink-3)}
+.note-pit{margin-top:30px;font-size:16px;color:var(--ink-3);font-style:italic}
+
+/* misses */
+.exhibits{margin-top:clamp(36px,4vw,48px);row-gap:48px}
+.exhibit{grid-column:span 6;border-top:1px solid var(--ink);padding-top:12px}
+.exhibit .head{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.exhibit .head h3{font-size:19px;font-style:italic;line-height:1.3}
+.exhibit .cnt{font:400 12.5px/1.3 var(--mono);color:var(--ink-3);white-space:nowrap}
+.paper{margin-top:16px;font-size:clamp(20px,1.7vw,23px);line-height:1.6;letter-spacing:-.004em}
+mark.hl{color:inherit;background-color:transparent}
+.miss{text-decoration:underline dotted;text-decoration-color:var(--ink-3);text-decoration-thickness:2px;text-underline-offset:.26em}
+.ledger2{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:22px}
+.ledger2 h4{margin:0;font-size:16px;font-style:italic;font-weight:400;color:var(--ink-3);border-bottom:1px solid var(--rule);padding-bottom:6px}
+.ledger2 ul{list-style:none;margin:0;padding:0}
+.ledger2 li{padding:9px 0;border-bottom:1px solid var(--rule-2);font-size:16px;line-height:1.4}
+.ledger2 li q{display:block;font-style:italic}
+.ledger2 li small{display:block;font:400 12px/1.5 var(--mono);color:var(--ic,var(--ink-3));margin-top:3px}
+.ledger2 li .why{display:block;color:var(--ink-3);font-size:15px;margin-top:3px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 26px;margin-top:22px;font-size:15px;font-style:italic;color:var(--ink-3)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.legend .sws{display:inline-flex;gap:4px}
+.legend .dots{width:26px;border-bottom:2px dotted var(--ink-3);height:0;display:inline-block}
+
+.table-wrap{margin-top:clamp(36px,4vw,48px)}
+.tbl{width:100%;border-collapse:collapse}
+.tbl caption{text-align:left;padding-bottom:10px;font-size:17px;font-style:italic;color:var(--ink-2)}
+.tbl th,.tbl td{text-align:left;vertical-align:baseline;padding:12px 16px 12px 0;border-bottom:1px solid var(--rule-2)}
+.tbl thead th{padding-block:0 8px;border-bottom:1px solid var(--ink);font-size:15px;font-style:italic;font-weight:400;color:var(--ink-3)}
+.tbl tbody th{font-weight:400;font-style:italic;font-size:18px;width:19%}
+.tbl .ex{font-size:18.5px;width:35%}
+.tbl .res{font:400 12.5px/1.6 var(--mono);color:var(--ink-3);width:14%}
+.tbl .res.hit{color:var(--ic)}
+.tbl .why{font-size:15.5px;line-height:1.45;color:var(--ink-3)}
+.tbl tr.group th{font-size:18px;font-style:normal;font-weight:500;color:var(--ink);padding-top:24px;border-bottom:1px solid var(--rule)}
+
+.measure{margin-top:34px;padding-top:18px;border-top:1px solid var(--ink);align-items:baseline}
+.measure .m-lab{grid-column:1/span 3;padding-top:4px}
+.measure .m-txt{grid-column:4/span 8;font-size:clamp(20px,1.7vw,23px);line-height:1.45;max-width:48ch}
+.measure .m-more{margin-top:10px;font-size:17.5px;line-height:1.55;color:var(--ink-2);max-width:60ch}
+
+/* privacy */
+.facts{margin-top:clamp(32px,3.6vw,52px);row-gap:32px}
+.fact{grid-column:span 4;border-top:1px solid var(--rule);padding-top:14px}
+.fact h3{font-size:clamp(26px,2.2vw,32px);letter-spacing:-.015em;line-height:1.1}
+.fact p{margin-top:10px;font-size:17.5px;line-height:1.5;color:var(--ink-2);max-width:34ch}
+.check{grid-column:4/span 8;margin-top:4px;padding-top:16px;border-top:1px solid var(--rule-2);display:grid;gap:8px}
+.check h3{font-size:22px;font-style:italic;line-height:1.2}
+.check p{font-size:17.5px;line-height:1.55;color:var(--ink-2);text-wrap:pretty}
+.check .aside{font-size:16px;color:var(--ink-3);font-style:italic}
+
+/* footer */
+footer{padding-block:0 40px;margin-top:clamp(12px,2vw,28px)}
+.foot{row-gap:24px;align-items:start;border-top:1px solid var(--ink);padding-top:30px}
+.foot .brand{grid-column:1/span 4}
+.foot .brand .wm{font-size:22px}
+.foot .brand p{margin-top:10px;font-style:italic;color:var(--ink-2);font-size:17px}
+.foot .links{grid-column:6/span 4;display:grid;gap:8px;font-size:16.5px}
+.foot .contact{grid-column:10/span 3;font-size:16.5px;display:grid;gap:6px}
+.foot .contact p{font-style:italic;color:var(--ink-3);font-size:15.5px}
+.email{user-select:all;-webkit-user-select:all;font-family:var(--mono);font-size:14.5px;letter-spacing:.01em}
+.foot .fine{grid-column:1/-1;display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 24px;padding-top:16px;border-top:1px solid var(--rule-2);font-size:15px;font-style:italic;color:var(--ink-3)}
+
+/* ---------- responsive ---------- */
+@media (max-width:1020px){
+  h1{grid-column:1/-1}
+  .dek{grid-column:1/span 9}
+  .spec-col{grid-column:1/-1}
+  .side{display:contents}
+  .readout{grid-column:1/span 6;grid-row:2;margin-top:40px}
+  .movelist{grid-column:8/span 5;grid-row:2;margin-top:40px}
+  .sec-head .lab,.sec-head h2,.lede,.steps,.check{grid-column:1/-1}
+  .steps{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .tier{grid-column:1/-1}
+  .tier .pair{max-width:560px}
+  .exhibit{grid-column:1/-1}
+  .fact{grid-column:span 4}
+  .foot .brand{grid-column:1/span 6}.foot .links{grid-column:7/span 6}.foot .contact{grid-column:1/-1}
+  .measure .m-txt{grid-column:4/span 9}
+}
+/* side by side, the three tiers share their rows, so the films, the prints and their labels line up across the row */
+@media (min-width:1021px){
+  @supports (grid-template-rows:subgrid){
+    .tier{display:grid;grid-template-rows:subgrid;grid-row:span 7;row-gap:0;align-content:start}
+    .tier .pair{grid-template-rows:subgrid;grid-row:span 2;row-gap:12px}
+  }
+}
+@media (min-width:1021px) and (max-width:1120px){
+  .tabs{column-gap:16px}
+  .chip{font-size:16.5px}
+}
+/* short laptop screens (1366x768 and the like): the hand-off still makes the first screen */
+@media (min-width:1021px) and (max-height:820px){
+  .hero>.wrap{padding-top:22px}
+  .hero-body{margin-top:26px}
+  .dek p{font-size:17px}
+}
+@media (max-width:760px){
+  .g12{grid-template-columns:minmax(0,1fr)}
+  .g12>*,.hero-body .readout,.hero-body .movelist{grid-column:1/-1!important;grid-row:auto!important}
+  .mast nav a:not(.gh){display:none}
+  .mast{gap:14px}
+  .folio .lab:last-child{display:none}
+  .readout{margin-top:34px}
+  .movelist{margin-top:26px}
+  .steps{grid-template-columns:minmax(0,1fr);gap:12px}
+  .steps li{display:grid;grid-template-columns:30px 1fr;padding-top:10px}
+  .steps li::before{margin:3px 0 0}
+  .tbl,.tbl tbody,.tbl tr,.tbl th,.tbl td,.tbl caption{display:block;width:auto!important}
+  .tbl thead{display:none}
+  .tbl tr{border-bottom:1px solid var(--rule-2);padding:12px 0}
+  .tbl th,.tbl td{border:0;padding:2px 0}
+  .tbl tr.group{padding:22px 0 4px;border-bottom:1px solid var(--rule)}
+  .tbl tr.group th{padding:0;border:0}
+  .measure{grid-template-columns:minmax(0,1fr);row-gap:8px}
+  .facts{row-gap:18px}
+  .fact h3{font-size:25px}
+  .fact p{margin-top:6px}
+  .lede{font-size:18px;line-height:1.5}
+  .tiers{row-gap:28px}
+  .pair{margin-top:16px}
+  .exhibits{row-gap:36px}
+  .ledger2{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+  .ledger2 li{font-size:15px}
+  .ledger2 li .why{font-size:14px}
+  .paper{font-size:19px}
+  .tbl tbody th{font-size:17px}
+  .tbl .ex{font-size:17.5px}
+  .tbl .why{font-size:15px}
+  .tbl tr{padding:10px 0}
+  .tbl tr:not(.group){display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:12px;align-items:baseline}
+  .tbl tr:not(.group) th{grid-column:1;grid-row:1;font-size:16px;color:var(--ink-3)}
+  .tbl tr:not(.group) .res{grid-column:2;grid-row:1;text-align:right}
+  .tbl tr:not(.group) .ex{grid-column:1/-1;grid-row:2}
+  .tbl tr:not(.group) .why{grid-column:1/-1;grid-row:3}
+  .dek p{font-size:17px}
+  .tier .plain{font-size:16.5px}
+  .mline{font-size:15.5px}
+  .mhead{margin-top:12px}
+  .steps li{font-size:16.5px}
+  #moves button{padding:7px 6px 7px 10px}
+  #moves button::before{left:0}
+  .fact{display:grid;grid-template-columns:minmax(0,1fr);padding-top:10px}
+  .fact p{font-size:16.5px}
+  .check p{font-size:16.5px}
+  .check .aside{font-size:15px}
+  .measure .m-more{font-size:16.5px}
+  .foot{grid-template-columns:minmax(0,1fr) auto}
+  .foot .brand{grid-column:1/-1!important}
+  .foot .links{grid-column:1/-1!important}
+  .foot .contact{grid-column:1/-1!important}
+  footer{padding-block:0 30px}
+  .foot{padding-top:24px}
+  .foot .fine{flex-direction:column}
+}
+@media (max-width:640px){
+  .spec{line-height:1.98}
+  .stage{margin-inline:max(0px,calc(39px - var(--gut)))}
+  .tabs{border-bottom:0;column-gap:16px}
+  .chip{margin-bottom:0}
+  .spec-head{border-top:1px solid var(--rule);margin-top:6px}
+  .ml{font-size:10.5px;gap:5px}
+  .ml b{padding:1px 2px}
+  .chip{font-size:16px}
+  .switch{font-size:15px}
+  .strip{padding:42px 14px 24px}
+  .print{padding-inline:14px}
+  .strip p,.print p{font-size:18px}
+  /* the first screen: the text and its loupe come before the second paragraph, as high on the screen as they can sit */
+  .fo-l{display:none}
+  .hero>.wrap{padding-top:18px}
+  .hero-top{row-gap:12px}
+  .hero-body{margin-top:18px}
+  .dek .dek-2{display:none}
+  .dek-m{display:block;margin-top:6px;font-size:17px;line-height:1.5;color:var(--ink-2)}
+  .chip{padding:4px 0 5px}
+  /* on a phone the edit link would take a second row above the text and push it down: it sits under the text instead */
+  .spec-head .edit-own{display:none}
+  .edit-foot{display:block}
+  .editor{margin-top:14px}
+  .editor label{font-size:16px;line-height:1.4}
+  .editor textarea{min-height:120px}
+  .ed-foot .note{flex:1 1 0;min-width:0}
+  .ed-btns{flex:1 0 100%;justify-content:flex-end}
+}
+@media (max-width:420px){
+  .wm{font-size:22px}
+  .tone button{padding:6px 8px}
+}
+@media (hover:none) and (pointer:coarse){
+  .kbd{display:none}
+  .touch{display:inline}
+}
+@media (forced-colors:active){
+  .loupe:focus-visible{outline:3px solid CanvasText;outline-offset:3px}
+  .switch .knob{forced-color-adjust:none;background:CanvasText}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}
+}
+</style>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="wrap">
+  <div class="mast">
+    <a class="wm" href="#main" aria-label="BiasClear, top of page">Bias<em>Clear</em></a>
+    <nav aria-label="Sections">
+      <a href="#how">How it works</a>
+      <a href="#misses">What it misses</a>
+      <a href="#privacy">Privacy</a>
+      <a class="gh" href="https://github.com/bws82/biasclear" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+    <div class="tone" role="group" aria-label="Page tone">
+      <button type="button" data-tone="light" aria-pressed="true">Paper</button>
+      <button type="button" data-tone="dark" aria-pressed="false">Ink</button>
+    </div>
+  </div>
+  <div class="folio">
+    <p class="lab"><span class="fo-l">Reads text for persuasion. </span>Free. Runs in this tab.</p>
+    <p class="lab">No cookies. No accounts.</p>
+  </div>
+</header>
+
+<main id="main">
+<section class="hero" aria-labelledby="hero-h">
+ <div class="wrap">
+  <div class="g12 hero-top">
+    <h1 id="hero-h">See how a text is built <em>to move you.</em></h1>
+    <div class="dek">
+      <p>BiasClear marks the moves a text makes to carry its reader along, and names each one.</p>
+      <p class="dek-2">It points at structure, never at people, parties or institutions. It is not a fact-checker. There is no truth score.</p>
+    </div>
+  </div>
+
+  <div class="g12 hero-body">
+    <div class="spec-col">
+      <div class="tabs" role="group" aria-label="Text under the loupe">
+        <button type="button" class="chip" data-k="pitch" aria-pressed="true">An ad</button>
+        <button type="button" class="chip" data-k="invest" aria-pressed="false">An investment pitch</button>
+        <button type="button" class="chip" data-k="bot" aria-pressed="false">A chatbot answer</button>
+        <button type="button" class="chip" data-k="notice" aria-pressed="false">A plain notice</button>
+        <button type="button" class="chip own" data-k="own" aria-pressed="false" aria-expanded="false" aria-controls="editor">Your text</button>
+      </div>
+      <div class="spec-head">
+        <div class="sh-l">
+          <p class="lab"><span id="nMoves">6 moves</span><span class="dotsep" aria-hidden="true">/</span><span id="nWords">43 words</span></p>
+          <button type="button" class="edit-own" id="editOwn" hidden>Edit your text</button>
+        </div>
+        <button type="button" class="switch" id="markAll" role="switch" aria-checked="false"><span class="track" aria-hidden="true"><span class="knob"></span></span>Mark all on paper</button>
+        <p class="cut" id="cutNote" hidden>Only the first 20,000 characters were read. The rest was left out.</p>
+      </div>
+
+      <div class="editor" id="editor" hidden>
+        <label for="own">Paste or type your text. It is read here and goes nowhere.</label>
+        <textarea id="own" maxlength="20000" rows="6" spellcheck="false" autocomplete="off" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false" placeholder="An email, a post, a pitch, a chatbot answer."></textarea>
+        <div class="ed-foot">
+          <span class="note" id="edNote" aria-live="polite">Up to 20,000 characters. It stays in this tab.</span>
+          <span class="count" id="count">0 / 20,000</span>
+          <div class="ed-btns">
+            <button type="button" class="btn quiet" id="cancel">Cancel</button>
+            <button type="button" class="btn" id="go">Put it under the loupe</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="stage" id="stage" data-size="l">
+        <p class="spec base" id="base">Big news: the Aero 3 kettle goes on sale Monday.
+Everyone knows it is the best one yet. Experts say the old leak is fixed, and anyone who doubts it is a crank. Top groups agree. Only a fool would wait. Act now.</p>
+        <div class="nums" id="nums" aria-hidden="true"></div>
+        <div class="film" id="film" aria-hidden="true">
+          <p class="spec neg" id="neg"></p>
+          <div class="marks" id="marks"></div>
+        </div>
+        <div class="loupe" id="loupe" tabindex="0" role="application" aria-roledescription="loupe"
+             aria-label="Loupe. Arrow keys move it. Enter or Space jumps to the next move and reads it out. Shift with Enter goes back. Home and End go to the first and last move.">
+          <div class="glass" id="glass"></div>
+          <svg id="ring" aria-hidden="true" focusable="false"></svg>
+        </div>
+      </div>
+
+      <div class="spec-foot">
+        <p class="handoff" id="handoff"><b>Your turn.</b> Drag the loupe<span class="kbd">, or use the arrow keys</span><span class="touch">, or tap a phrase</span>.</p>
+        <p class="edit-foot" id="editFoot" hidden><button type="button" class="edit-own" id="editOwnFoot">Edit your text</button></p>
+        <p class="req"><span class="dot" aria-hidden="true"></span><span><span id="reqLab">Requests sent since the page and its typefaces</span> <span class="nw">loaded: <output id="reqN">&ndash;</output></span></span></p>
+        <p class="cap">Outside the loupe, ordinary print. Inside it, the same words as a negative, each move outlined and named. For your own words, choose <i>Your text</i><span class="kbd"> or paste anywhere on the page (Ctrl+V, &#8984;V)</span>.</p>
+        <p class="dek-m">It points at structure, never at people, parties or institutions. It is not a fact-checker. There is no truth score.</p>
+      </div>
+      <p class="sr-only" id="live" aria-live="polite"></p>
+    </div>
+
+    <aside class="side" aria-label="Moves in this text">
+      <div class="readout" id="readout">
+        <div class="ro-top"><p class="lab">Under the loupe</p><p class="lab" id="roIdx"></p></div>
+        <p class="ro-name" id="roName">&nbsp;</p>
+        <p class="lab ro-tier" id="roTier"></p>
+        <p class="ro-desc" id="roDesc"></p>
+        <p class="ro-quote" id="roQuote"></p>
+      </div>
+      <div class="movelist">
+        <h2 class="lab" id="listLab"><span>In this text</span><span id="listCount"></span></h2>
+        <ol id="moves" aria-labelledby="listLab"></ol>
+      </div>
+    </aside>
+  </div>
+ </div>
+</section>
+
+<section class="sec wrap" id="how" aria-labelledby="how-h">
+  <div class="sec-rule"></div>
+  <div class="g12 sec-head">
+    <p class="lab">02 &nbsp;How it works</p>
+    <h2 id="how-h">It reads for shape, <em>not for truth.</em></h2>
+    <p class="lede">Persuasion leans on familiar wording. Borrowed agreement. Experts with no names. A deadline. A doubter made to look foolish. BiasClear looks for that wording, outlines each match, and tells you what the move is called.</p>
+    <p class="lede">It does not decide whether a claim is right. It does not score the text or the writer. It shows the build, and leaves the reading to you.</p>
+    <ol class="steps">
+      <li>You paste text. It never leaves this tab.</li>
+      <li>Twenty rules from the source on GitHub look for known moves. This page skips the source&rsquo;s citation check, so it can mark a little more.</li>
+      <li>Each move is outlined, named, and sorted into one of three tiers.</li>
+      <li>You decide what it means. Nothing is scored.</li>
+    </ol>
+  </div>
+
+  <div class="g12 tiers">
+    <article class="tier t1" aria-labelledby="t1h">
+      <div class="num"><p class="lab">Tier I</p><span class="sw" aria-hidden="true"></span></div>
+      <h3 id="t1h"><span class="hl">Ideological</span></h3>
+      <p class="plain">What you are told is settled. These moves make a claim feel agreed, proven or decided before you have weighed it, set unequal sides as even, or answer a worry with a promise.</p>
+      <figure class="pair" data-text="Everyone knows the bake sale sells out.">
+        <div class="strip" aria-hidden="true"><p>Everyone knows the bake sale sells out.</p><span class="ftag">Film</span></div>
+        <div class="print"><p>Everyone knows the bake sale sells out.</p><span class="ptag">Print</span></div>
+        <figcaption class="sr-only"></figcaption>
+      </figure>
+      <p class="mhead">Moves in this tier</p>
+      <ul class="mline">
+        <li>Consensus as proof</li><li>Unsourced authority</li><li>Dissent dismissed</li><li>Inevitability</li>
+        <li>Appeal to tradition</li><li>False equivalence</li><li>Soft consensus</li><li>Aspirational deflection</li>
+      </ul>
+    </article>
+    <article class="tier t2" aria-labelledby="t2h">
+      <div class="num"><p class="lab">Tier II</p><span class="sw" aria-hidden="true"></span></div>
+      <h3 id="t2h"><span class="hl">Psychological</span></h3>
+      <p class="plain">How you are pushed. These moves put fear, shame, pride, decency or a deadline where a reason should be, cut the choices to two or the causes to one, or wave off the doubter.</p>
+      <figure class="pair" data-text="Act now, or the season tickets will be gone.">
+        <div class="strip" aria-hidden="true"><p>Act now, or the season tickets will be gone.</p><span class="ftag">Film</span></div>
+        <div class="print"><p>Act now, or the season tickets will be gone.</p><span class="ptag">Print</span></div>
+        <figcaption class="sr-only"></figcaption>
+      </figure>
+      <p class="mhead">Moves in this tier</p>
+      <ul class="mline">
+        <li>False binary</li><li>Fear + urgency</li><li>Shame lever</li><li>Feeling for evidence</li><li>Moral high ground</li>
+        <li>Competence dismissed</li><li>Dismissal by reframing</li><li>Single cause</li><li>One culprit</li>
+      </ul>
+    </article>
+    <article class="tier t3" aria-labelledby="t3h">
+      <div class="num"><p class="lab">Tier III</p><span class="sw" aria-hidden="true"></span></div>
+      <h3 id="t3h"><span class="hl">Institutional</span></h3>
+      <p class="plain">Whose voice it borrows, and how large it makes things. These moves lean on unnamed bodies, standards and process language to sound official, or call a harm total and final.</p>
+      <figure class="pair" data-text="Leading agencies warn of a wet spring.">
+        <div class="strip" aria-hidden="true"><p>Leading agencies warn of a wet spring.</p><span class="ftag">Film</span></div>
+        <div class="print"><p>Leading agencies warn of a wet spring.</p><span class="ptag">Print</span></div>
+        <figcaption class="sr-only"></figcaption>
+      </figure>
+      <p class="mhead">Moves in this tier</p>
+      <ul class="mline">
+        <li>Fog language</li><li>Vague authority</li><li>Total harm</li>
+      </ul>
+    </article>
+  </div>
+</section>
+
+<section class="sec wrap" id="misses" aria-labelledby="miss-h">
+  <div class="sec-rule"></div>
+  <div class="g12 sec-head">
+    <p class="lab">03 &nbsp;What it misses</p>
+    <h2 id="miss-h">What it catches, <em>and what it walks past.</em></h2>
+    <p class="lede">BiasClear knows the usual wording of a move. When the same move is made in other words, it can miss it. Here are two of the texts from above, read by the same rules, with the misses marked by hand.</p>
+  </div>
+
+  <div class="g12 exhibits">
+    <article class="exhibit" aria-labelledby="exA">
+      <div class="head"><h3 id="exA">Exhibit A &middot; An investment pitch</h3><p class="cnt" data-count="exA"></p></div>
+      <p class="paper" id="paperA">Industry-standard metrics confirm this is a safe investment. Studies show our approach consistently outperforms, and only a fool would bet against this trend. The future of finance is inevitable. Don't be the one left behind.</p>
+      <div class="ledger2">
+        <div><h4>Caught</h4><ul id="caughtA"></ul></div>
+        <div><h4>Missed</h4><ul id="missedA"></ul></div>
+      </div>
+    </article>
+    <article class="exhibit" aria-labelledby="exB">
+      <div class="head"><h3 id="exB">Exhibit B &middot; A chatbot answer</h3><p class="cnt" data-count="exB"></p></div>
+      <p class="paper" id="paperB">Great question! Experts agree this is the right choice for you. This is widely accepted, and honestly, anyone who says otherwise simply has not done their research. You should feel confident moving forward today.</p>
+      <div class="ledger2">
+        <div><h4>Caught</h4><ul id="caughtB"></ul></div>
+        <div><h4>Missed</h4><ul id="missedB"></ul></div>
+      </div>
+    </article>
+  </div>
+  <div class="legend" aria-hidden="true">
+    <span><span class="sws"><i class="sw t1"></i><i class="sw t2"></i><i class="sw t3"></i></span>Marked by the rules</span>
+    <span><i class="dots"></i>A move the rules missed</span>
+  </div>
+
+  <div class="table-wrap">
+    <table class="tbl">
+      <caption>Beyond its reach. Each example below is read live by the same rules.</caption>
+      <thead><tr><th scope="col">Kind</th><th scope="col">Example</th><th scope="col">Marked</th><th scope="col">Why</th></tr></thead>
+      <tbody>
+        <tr class="group"><th colspan="4" scope="colgroup">It will not see</th></tr>
+        <tr><th scope="row">Tone and insinuation</th><td class="ex" data-live>Funny how the forecast changed right after the picnic was booked.</td><td class="res"></td><td class="why">The suggestion is made without a single claim. There is no wording to match.</td></tr>
+        <tr><th scope="row">Numbers with no base</th><td class="ex" data-live>Ticket sales rose 40% in March.</td><td class="res"></td><td class="why">Forty percent of what? It reads words, not arithmetic.</td></tr>
+        <tr><th scope="row">Whether it is true</th><td class="ex" data-live>The bridge opened to traffic in 1962.</td><td class="res"></td><td class="why">If the bridge opened in 1970, this still passes clean. It checks shape, not facts.</td></tr>
+        <tr class="group"><th colspan="4" scope="colgroup">It can over-mark</th></tr>
+        <tr><th scope="row">A harmless either-or</th><td class="ex" data-live>Either the 8:15 bus comes or I walk.</td><td class="res"></td><td class="why">The shape is there. The pressure is not. It marks the shape; you judge the intent.</td></tr>
+        <tr><th scope="row">A reported label</th><td class="ex" data-live>Some coaches call the new rule a fringe idea.</td><td class="res"></td><td class="why">A writer quoting a dismissal gets the same mark as a writer making one.</td></tr>
+        <tr><th scope="row">A claim with its source</th><td class="ex" data-live>Studies show the late bus is the busiest one (city ridership survey, 2023).</td><td class="res"></td><td class="why">The source is named right there. This page doesn&rsquo;t check for one, so the shape is marked anyway. The full engine skips some cited claims.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="measure g12">
+    <p class="lab m-lab">On measurement</p>
+    <div class="m-txt">
+      <p>These rules have not yet been measured on a public benchmark. Read the marks as prompts to look closer, not as findings.</p>
+      <p class="m-more">Figures published earlier were measured on the same texts the rules were tuned on, so they said nothing about new text, and have been withdrawn. Per-rule precision and recall on SemEval-2020 Task&nbsp;11 and SemEval-2023 Task&nbsp;3 will come from a script in the repo. Until then this page quotes no figure.</p>
+    </div>
+  </div>
+</section>
+
+<section class="sec wrap" id="privacy" aria-labelledby="priv-h">
+  <div class="sec-rule"></div>
+  <div class="g12 sec-head">
+    <p class="lab">04 &nbsp;Privacy</p>
+    <h2 id="priv-h">Your text stays <em>in this tab.</em></h2>
+  </div>
+  <div class="g12 facts">
+    <div class="fact"><h3>No uploads.</h3><p>The rules run inside this page. What you paste is read here and sent nowhere.</p></div>
+    <div class="fact"><h3>No cookies.</h3><p>The page sets none. It keeps no record of what you paste, and forgets it when you close the tab.</p></div>
+    <div class="fact"><h3>No accounts.</h3><p>Nothing to sign up for. Nothing to sign in to. Nothing to hand over.</p></div>
+    <div class="check">
+      <h3>Check it yourself.</h3>
+      <p>When it opens, the page loads its two typefaces from Google Fonts, in full. After that it asks for nothing. The counter under the text starts once both typefaces are in, then counts every request your browser reports. Paste something and watch it stay at 0, or look at this page&rsquo;s requests in your browser&rsquo;s network panel. Browser extensions can make requests of their own; the counter may show some of those too.</p>
+      <p class="aside">Letters the typefaces do not include are drawn in your device&rsquo;s own fonts.</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="wrap">
+  <div class="g12 foot">
+    <div class="brand">
+      <a class="wm" href="#main">Bias<em>Clear</em></a>
+      <p>See how a text is built to move you.</p>
+    </div>
+    <div class="links">
+      <a href="https://doi.org/10.5281/zenodo.18676405" target="_blank" rel="noopener">Built on Persistent Influence Theory (Slimp, 2026)</a>
+      <a href="https://github.com/bws82/biasclear" target="_blank" rel="noopener">Source on GitHub</a>
+    </div>
+    <div class="contact">
+      <p>Write to</p>
+      <span class="email">hello@biasclear.com</span>
+    </div>
+    <div class="fine">
+      <p>Points at structure, never at people. Not a fact-checker. No truth score.</p>
+      <p>Set in Newsreader and DM Mono</p>
+    </div>
+  </div>
+</footer>
+
+<noscript><p class="wrap" style="padding-bottom:40px">The loupe needs JavaScript to read text. Nothing you paste would be sent anywhere either way.</p></noscript>
+
+<script>
+(() => {
+'use strict';
+
+/* ------------------------------------------------------------ engine */
+const RULES = [{"id":"CONSENSUS_AS_EVIDENCE","t":1,"m":1,"rx":["\\b(?:(?:everyone|everybody)\\s+(?:knows?|agrees?|understands?|recognizes?|accepts?|sees?|can\\s+see)|all\\s+(?:\\w+\\s+)?(?:experts?|scientists?|researchers?)|most\\s+(?:people|experts?|scholars?)|the\\s+(?:\\w+\\s+)?consensus(?!\\s+(?:forecast|estimate|projection|expectation|view|number|figure|range))|(?:experts?|scientists?|researchers?|scholars?)\\s+(?:unanimously|overwhelmingly)\\s+(?:agree|concur|confirm)|unanimously\\s+(?:agree|agreed|concur|accept|endorse)|widely\\s+accepted|universally\\s+recognized|broadly\\s+agreed|generally\\s+accepted|it\\s+is\\s+(?:widely|broadly|universally)\\s+(?:known|accepted|recognized))\\b"]},{"id":"CLAIM_WITHOUT_CITATION","t":1,"m":1,"rx":["\\b(?:studies?\\s+(?:show|prove|demonstrate|confirm|indicate|suggest|find|reveal)|research\\s+(?:shows?|proves?|demonstrates?|confirms?|indicates?|suggests?|has\\s+shown)|experts?\\s+(?:say|agree|confirm|believe|have\\s+(?:found|shown|concluded))|science\\s+(?:shows?|proves?|has\\s+(?:shown|proven|established))|data\\s+(?:shows?|proves?|suggests?|confirms?|indicates?)|evidence\\s+(?:shows?|suggests?|indicates?|confirms?|demonstrates?))\\b"]},{"id":"DISSENT_DISMISSAL","t":1,"m":1,"rx":["\\b(?:fringe|debunked|conspiracy|discredited|pseudoscience|junk\\s+science|misinformation|disinformation|deniers?|denialists?|cranks?|quacks?|has\\s+been\\s+(?:thoroughly\\s+)?(?:debunked|disproven|discredited|refuted)|no\\s+(?:serious|credible|reputable)\\s+(?:scientist|researcher|expert|scholar))\\b"]},{"id":"FALSE_BINARY","t":2,"m":1,"rx":["\\b(?:either\\s+.{3,60}\\s+or\\b|you(?:'re|\\s+are)\\s+either\\s+.{3,40}\\s+or\\b|(?:only|just)\\s+two\\s+(?:options?|choices?|alternatives?|paths?)|there(?:'s|\\s+is)\\s+(?:only|just)\\s+(?:one\\s+(?:way|option|choice))|(?:no|without\\s+(?:any)?)\\s+(?:middle\\s+ground|third\\s+(?:option|way|alternative|choice)|other\\s+(?:option|choice|alternative)s?)|(?:a\\s+)?(?:clear|stark|simple|binary)\\s+choice\\s*:.{3,60}\\s+or\\s+|if\\s+(?:you(?:'re|\\s+are))\\s+not\\s+.{3,40}(?:then|,)\\s+you(?:'re|\\s+are))\\b"]},{"id":"FEAR_URGENCY","t":2,"m":1,"rx":["\\b(?:catastroph(?:e|ic)|devastating|irreversibl[ey]|point\\s+of\\s+no\\s+return|too\\s+late|(?:act|decide|move)\\s+(?:now|immediately|before\\s+it(?:'s|\\s+is)\\s+too\\s+late)|(?:running\\s+out\\s+of|no)\\s+time|(?:dire|grave|existential)\\s+(?:threat|risk|consequences?|danger)|(?:complete|total|utter|imminent)\\s+(?:collapse|destruction|failure|ruin|disaster)|(?:window|opportunity)\\s+(?:is\\s+)?(?:closing|narrowing|disappearing|running\\s+out)|(?:crisis|emergency)\\s+(?:demands?|requires?|necessitates?)|(?:severe|permanent)\\s+(?:and\\s+)?(?:permanent|severe|irreversibl[ey]|lasting)|consequences\\s+will\\s+be\\s+(?:severe|dire|catastrophic|devastating|permanent)|if\\s+(?:we|you)\\s+(?:don(?:'t|ot)|fail\\s+to)\\s+act)\\b"]},{"id":"SHAME_LEVER","t":2,"m":1,"rx":["\\b(?:any\\s+(?:reasonable|rational|intelligent|educated|decent)\\s+person|only\\s+(?:a\\s+fool|an?\\s+idiot|ignorant\\s+people?)|(?:right|wrong)\\s+side\\s+of\\s+history|history\\s+will\\s+(?:judge|remember|not\\s+(?:forget|forgive))|how\\s+(?:can|could)\\s+(?:you|anyone)\\s+(?:possibly|seriously)|(?:everyone|all)\\s+(?:reasonable|intelligent|educated)\\s+people?\\s+(?:know|agree|understand|accept))\\b"]},{"id":"EMOTIONAL_SUBSTITUTION","t":2,"m":1,"rx":["\\b(?:(?:heartbreaking|shocking|outrageous|disgusting|appalling|horrifying|terrifying|sickening|unconscionable)\\s+(?:that|how|when)|(?:simply|truly|absolutely|utterly)\\s+(?:heartbreaking|devastating|unconscionable|horrifying|appalling|outrageous)|(?:the\\s+)?(?:suffering|pain|devastation|tragedy|anguish)\\s+speaks?\\s+for\\s+(?:itself|themselves)|no\\s+(?:decent|reasonable|compassionate|caring|moral)\\s+(?:person|human|individual)\\s+(?:could|would|can|should)|(?:think\\s+(?:of|about)\\s+the\\s+children|won(?:'t|\\s+not)\\s+(?:someone|somebody)\\s+think\\s+of)|(?:blood\\s+on\\s+(?:your|their)\\s+hands|how\\s+(?:do\\s+you|can\\s+you)\\s+(?:sleep|live\\s+with)))\\b"]},{"id":"BUREAUCRATIC_OBSCURITY","t":3,"m":1,"rx":["\\b(?:pursuant\\s+to\\s+(?:the\\s+)?(?:aforementioned|foregoing|operationalization|implementation|effectuation)|(?:hereinafter|heretofore|hereinabove|notwithstanding\\s+the\\s+foregoing)|it\\s+(?:is|should\\s+be)\\s+(?:noted|observed|recognized)\\s+that|(?:the\\s+)?(?:above-?referenced|above-?mentioned|above-?described|aforementioned)\\s+(?:matter|issue|subject|concern)|(?:operationalization|effectuate|incentivize|synergize|paradigm(?:atic)?|cross-?functional)\\s+\\w+\\s+(?:framework|paradigm|metrics?|protocol|methodology|mechanism))\\b"]},{"id":"INEVITABILITY_FRAME","t":1,"m":1,"rx":["\\b(?:(?:the\\s+)?(?:inevitable|inexorable|inescapable|unstoppable)\\s+(?:march|trend|shift|move(?:ment)?|direction|trajectory|conclusion|outcome)|(?:history|the\\s+future|progress|time)\\s+(?:will\\s+(?:show|prove|judge|vindicate|remember)|has\\s+shown|is\\s+(?:on\\s+)?(?:our|the)\\s+side)|on\\s+the\\s+(?:right|wrong)\\s+side\\s+of\\s+history|(?:this\\s+is\\s+)?(?:the\\s+(?:way|direction)\\s+(?:the\\s+)?(?:world|field|industry|market|profession)\\s+is\\s+(?:heading|moving|going|trending))|(?:there\\s+is\\s+no|(?:you|we)\\s+can(?:no|')?t)\\s+(?:stopping|resisting|fighting|holding\\s+back)\\s+(?:this|the\\s+(?:tide|trend|future|change)))\\b"]},{"id":"APPEAL_TO_TRADITION","t":1,"m":1,"rx":["\\b(?:(?:we(?:'ve|\\s+have)?|they(?:'ve|\\s+have)?|(?:it\\s+)?has)\\s+always\\s+(?:been\\s+)?(?:done|worked|operated|functioned|practiced)(?:\\s+it)?\\s+(?:this|that)\\s+way|(?:time[- ](?:tested|honored|proven)|long[- ]standing|age[- ]old)\\s+(?:practice|tradition|principle|approach|method|wisdom|custom)\\s+(?:dictates?|requires?|demands?|shows?|proves?|tells?\\s+us)|(?:depart(?:ing|ure)?|deviat(?:ing|ion)?|break(?:ing)?)\\s+from\\s+(?:(?:established|accepted|longstanding|traditional|settled)\\s+)?(?:practice|tradition|norms?|customs?|precedent)\\s+(?:would\\s+be|is)\\s+(?:unwise|dangerous|reckless|ill[- ]advised|inadvisable))\\b"]},{"id":"FALSE_EQUIVALENCE","t":1,"m":1,"rx":["\\b(?:(?:both|each|either)\\s+side(?:s)?\\s+(?:has|have|makes?|presents?)\\s+(?:valid|good|legitimate|strong|compelling|reasonable|fair)\\s+(?:points?|arguments?|claims?|cases?)|(?:the\\s+truth|reality|the\\s+answer)\\s+(?:is\\s+|lies?\\s+)?(?:somewhere\\s+)?in\\s+the\\s+middle|(?:there\\s+are|we\\s+(?:can\\s+)?(?:see|find))\\s+(?:valid\\s+)?(?:arguments?|points?)\\s+on\\s+(?:both|all|either)\\s+sides?|(?:it(?:'s|\\s+is)|this\\s+is)\\s+(?:not\\s+(?:as\\s+)?(?:simple|clear[- ]cut|straightforward|black\\s+and\\s+white)\\s+as)\\s+(?:(?:some|many|most)\\s+(?:people|critics?|observers?)\\s+)?(?:suggest|claim|argue|think|believe))\\b"]},{"id":"MORAL_HIGH_GROUND","t":2,"m":1,"rx":["\\b(?:(?:any|every|no)\\s+(?:decent|moral|ethical|responsible|right[- ]thinking|reasonable|thoughtful|caring)\\s+(?:person|human|individual|citizen|professional|leader|organization)\\s+(?:would|should|must|could|can)\\s+(?:see|recognize|understand|agree|acknowledge|know)|(?:it(?:'s|\\s+is)|this\\s+is)\\s+(?:simply|just|purely|fundamentally)\\s+(?:a\\s+matter\\s+of|about|an?\\s+(?:issue|question)\\s+of)\\s+(?:basic\\s+)?(?:human\\s+)?(?:decency|morality|ethics|dignity|conscience)|(?:moral(?:ly)?|ethic(?:al(?:ly)?)?)\\s+(?:bankrupt|reprehensible|indefensible|unconscionable|abhorrent|repugnant)\\s+(?:to|for|that)|(?:on\\s+the\\s+)?(?:right|wrong)\\s+side\\s+of\\s+(?:morality|ethics|decency|justice|history))\\b"]},{"id":"SOFT_CONSENSUS","t":1,"m":1,"rx":["\\b(?:the\\s+)?(?:overwhelming|vast|great|clear|strong)\\s+(?:majority|bulk|preponderance)\\s+of\\s+(?:\\w+\\s+){0,5}?(?:agree|support|believe|recognize|acknowledge|accept|endorse|favor|advocate|concur|confirm)\\b","\\b(?:growing|mounting|increasing|expanding|emerging)\\s+(?:body\\s+of\\s+)?(?:evidence|research|consensus|agreement|recognition|support|literature)\\s+(?:suggests?|shows?|indicates?|supports?|points?\\s+to|confirms?|demonstrates?)\\b","\\b(?:increasingly|now\\s+widely|now\\s+broadly)\\s+(?:recognized|accepted|understood|acknowledged|adopted|embraced)\\s+(?:that|as|by|among|across|in)\\b"]},{"id":"COMPETENCE_DISMISSAL","t":2,"m":1,"rx":["\\b(?:those\\s+who\\s+|(?:people|anyone|critics?|opponents?)\\s+(?:who\\s+)?)(?:oppose|disagree|object|resist|question|challenge|doubt|reject)(?:\\s+\\w+){0,5}\\s+(?:(?:appear|seem)\\s+to\\s+)?(?:misunderstand|fail\\s+to\\s+(?:grasp|understand|appreciate|comprehend))\\b","\\b(?:(?:simply|clearly|obviously|apparently)\\s+)?(?:don(?:'t|ot)|do\\s+not|fail(?:s)?\\s+to)\\s+(?:fully\\s+)?(?:understand|grasp|appreciate|comprehend)\\s+(?:the\\s+)?(?:\\w+\\s+)?(?:complexity|nuance|subtlet(?:y|ies)|intricac(?:y|ies)|reality|scope|implications?|challenges?|requirements?)\\b","\\b(?:lack(?:s|ing)?|without)\\s+(?:the\\s+)?(?:sufficient|adequate|necessary|proper|requisite|required|relevant)?\\s*(?:expertise|understanding|knowledge|background|training|experience|qualifications?|competenc[ey])\\s+(?:to|in|of|for|about|regarding)\\b"]},{"id":"VAGUE_INSTITUTIONAL_APPEAL","t":3,"m":1,"rx":["\\b(?:leading|top|major|prominent|respected|responsible|relevant|key|important|significant)\\s+(?:organizations?|institutions?|bodies|agencies|authorities|groups?|stakeholders?|voices?|figures?)\\s+(?:(?:\\w+\\s+){0,5}?)?(?:have\\s+)?(?:agree|support|recognize|endorse|confirm|recommend|advocate|call\\s+for|emphasize|stress|urge|warn|advise|suggest)\\b","\\b(?:industry|sector|professional|regulatory|governing|oversight|scientific|academic|medical|expert)\\s+(?:leaders?|bodies|authorities|groups?|organizations?|voices?|consensus)\\s+(?:have\\s+)?(?:long\\s+)?(?:recognized|accepted|emphasized|stressed|warned|advocated|recommended|confirmed|supported|endorsed)\\b"]},{"id":"ASPIRATIONAL_DEFLECTION","t":1,"m":2,"rx":["\\b(?:our|the)\\s+(?:goal|mission|vision|commitment|pledge|promise|priority|objective|aspiration)\\s+(?:is|remains|has\\s+(?:always\\s+)?been)\\s+to\\b","\\bwe\\s+(?:strive|aim|aspire|endeavor|seek|work)\\s+to\\s+(?:ensure|build|create|foster|promote|advance|achieve|deliver|provide|maintain|improve|uphold|protect|support)\\b","\\b(?:we|our\\s+(?:team|organization|company|institution))\\s+(?:are\\s+)?(?:deeply|fully|firmly|strongly|wholly)?\\s*(?:committed|dedicated|devoted)\\s+to\\b"]},{"id":"DISMISSAL_BY_REFRAMING","t":2,"m":1,"rx":["\\bwhat\\s+(?:they(?:'re|\\s+are)|he(?:'s|\\s+is)|she(?:'s|\\s+is))\\s+(?:really|actually|essentially|fundamentally|truly)\\s+(?:saying|arguing|asking|suggesting|proposing|demanding|claiming|getting\\s+at)\\b","\\b(?:this|that|the\\s+argument|their\\s+(?:position|argument|claim))\\s+(?:is\\s+)?(?:really|actually|essentially|fundamentally)\\s+(?:about|just|merely|nothing\\s+more\\s+than|an?\\s+(?:attempt|effort)\\s+to)\\b","\\b(?:(?:stripped|boiled|reduced)|when\\s+you\\s+(?:strip|boil|reduce))\\s+(?:it\\s+)?(?:down\\s+)?(?:to\\s+)?(?:its?\\s+)?(?:core|essence|basics?|fundamentals?)\\b"]},{"id":"CAUSAL_TOTALIZATION","t":2,"m":1,"rx":["\\b(?:is|are|has\\s+been|have\\s+been)\\s+(?:ruining|destroying|wrecking|devastating|demolishing|annihilating|obliterating|killing|sabotaging)\\s+(?:my\\s+life|our\\s+(?:lives?|country|nation|future)|everything|this\\s+country|the\\s+(?:country|nation|economy|world|system))\\b","\\b(?:ruined|destroyed|wrecked|devastated|demolished|obliterated|killed|sabotaged)\\s+(?:my\\s+life|our\\s+(?:lives?|country|nation|future)|everything|this\\s+country|the\\s+(?:country|nation|economy|world|system))\\b"]},{"id":"MONOCAUSAL_BLAME","t":2,"m":1,"rx":["\\bbecause\\s+of\\s+(?:\\w+\\s+){0,3}(?:everything\\s+(?:is|has)\\s+(?:fallen\\s+apart|gone\\s+(?:wrong|downhill|to\\s+(?:hell|shit|ruin))))\\b","\\b(?:the\\s+(?:only|sole|single|entire|whole|real|main)\\s+(?:reason|cause))\\s+(?:for|why|that)\\b","\\bis\\s+(?:the\\s+)?(?:only|sole|single|entire|whole|real)?\\s*(?:reason|cause)\\s+(?:for\\s+)?(?:everything|all\\s+of\\s+(?:this|it)|my\\s+(?:problems?|suffering|pain|misery|struggles?))\\b","\\b(?:it(?:'s|\\s+is)\\s+all\\s+(?:\\w+(?:'s|\\s+))?fault)\\b"]},{"id":"TOTALIZING_HARM_LANGUAGE","t":3,"m":1,"rx":["\\b(?:(?:is|are|has|have)\\s+)?(?:ruining|destroying|wrecking|devastating|demolishing)\\s+(?:everything|all\\s+of\\s+(?:it|this)|the\\s+entire|the\\s+whole)\\b","\\b(?:completely|totally|utterly|absolutely|entirely)\\s+(?:ruined|destroyed|wrecked|devastated|demolished)\\b","\\b(?:nothing\\s+(?:is\\s+)?left|everything\\s+(?:is\\s+)?(?:gone|lost|broken|ruined|destroyed|over))\\b"]}];
+const MAX = 20000;
+const NAMES = {
+  CONSENSUS_AS_EVIDENCE:'Consensus as proof', CLAIM_WITHOUT_CITATION:'Unsourced authority', DISSENT_DISMISSAL:'Dissent dismissed',
+  FALSE_BINARY:'False binary', FEAR_URGENCY:'Fear + urgency', SHAME_LEVER:'Shame lever', EMOTIONAL_SUBSTITUTION:'Feeling for evidence',
+  BUREAUCRATIC_OBSCURITY:'Fog language', INEVITABILITY_FRAME:'Inevitability', APPEAL_TO_TRADITION:'Appeal to tradition',
+  FALSE_EQUIVALENCE:'False equivalence', MORAL_HIGH_GROUND:'Moral high ground', SOFT_CONSENSUS:'Soft consensus',
+  COMPETENCE_DISMISSAL:'Competence dismissed', VAGUE_INSTITUTIONAL_APPEAL:'Vague authority', ASPIRATIONAL_DEFLECTION:'Aspirational deflection',
+  DISMISSAL_BY_REFRAMING:'Dismissal by reframing', CAUSAL_TOTALIZATION:'Single cause', MONOCAUSAL_BLAME:'One culprit',
+  TOTALIZING_HARM_LANGUAGE:'Total harm'
+};
+const DESC = {
+  CONSENSUS_AS_EVIDENCE:'Treats agreement as if it were evidence.',
+  CLAIM_WITHOUT_CITATION:'Cites studies or experts without saying which.',
+  DISSENT_DISMISSAL:'Labels the doubters instead of answering them.',
+  FALSE_BINARY:'Offers two options where there are more.',
+  FEAR_URGENCY:'Raises the stakes and shortens the clock.',
+  SHAME_LEVER:'Makes disagreeing feel foolish.',
+  EMOTIONAL_SUBSTITUTION:'Puts a feeling where a reason should be.',
+  BUREAUCRATIC_OBSCURITY:'Wraps the point in process language.',
+  INEVITABILITY_FRAME:'Presents the outcome as already decided.',
+  APPEAL_TO_TRADITION:'Treats how it has always been done as a reason.',
+  FALSE_EQUIVALENCE:'Sets unequal positions side by side as equals.',
+  MORAL_HIGH_GROUND:'Frames one side as simply the decent one.',
+  SOFT_CONSENSUS:'Implies a growing agreement without saying whose.',
+  COMPETENCE_DISMISSAL:'Questions the critic’s grasp instead of the claim.',
+  VAGUE_INSTITUTIONAL_APPEAL:'Leans on bodies or standards it does not name.',
+  ASPIRATIONAL_DEFLECTION:'Answers a concern with a statement of intent.',
+  DISMISSAL_BY_REFRAMING:'Restates a position so it is easier to wave off.',
+  CAUSAL_TOTALIZATION:'Credits one force with wrecking everything.',
+  MONOCAUSAL_BLAME:'Makes one cause the reason for all of it.',
+  TOTALIZING_HARM_LANGUAGE:'Describes harm as total and final.'
+};
+const TIER = {1:['I','Ideological'], 2:['II','Psychological'], 3:['III','Institutional']};
+
+const COMPILED = RULES.map(r => ({
+  id:r.id, t:r.t, m:r.m || 1,
+  re:r.rx.map(s => { try { return new RegExp(s, 'gi'); } catch (e) { return null; } }).filter(Boolean)
+}));
+
+function analyze(input){
+  const text = String(input || '').slice(0, MAX);
+  const found = [];
+  for (const rule of COMPILED){
+    let hits = 0; const local = [];
+    for (const re of rule.re){
+      re.lastIndex = 0; let m, any = false, guard = 0;
+      while ((m = re.exec(text)) !== null){
+        if (m[0].length === 0){ re.lastIndex++; if (++guard > MAX) break; continue; }
+        any = true;
+        local.push({ s:m.index, e:m.index + m[0].length, id:rule.id, t:rule.t });
+        if (++guard > MAX) break;
+      }
+      if (any) hits++;
+    }
+    if (hits >= rule.m) found.push(...local);
+  }
+  found.sort((a, b) => a.s - b.s || (b.e - b.s) - (a.e - a.s));
+  const out = []; let end = -1;
+  for (const f of found){ if (f.s >= end){ out.push(f); end = f.e; } }
+  return out;
+}
+
+const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const words = t => (t.trim().match(/\S+/g) || []).length;
+const two = n => String(n).padStart(2, '0');
+const plural = (n, w) => n.toLocaleString('en-US') + ' ' + w + (n === 1 ? '' : 's');
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const nf = n => n.toLocaleString('en-US');
+
+/* ------------------------------------------------------------ texts */
+const SAMPLES = {
+  pitch:  { label:'An ad', text:'Big news: the Aero 3 kettle goes on sale Monday.\nEveryone\u00A0knows it is the best one yet. Experts\u00A0say the old leak is fixed, and anyone who doubts it is a crank. Top\u00A0groups\u00A0agree. Only\u00A0a\u00A0fool would wait. Act\u00A0now.' },
+  invest: { label:'An investment pitch', text:'Industry-standard metrics confirm this is a safe investment. Studies\u00A0show our approach consistently outperforms, and only\u00A0a\u00A0fool would bet against this trend. The future of finance is inevitable. Don\'t be the one left behind.' },
+  bot:    { label:'A chatbot answer', text:'Great question!\nExperts\u00A0agree this is the right choice for you. This is widely\u00A0accepted, and honestly, anyone who says otherwise simply has not done their research. You should feel confident moving forward today.' },
+  notice: { label:'A plain notice', text:'The school bake sale runs from 9 to 1 on Saturday in the main hall. Parents can drop off baked goods on Friday afternoon; anything with nuts should be labelled. Last year’s sale paid for new library books.' }
+};
+
+/* ------------------------------------------------------------ elements */
+const $ = s => document.querySelector(s);
+const stage = $('#stage'), base = $('#base'), film = $('#film'), neg = $('#neg'), marksEl = $('#marks'), numsEl = $('#nums');
+const loupe = $('#loupe'), ring = $('#ring'), glass = $('#glass');
+const readout = $('#readout'), roIdx = $('#roIdx'), roName = $('#roName'), roTier = $('#roTier'), roDesc = $('#roDesc'), roQuote = $('#roQuote');
+const list = $('#moves'), listCount = $('#listCount'), nMoves = $('#nMoves'), nWords = $('#nWords');
+const live = $('#live'), handoff = $('#handoff'), reqOut = $('#reqN');
+const editor = $('#editor'), own = $('#own'), count = $('#count'), edNote = $('#edNote');
+const markAll = $('#markAll');
+const chips = [...document.querySelectorAll('.chip')];
+const ownChip = chips.find(c => c.dataset.k === 'own');
+
+const mqReduce = matchMedia('(prefers-reduced-motion: reduce)');
+const mqSmall = matchMedia('(max-width: 640px)');
+const mqCoarse = matchMedia('(pointer: coarse)');
+
+/* ------------------------------------------------------------ state */
+let lh = 57, R3 = 92, Rcap = 118, Rbig = 148, B = 18, E = 150, R = 92, ink = .28;
+let text = '', key = 'pitch', spans = [], moves = [], lines = [], lineAt = [], W = 0, H = 0, bx = 0, vw = 0;
+let pos = { x:0, y:0 }, cur = -2, anchor = -1;
+let mode = 'boot';            // boot, sweep, park, rest, user
+let raf = 0, rraf = 0, sweepRaf = 0, shown = 0, sweepLine = 0;
+let ringTopText = 'BiasClear', ringTopNode = null, ringBotNode = null, rtRadius = 90;
+let fromKeys = false, sayT = 0, keyT = 0, lastGeo = '', shownRO = -2;
+
+/* ------------------------------------------------------------ the barrel */
+const NS = 'http://www.w3.org/2000/svg';
+function el(tag, attrs, parent){ const n = document.createElementNS(NS, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); if (parent) parent.appendChild(n); return n; }
+function buildRing(){
+  const D = 2 * (R + B), c = R + B, small = B < 16;
+  const fsT = 10, fsB = small ? 9.5 : 9, capT = fsT * .7, capB = fsB * .7;
+  loupe.style.width = loupe.style.height = D + 'px';
+  glass.style.cssText = `left:${B}px;top:${B}px;width:${2*R}px;height:${2*R}px`;
+  ring.setAttribute('viewBox', `0 0 ${D} ${D}`); ring.setAttribute('width', D); ring.setAttribute('height', D);
+  ring.replaceChildren();
+  el('circle', { class:'band', cx:c, cy:c, r:R + B/2, 'stroke-width':B }, ring);
+  el('circle', { class:'hair', cx:c, cy:c, r:R + .5 }, ring);
+  const tr = R + B - 1.6, circ = 2 * Math.PI * tr, n = Math.max(60, Math.round(circ / 7));
+  el('circle', { class:'ticks', cx:c, cy:c, r:tr, 'stroke-width':1.6, 'stroke-dasharray':`0.7 ${(circ/n - .7).toFixed(3)}`, transform:`rotate(-90 ${c} ${c})` }, ring);
+  const rt = R + (B - capT) / 2 - .6, rb = R + (B + capB) / 2 - .4;
+  rtRadius = rt;
+  el('path', { id:'arcT', d:`M ${c - rt} ${c} A ${rt} ${rt} 0 0 1 ${c + rt} ${c}`, fill:'none' }, ring);
+  el('path', { id:'arcB', d:`M ${c - rb} ${c} A ${rb} ${rb} 0 0 0 ${c + rb} ${c}`, fill:'none' }, ring);
+  const t1 = el('text', { class:'rtext', 'font-size':fsT }, ring);
+  ringTopNode = el('textPath', { href:'#arcT', startOffset:'50%', 'text-anchor':'middle' }, t1);
+  const t2 = el('text', { class:'rtext', 'font-size':fsB, 'letter-spacing':(fsB * .2).toFixed(2) }, ring);
+  ringBotNode = el('textPath', { href:'#arcB', startOffset:'50%', 'text-anchor':'middle' }, t2);
+  ringBotNode.textContent = mqCoarse.matches ? 'Drag to read' : 'Drag · Arrows · Enter';
+  setRingTop(ringTopText, true);
+}
+function setRingTop(s, force){
+  if (s === ringTopText && !force) return;
+  ringTopText = s;
+  if (!ringTopNode) return;
+  const t = ringTopNode.parentNode;
+  // fit the engraving to the top half of the barrel: tighten the tracking first, then the size (never under 9px), then drop the tier prefix
+  const avail = Math.PI * rtRadius * .84;
+  const fit = str => {
+    const n = str.length; let fs = 10, ls = .2;
+    while (n * fs * (.6 + ls) > avail && ls > .04) ls -= .02;
+    while (n * fs * (.6 + ls) > avail && fs > 9) fs -= .25;
+    return { fs, ls, ok: n * fs * (.6 + ls) <= avail };
+  };
+  let str = s, f = fit(str);
+  if (!f.ok && str.includes(' · ')){ str = str.slice(str.indexOf(' · ') + 3); f = fit(str); }
+  t.setAttribute('font-size', f.fs); t.setAttribute('letter-spacing', (f.fs * f.ls).toFixed(2));
+  ringTopNode.textContent = str;
+}
+
+/* ------------------------------------------------------------ render */
+// a short phrase is kept on one line, as the samples keep theirs with fixed spaces, so the glass can rest on all of it
+const keepWhole = q => q.length < 32 && !q.includes('\n');
+function markup(t, sp){
+  let out = '', p = 0;
+  sp.forEach((s, i) => { const q = t.slice(s.s, s.e), nw = keepWhole(q) ? ' nw" data-nw="' : ''; out += esc(t.slice(p, s.s)) + `<span class="mv t${s.t}${nw}" data-i="${i}">` + esc(q) + '</span>'; p = s.e; });
+  return out + esc(t.slice(p));
+}
+// ...unless the phrase is wider than the line itself; both layers change together, so they still break alike
+function fitPhrases(){
+  const bs = base.querySelectorAll('.mv[data-nw]'); if (!bs.length) return;
+  const ns = neg.querySelectorAll('.mv'), w = base.clientWidth;
+  bs.forEach(n => n.classList.add('nw'));
+  bs.forEach(n => { const fits = n.getBoundingClientRect().width <= w - 1, m = ns[+n.dataset.i]; if (!fits) n.classList.remove('nw'); if (m) m.classList.toggle('nw', fits); });
+}
+function moveLine(i){
+  const s = spans[i];
+  return `Move ${i + 1} of ${spans.length}: ${NAMES[s.id]}, Tier ${TIER[s.t][0]} (${TIER[s.t][1]}), "${text.slice(s.s, s.e)}"`;
+}
+function buildList(){
+  list.replaceChildren();
+  const hide = mode === 'boot' || mode === 'sweep';
+  if (!spans.length){
+    const li = document.createElement('li'); li.className = 'none';
+    li.textContent = 'No moves found. That says nothing about whether the text is true.';
+    list.appendChild(li);
+  }
+  spans.forEach((s, i) => {
+    const li = document.createElement('li'); const b = document.createElement('button');
+    if (!hide) li.className = 'in';
+    b.type = 'button'; b.className = 't' + s.t; b.dataset.i = i;
+    const q = text.slice(s.s, s.e);
+    b.setAttribute('aria-label', moveLine(i) + '. Show under the loupe.');
+    b.innerHTML = `<span class="n" aria-hidden="true">${two(i+1)}</span><span class="nm" aria-hidden="true">${esc(NAMES[s.id])}</span><span class="tg" aria-hidden="true">${TIER[s.t][0]}</span><q aria-hidden="true">${esc(q)}</q>`;
+    li.appendChild(b); list.appendChild(li);
+  });
+  showCount(hide ? 0 : spans.length);
+}
+function showCount(n){
+  // nothing before the reading starts; during it, the count appears with the first move
+  const t = n ? plural(n, 'move') : (mode === 'boot' || mode === 'sweep') ? '' : 'No moves';
+  nMoves.textContent = t; listCount.textContent = t;
+}
+function render(t, label){
+  text = String(t).slice(0, MAX);
+  spans = analyze(text);
+  const html = markup(text, spans);
+  base.innerHTML = html; neg.innerHTML = html;
+  stage.dataset.size = sizeOf(text);
+  nWords.textContent = plural(words(text), 'word');
+  buildList();
+  numsEl.replaceChildren();
+  cur = -2; anchor = -1; shownRO = -2;
+  layout();
+}
+
+/* ------------------------------------------------------------ layout */
+const sizeOf = t => t.length <= 380 ? 'l' : t.length <= 1400 ? 'm' : 's';
+let roomTop = 0, roomKey = '', lastFontKey = '';
+// the serif and the mono each count once they are in; label widths and line breaks both depend on them
+const fontKey = () => { try { return document.fonts ? [document.fonts.check('400 16px Newsreader'), document.fonts.check('500 11px "DM Mono"')].join() : ''; } catch (e) { return ''; } };
+function layout(){
+  const w = base.getBoundingClientRect().width;
+  if (w < 2) return false;
+  lastFontKey = fontKey();
+  // the room above the text is set once per width by the four sample texts, so the first line never moves when the text changes
+  const k = [w.toFixed(1), mqSmall.matches, lastFontKey].join('|');
+  if (k !== roomKey){ roomKey = k; roomTop = sampleRoom(); }
+  fitPhrases();
+  model();
+  stage.style.setProperty('--E', E + 'px');
+  // every text rests within the room the samples set (your own text resting lower in the glass if it must), so the first line
+  // stays put; only a text with no move and a single short line may ask for a few pixels more
+  const need = moves.length ? roomTop : Math.max(roomTop, (p => p.r + B - p.y + 8)(restPose(-1)));
+  stage.style.marginTop = Math.round(need) + 'px';
+  // the hand-off sits just under the text; a loupe resting on the last line may pass over it
+  stage.style.marginBottom = (mqSmall.matches ? 12 : 14) + 'px';
+  lastGeo = geo();
+  sizeReadout();
+  return true;
+}
+function metrics(){
+  const sr = base.getBoundingClientRect();
+  W = sr.width; H = sr.height; bx = sr.left; vw = document.documentElement.clientWidth;
+  const cs = getComputedStyle(base);
+  lh = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.86;
+  const nb = mqSmall.matches ? 13 : 18;
+  const nR3 = Math.round(lh * 1.62);
+  Rcap = Math.round(lh * 2.2); Rbig = Math.round(lh * 2.6);
+  ink = .52 * parseFloat(cs.fontSize) / lh; // half the height of the letters, ascenders to descenders, in line heights
+  if (nb !== B || nR3 !== R3){ B = nb; R3 = nR3; }
+  E = Rbig + B + 16;
+  return sr;
+}
+function model(){
+  const sr = metrics();
+  moves = [...base.querySelectorAll('.mv')].map((node, i) => {
+    const rects = [...node.getClientRects()].filter(r => r.width > 1).map(r => ({ x:r.left - sr.left, y:r.top - sr.top, w:r.width, h:r.height }));
+    const boxes = rects.map(r => { const a = r.h * .17, b = r.h * .13; return { x:r.x - 3, y:r.y + a, w:r.w + 6, h:r.h - a - b }; });
+    const main = boxes.length ? boxes.reduce((p, q) => (q.w > p.w ? q : p), boxes[0]) : null;
+    return { s:spans[i], rects, boxes, main, line: rects.length ? Math.floor((rects[0].y + rects[0].h / 2) / lh) : 0 };
+  });
+  lines = measureLines(sr);
+  lineAt = []; lines.forEach(L => { lineAt[L.i] = L; });
+  drawMarks();
+  moves.forEach((m, i) => { m.rest = restPose(i); });
+}
+// lay out each sample in turn (in the same task, so nothing is painted), then put the current text back
+function sampleRoom(){
+  const keep = { html:base.innerHTML, size:stage.dataset.size, spans }, snaps = [];
+  roomTop = Infinity;
+  for (const k in SAMPLES){
+    const t = SAMPLES[k].text;
+    spans = analyze(t); base.innerHTML = markup(t, spans); stage.dataset.size = sizeOf(t);
+    model();
+    snaps.push({ moves, H });
+  }
+  spans = keep.spans; base.innerHTML = keep.html; stage.dataset.size = keep.size;
+  // the least room above the text at which every sample move can rest with its phrase whole in the glass (resting a little
+  // low if it must), and the opening read can take the first line from near its middle
+  const need = t => {
+    roomTop = t; let n = 0;
+    for (const sn of snaps){ moves = sn.moves; H = sn.H; (moves.length ? moves.map((m, i) => restPose(i, true)) : [restPose(-1)]).forEach(p => { n = Math.max(n, p.r + B - p.y + 8); }); }
+    return n;
+  };
+  let lo = Math.max(mqSmall.matches ? 16 : 22, R3 + B + 8 - lh * .95), hi = Math.max(lo, need(Infinity));
+  if (need(lo) <= lo + .5) return lo;
+  while (hi - lo > .5){ const mid = (lo + hi) / 2; if (need(mid) <= mid + .5) hi = mid; else lo = mid; }
+  return hi;
+}
+// the lowest a pose of radius r may sit and still keep its barrel 8px clear of the line above the text (the move count and the switch)
+const minY = r => r + B + 8 - roomTop;
+function geo(){
+  const r = base.getBoundingClientRect();
+  return [r.width.toFixed(1), r.height.toFixed(1), ...[...base.querySelectorAll('.mv')].map(n => { const q = n.getBoundingClientRect(); return (q.left - r.left).toFixed(1) + ',' + (q.top - r.top).toFixed(1) + ',' + q.width.toFixed(1); })].join('|');
+}
+function measureLines(sr){
+  const rg = document.createRange(); rg.selectNodeContents(base);
+  const out = [];
+  for (const r of rg.getClientRects()){
+    if (r.width < 1) continue;
+    const i = Math.max(0, Math.floor((r.top - sr.top + r.height / 2) / lh));
+    const L = out[i] || (out[i] = { i, l:Infinity, r:-Infinity, y:(i + .5) * lh });
+    L.l = Math.min(L.l, r.left - sr.left); L.r = Math.max(L.r, r.right - sr.left);
+  }
+  return out.filter(Boolean);
+}
+const overlap = (a, b, m) => a.x < b.x + b.w + m && b.x < a.x + a.w + m && a.y < b.y + b.h + m && b.y < a.y + a.h + m;
+function drawMarks(){
+  marksEl.replaceChildren();
+  moves.forEach(m => {
+    const cls = 't' + m.s.t;
+    m.boxes.forEach(b => {
+      const d = document.createElement('div'); d.className = 'mk ' + cls;
+      d.style.cssText = `left:${b.x.toFixed(1)}px;top:${b.y.toFixed(1)}px;width:${b.w.toFixed(1)}px;height:${b.h.toFixed(1)}px`;
+      marksEl.appendChild(d); b.el = d; b.sl = false;
+    });
+    m.lel = null; m.lbox = null; m.sbox = null; m.lst = '';
+    if (!m.main) return;
+    const l = document.createElement('div'); l.className = 'ml ' + cls;
+    l.innerHTML = `<b>${TIER[m.s.t][0]}</b><span>${esc(NAMES[m.s.id])}</span>`;
+    marksEl.appendChild(l); m.lel = l;
+  });
+  // place each label in the gap above its move; never on another label or on an outline
+  const obstacles = [];
+  moves.forEach(m => m.boxes.forEach(b => obstacles.push({ b, m })));
+  const placed = [];
+  const gap = mqSmall.matches ? 4 : 5;
+  const lineOf = b => Math.floor((b.y + b.h / 2) / lh);
+  // measure every label first, then place them all: one layout, not one per label
+  moves.forEach(m => { if (m.lel) m.sz = [m.lel.offsetWidth, m.lel.offsetHeight || 14, m.lel.firstElementChild.offsetWidth]; });
+  moves.forEach(m => {
+    if (!m.lel) return;
+    const [w, h, bw] = m.sz, f = m.main; // bw: the tier badge on its own
+    // above the phrase first; below only when the line under it has no move of the same tier, where it could be misread
+    const fl = lineOf(f);
+    const belowOk = !moves.some(o => o !== m && o.s.t === m.s.t && o.boxes.some(b => lineOf(b) === fl + 1));
+    const spots = ww => {
+      const hi = Math.max(0, W - ww);
+      const xs = [clamp(f.x + f.w / 2 - ww / 2, 0, hi), clamp(f.x, 0, hi), clamp(f.x + f.w - ww, 0, hi)];
+      const c = xs.map(x => ({ x, y:f.y - gap - h, w:ww, h }));
+      if (belowOk) xs.forEach(x => c.push({ x, y:f.y + f.h + gap, w:ww, h }));
+      return c;
+    };
+    const free = c => !placed.some(p => overlap(c, p, 5)) && !obstacles.some(o => o.m !== m && overlap(c, o.b, 2)) && !m.boxes.some(b => overlap(c, b, 1));
+    const pick = spots(w).find(free);
+    m.lst = '';
+    if (pick){
+      // the badge alone sits over the middle of the phrase, inside the room the full label already holds
+      const sx = clamp(f.x + f.w / 2 - bw / 2, pick.x, pick.x + w - bw);
+      m.lbox = pick; m.sbox = { x:sx, y:pick.y, w:bw, h };
+      placed.push(pick);
+    } else {
+      // no room for the name: the badge alone, or no label at all (the barrel still names the move)
+      const sb = spots(bw).find(free);
+      if (!sb){ m.lel.remove(); m.lel = null; m.lbox = m.sbox = null; return; }
+      m.lbox = null; m.sbox = sb; m.lel.classList.add('short');
+      placed.push(sb);
+    }
+    const b0 = m.lbox || m.sbox;
+    m.lel.style.left = b0.x.toFixed(1) + 'px'; m.lel.style.top = b0.y.toFixed(1) + 'px';
+  });
+}
+function clampX(x, r){
+  let lo = 0, hi = W;
+  const elo = r + B + 12 - bx, ehi = vw - 12 - (r + B) - bx; // keep the whole loupe 12px inside the screen
+  if (elo <= ehi){ lo = Math.max(lo, elo); hi = Math.min(hi, ehi); }
+  if (lo > hi) return (lo + hi) / 2;
+  return clamp(x, lo, hi);
+}
+// How well a glass edge sits against the lines of the specimen (0 is clean). At the top and bottom of the glass the edge runs
+// almost level: through a line it leaves a row of half-cut letters beside the engraving (cost 1 and up), and just short of a
+// line it leaves a thin row of letter tops or tails inside the glass (a small cost). Past the end of the words, nothing to cut.
+function edgeCut(e, cx, r, top){
+  const a = .47 - ink, b = .53 + ink, u = e / lh, i = Math.floor(u), f = u - i;
+  const half = Math.sqrt(2 * r * (b - a) * lh); // how far either side of centre the edge stays level enough to matter
+  const has = j => { const L = lineAt[j]; return !!L && L.r > cx - half && L.l < cx + half; };
+  if (f > a && f < b && has(i)) return 1 + Math.min(f - a, b - f);
+  // the first line inside the glass, and how far in its letters start
+  const j = top ? Math.max(0, Math.ceil(u - a)) : Math.floor(u - b);
+  const d = has(j) ? (top ? j + a - u : u - j - b) : Infinity;
+  return Math.max(0, .22 - d);
+}
+// The glass for a box (the phrase, with or without its label): the smallest radius from the roaming one up to rMax that holds it
+// with 5px to spare, and the height at which both edges fall between lines. With lift, it rests no higher than the room above
+// the text allows. quick: any fit will do (used to size that room).
+function settle(bx0, rMax, lift, quick){
+  const [x0, y0, x1, y1] = bx0, mx = (x0 + x1) / 2, my = (y0 + y1) / 2;
+  const rMin = Math.max(R3, Math.hypot(x1 - x0, y1 - y0) / 2 + 5);
+  let best = null;
+  for (let r = rMin; r <= rMax + .01; r = r < Math.ceil(r) ? Math.ceil(r) : r + 1){
+    const x = clampX(mx, r), hw = Math.max(x - x0, x1 - x), v2 = (r - 5) ** 2 - hw * hw;
+    if (v2 <= 0) continue;
+    const v = Math.sqrt(v2), lo = Math.max(y1 - v, lift ? minY(r) : -Infinity), hi = Math.min(y0 + v, H);
+    if (lo > hi + .01) continue;
+    const yc = clamp(my, lo, Math.max(lo, hi));
+    if (quick) return { x, y:yc, r, cut:0 };
+    let by = yc, bc = Infinity;
+    for (let k = 0; k <= hi - lo + 1 && bc > 0; k++){
+      for (const y of k ? [yc - k, yc + k] : [yc]){
+        if (y < lo - .01 || y > hi + .01) continue;
+        const c = edgeCut(y - r, x, r, true) + edgeCut(y + r, x, r, false);
+        if (c < bc - 1e-6){ bc = c; by = y; }
+      }
+    }
+    const p = { x, y:by, r, cut:bc };
+    if (bc <= .03) return p;
+    if (!best || bc < best.cut - 1e-6) best = p;
+  }
+  return best;
+}
+function restPose(i, strict){
+  const m = moves[i];
+  if (!m || !m.main){ return { x:clampX(W / 2, R3), y:Math.min(Math.max(Math.min(H / 2, lh * 1.5), minY(R3)), H), r:R3 }; }
+  const f = m.main, pbox = [f.x, f.y, f.x + f.w, f.y + f.h];
+  const withLab = lb => [Math.min(pbox[0], lb.x), Math.min(pbox[1], lb.y), Math.max(pbox[2], lb.x + lb.w), Math.max(pbox[3], lb.y + lb.h)];
+  // the phrase with its full label, then with its tier badge, then alone
+  const boxes = [m.lbox, m.sbox].filter(Boolean).map(withLab).concat([pbox]);
+  if (strict){ // sizing the room above the text: can it rest, lifted, with the phrase whole?
+    for (const bb of boxes){ const p = settle(bb, Rcap, true, true); if (p) return p; }
+    return { x:clampX((pbox[0] + pbox[2]) / 2, Rcap), y:(pbox[1] + pbox[3]) / 2, r:Rcap };
+  }
+  // about three lines of glass if it can, edges between lines if it can, the label kept if it can
+  const r19 = Math.max(R3, Math.round(lh * 1.9)), labelled = boxes.length - 1;
+  const order = [];
+  for (let k = 0; k < labelled; k++) order.push([boxes[k], r19]);
+  for (let k = 0; k < labelled; k++) order.push([boxes[k], Rcap]);
+  order.push([pbox, r19], [pbox, Rcap]);
+  let fallback = null;
+  for (const [bb, cap] of order){
+    const p = settle(bb, cap, true);
+    if (!p) continue;
+    if (p.cut <= .03) return p;
+    if (!fallback || p.cut < fallback.cut - .05) fallback = p;
+  }
+  if (fallback) return fallback;
+  // a phrase too wide for the widest glass at that height (your own text): a wider glass, up to 2.6 lines
+  const wide = settle(pbox, Rbig, true);
+  if (wide) return wide;
+  // still no fit (a phrase on the first line, or one wider than any glass): the widest glass the room above the text allows,
+  // resting as low as that room requires, on the whole phrase if it is narrow enough, otherwise on its start
+  const mx = (pbox[0] + pbox[2]) / 2, my = (pbox[1] + pbox[3]) / 2, rTop = clamp(H - B - 8 + roomTop, R3, Rbig);
+  const yAt = r => clamp(my, Math.min(minY(r), H), H);
+  let q = null;
+  for (let r = R3; r <= rTop; r++){
+    const y = yAt(r), x = clampX(mx, r), gap = r - Math.max(...[[0, 1], [2, 1], [0, 3], [2, 3]].map(([a, b]) => Math.hypot(pbox[a] - x, pbox[b] - y)));
+    if (!q || gap > q.gap + .5) q = { x, y, r, cut:0, gap };
+  }
+  if (q && q.gap > -8) return q;
+  const r = Math.min(Rcap, rTop), y = yAt(r), dy = Math.abs(y - my);
+  return { x:clampX(pbox[0] + Math.sqrt(Math.max(0, (r - 8) ** 2 - dy * dy)), r), y, r, cut:0 };
+}
+function hit(x, y){
+  // parked on a move it was sent to: that move is the one under the loupe, even when a screen edge kept it off-centre
+  const a = anchor >= 0 && moves[anchor] && moves[anchor].rest;
+  if (a && Math.hypot(a.x - x, a.y - y) < 3) return anchor;
+  let best = -1, bd = Infinity;
+  // during the opening read the barrel names only moves already counted, on the line being read, so it never runs ahead of the count
+  moves.forEach((m, i) => (mode === 'sweep' && (m.line !== sweepLine || i >= shown)) || m.boxes.forEach(r => {
+    const dx = Math.max(r.x - x, 0, x - (r.x + r.w)), dy = Math.max(r.y - y, 0, y - (r.y + r.h));
+    const d = Math.hypot(dx, dy);
+    if (d < bd - .01){ bd = d; best = i; }
+  }));
+  return bd <= R3 * .34 ? best : -1;
+}
+
+/* ------------------------------------------------------------ position */
+function apply(){
+  film.style.clipPath = `circle(${R.toFixed(2)}px at ${(pos.x + E).toFixed(2)}px ${(pos.y + E).toFixed(2)}px)`;
+  loupe.style.transform = `translate3d(${(pos.x - R - B).toFixed(2)}px,${(pos.y - R - B).toFixed(2)}px,0)`;
+  // a label shows only when it sits wholly inside the glass, clear of the barrel; when the name will not fit, the tier badge shows alone
+  const rr = R - 3;
+  const inG = b => !!b && [[b.x, b.y], [b.x + b.w, b.y], [b.x, b.y + b.h], [b.x + b.w, b.y + b.h]].every(([px, py]) => Math.hypot(px - pos.x, py - pos.y) <= rr);
+  for (let i = 0; i < moves.length; i++){
+    const m = moves[i];
+    if (!m.lel) continue;
+    // the badge alone only for the move the loupe was sent to or, while it roams, the phrase the glass is centred on; never for a neighbour
+    const f = m.main, near = anchor >= 0 ? i === anchor : !!f && Math.hypot(f.x + f.w / 2 - pos.x, f.y + f.h / 2 - pos.y) <= R * .45;
+    const st = inG(m.lbox) ? 'full' : (near && inG(m.sbox)) ? 'short' : '';
+    if (st === m.lst) continue;
+    m.lst = st;
+    if (st){
+      const b = st === 'full' ? m.lbox : m.sbox;
+      m.lel.style.left = b.x.toFixed(1) + 'px';
+      m.lel.classList.toggle('short', st === 'short');
+    }
+    m.lel.classList.toggle('vis', !!st);
+  }
+  // an outline the glass barely reaches shows as a coloured sliver at its edge: leave it out until more of it is inside
+  const R2 = R * R;
+  for (let i = 0; i < moves.length; i++){
+    for (const b of moves[i].boxes){
+      if (!b.el) continue;
+      let sl = false;
+      if (i !== anchor && (clamp(pos.x, b.x, b.x + b.w) - pos.x) ** 2 + (clamp(pos.y, b.y, b.y + b.h) - pos.y) ** 2 < R2){
+        let n = 0;
+        for (let u = 0; u <= 4; u++) for (let v = 0; v <= 2; v++) if ((b.x + b.w * u / 4 - pos.x) ** 2 + (b.y + b.h * v / 2 - pos.y) ** 2 < R2) n++;
+        sl = n < 4;
+      }
+      if (sl !== b.sl){ b.sl = sl; b.el.classList.toggle('sl', sl); }
+    }
+  }
+  updateCurrent();
+}
+function setPos(x, y){ pos = { x:clampX(x, R), y:clamp(y, 0, H) }; apply(); }
+function setR(r){ r = Math.round(r * 2) / 2; if (r !== R){ R = r; buildRing(); } }
+const easeIO = k => k < .5 ? 4*k*k*k : 1 - Math.pow(-2*k + 2, 3) / 2;
+const easeOut = k => 1 - Math.pow(1 - k, 3);
+function cancelGlide(){ cancelAnimationFrame(raf); raf = 0; cancelAnimationFrame(rraf); rraf = 0; }
+function glideTo(p, dur, done){
+  cancelGlide();
+  if (mqReduce.matches || dur <= 0){ setR(p.r); setPos(p.x, p.y); done && done(); return; }
+  const fx = pos.x, fy = pos.y, fr = R, dx = p.x - fx, dy = p.y - fy, dr = p.r - fr, dist = Math.hypot(dx, dy) || 1;
+  const bow = Math.min(40, dist * .12), nx = -dy / dist, ny = dx / dist;
+  let t0 = 0;
+  const step = now => {
+    if (!t0) t0 = now;
+    const k = Math.min(1, (now - t0) / dur), e = easeIO(k), b = Math.sin(Math.PI * e) * bow;
+    setR(fr + dr * e);
+    setPos(fx + dx * e + nx * b, fy + dy * e + ny * b);
+    if (k < 1) raf = requestAnimationFrame(step); else { raf = 0; done && done(); }
+  };
+  raf = requestAnimationFrame(step);
+}
+function rTo(target, dur){ // change the aperture only
+  cancelAnimationFrame(rraf); rraf = 0;
+  if (Math.abs(target - R) < .5) return;
+  if (mqReduce.matches){ setR(target); setPos(pos.x, pos.y); return; }
+  const fr = R; let t0 = 0;
+  const step = now => {
+    if (!t0) t0 = now;
+    const k = Math.min(1, (now - t0) / dur);
+    setR(fr + (target - fr) * easeOut(k)); setPos(pos.x, pos.y);
+    if (k < 1) rraf = requestAnimationFrame(step); else rraf = 0;
+  };
+  rraf = requestAnimationFrame(step);
+}
+function goMove(i, opts = {}){
+  let p;
+  if (!moves.length){ anchor = -1; p = restPose(-1); }
+  else { i = ((i % moves.length) + moves.length) % moves.length; anchor = i; p = moves[i].rest; }
+  const d = Math.hypot(p.x - pos.x, p.y - pos.y);
+  glideTo(p, opts.dur ?? clamp(420 + d * 1.1, 520, 1200), opts.done);
+  if (opts.reveal) bringIntoView(p);
+}
+let scrollTill = 0;
+function glideScroll(fn){ const smooth = !mqReduce.matches; fn(smooth ? 'smooth' : 'auto'); scrollTill = smooth ? performance.now() + 1200 : 0; }
+function stopScroll(){ if (performance.now() < scrollTill){ scrollTill = 0; window.scrollTo({ top:window.scrollY, left:window.scrollX, behavior:'auto' }); } }
+function bringIntoView(p){
+  const r = base.getBoundingClientRect(), y = r.top + p.y, m = Math.min(160, innerHeight * .25);
+  if (y < m || y > innerHeight - m) glideScroll(b => window.scrollBy({ top: y - innerHeight / 2, behavior:b }));
+}
+
+/* ------------------------------------------------------------ readout */
+function fillReading(){
+  readout.className = 'readout';
+  roIdx.textContent = '';
+  roName.textContent = 'Reading the text';
+  roTier.innerHTML = '';
+  roDesc.textContent = 'The loupe reads it once, in order. Each move it passes is numbered and added to the list.';
+  roQuote.textContent = '';
+}
+function readingState(){ shownRO = -2; fillReading(); }
+// the readout keeps the height of its tallest state for this text and width, so the list under it never moves while you read
+function sizeReadout(){
+  const parts = [roIdx, roName, roTier, roDesc, roQuote], keep = [readout.className, ...parts.map(n => n.innerHTML)];
+  readout.style.minHeight = '';
+  let h = 0;
+  const measure = () => { h = Math.max(h, readout.offsetHeight); };
+  fillReading(); measure();
+  fillReadout(-1); measure();
+  const longest = new Map(); // one state per move name, with its longest quote
+  spans.forEach((s, i) => { const o = longest.get(s.id); if (!o || s.e - s.s > o.n) longest.set(s.id, { i, n:s.e - s.s }); });
+  longest.forEach(o => { fillReadout(o.i); measure(); });
+  readout.className = keep[0]; parts.forEach((n, k) => { n.innerHTML = keep[k + 1]; });
+  readout.style.minHeight = Math.ceil(h) + 'px';
+}
+function fillReadout(c){
+  if (c < 0){
+    readout.className = 'readout';
+    roIdx.textContent = spans.length ? '— / ' + two(spans.length) : '';
+    roName.textContent = spans.length ? 'Plain print' : 'Nothing marked';
+    roTier.innerHTML = '';
+    roDesc.textContent = spans.length
+      ? 'No move under the glass. Drag it onto the words, or press Enter to jump to the next move.'
+      : 'The rules found no moves in this text. That is not a verdict on whether it is true.';
+    roQuote.textContent = '';
+  } else {
+    const s = spans[c];
+    readout.className = 'readout t' + s.t;
+    roIdx.textContent = two(c + 1) + ' / ' + two(spans.length);
+    roName.textContent = NAMES[s.id];
+    roTier.innerHTML = `<i class="sw"></i>Tier ${TIER[s.t][0]} · ${TIER[s.t][1]}`;
+    roDesc.textContent = DESC[s.id] || '';
+    roQuote.textContent = '“' + text.slice(s.s, s.e) + '”';
+  }
+}
+function updateCurrent(force){
+  const c = hit(pos.x, pos.y);
+  // the barrel names what passes under the glass; the readout and the list name where a glide is going, so they hold still
+  const t = raf && anchor >= 0 ? anchor : c;
+  if (c === cur && t === shownRO && !force) return;
+  const changed = c !== cur;
+  cur = c;
+  setRingTop(c < 0 ? (spans.length ? 'BiasClear' : 'No moves found') : TIER[spans[c].t][0] + ' · ' + NAMES[spans[c].id]);
+  if (mode === 'boot' || mode === 'sweep' || mode === 'park' || !editor.hidden){ shownRO = -2; return; }
+  if (t !== shownRO || force){
+    shownRO = t;
+    [...list.querySelectorAll('button')].forEach(b => b.setAttribute('aria-current', String(+b.dataset.i === t)));
+    fillReadout(t);
+  }
+  if (fromKeys && changed){
+    clearTimeout(keyT);
+    keyT = setTimeout(() => say(cur >= 0 ? 'Under the loupe. ' + moveLine(cur) : 'No move under the loupe.'), 300);
+  }
+}
+function say(msg){ clearTimeout(sayT); clearTimeout(keyT); live.textContent = ''; sayT = setTimeout(() => { live.textContent = msg; }, 60); }
+
+/* ------------------------------------------------------------ the opening read */
+function showHandoff(){ handoff.classList.add('on'); }
+function revealOne(i){
+  const li = list.children[i]; if (li) li.classList.add('in');
+  shown = i + 1; showCount(shown);
+  const m = moves[i], b = m && m.boxes[0];
+  if (!b || mqReduce.matches) return;
+  const n = document.createElement('span'); n.className = 'sn t' + m.s.t; n.textContent = two(i + 1);
+  n.style.left = b.x.toFixed(1) + 'px'; n.style.top = (b.y - 15).toFixed(1) + 'px';
+  numsEl.appendChild(n);
+  requestAnimationFrame(() => requestAnimationFrame(() => n.classList.add('show')));
+  setTimeout(() => n.classList.remove('show'), 1100);
+  setTimeout(() => n.remove(), 2300);
+}
+function revealAll(){
+  [...list.children].forEach(li => li.classList.add('in'));
+  shown = moves.length; showCount(spans.length);
+}
+let sweepLines = [];
+function sweepAt(u){
+  const segs = []; let prev = null;
+  const low = Math.min(minY(R3), H); // the first line is read from a little below, so the barrel clears the move count and the switch
+  for (const L of sweepLines){
+    const xs = clampX(L.l + R3 * .55, R3), xe = Math.max(xs, clampX(L.r - R3 * .55, R3)), y = Math.max(L.y, low);
+    if (prev) segs.push({ a:prev, b:{ x:xs, y }, w:.4, line:prev.line, ret:true });
+    segs.push({ a:{ x:xs, y }, b:{ x:xe, y }, w:1, line:L.i, ret:false });
+    prev = { x:xe, y, line:L.i };
+  }
+  if (!segs.length) return { x:W / 2, y:H / 2, line:0, cx:0 };
+  let tot = 0;
+  segs.forEach(s => { s.len = Math.max(30, Math.hypot(s.b.x - s.a.x, s.b.y - s.a.y)) * s.w; s.at = tot; tot += s.len; });
+  const d = clamp(u, 0, 1) * tot;
+  let s = segs[segs.length - 1];
+  for (const q of segs){ if (d <= q.at + q.len){ s = q; break; } }
+  let k = clamp((d - s.at) / s.len, 0, 1);
+  if (s.ret) k = easeIO(k);
+  const x = s.a.x + (s.b.x - s.a.x) * k, y = s.a.y + (s.b.y - s.a.y) * k;
+  return { x, y, line:s.line, cx:s.ret ? Infinity : x };
+}
+function revealTo(p){
+  while (shown < moves.length){
+    const m = moves[shown], b = m.boxes[0];
+    if (b && !(p.line > m.line || (p.line === m.line && p.cx + R3 * .3 >= b.x + b.w * .5))) break;
+    revealOne(shown);
+  }
+}
+function startSweep(){
+  mode = 'sweep'; anchor = -1; shown = 0;
+  [...list.children].forEach(li => li.classList.remove('in'));
+  showCount(0); readingState();
+  setR(R3);
+  // it reads the lines that are on screen (on a short phone screen the last lines can start below the fold);
+  // the moves on any lines it leaves out join the list when it ends
+  const top = base.getBoundingClientRect().top, onScreen = lines.filter(L => top + (L.i + 1) * lh <= innerHeight + 2);
+  sweepLines = onScreen.length >= 2 ? onScreen : lines;
+  const p0 = sweepAt(0); sweepLine = p0.line; setPos(p0.x, p0.y);
+  loupe.classList.add('on');
+  const hold = 260, dur = 3500; let t0 = 0;
+  const ease = k => .55 * k + .45 * (-(Math.cos(Math.PI * k) - 1) / 2);
+  const step = now => {
+    if (mode !== 'sweep') return;
+    if (!t0) t0 = now;
+    const k = clamp((now - t0 - hold) / dur, 0, 1);
+    const p = sweepAt(ease(k));
+    sweepLine = p.line; revealTo(p); setPos(p.x, p.y);
+    if (k < 1){ sweepRaf = requestAnimationFrame(step); return; }
+    sweepRaf = 0; revealAll(); park();
+  };
+  sweepRaf = requestAnimationFrame(step);
+}
+function park(){
+  mode = 'park'; showCount(spans.length);
+  goMove(0, { dur:900, done:() => { if (mode !== 'park') return; mode = 'rest'; showHandoff(); updateCurrent(true); } });
+}
+/* Focus or a touch on the loupe is a takeover: every automatic motion stops at once. */
+function stopAuto(){
+  if (sweepRaf){ cancelAnimationFrame(sweepRaf); sweepRaf = 0; }
+  const wasAuto = mode === 'boot' || mode === 'sweep' || mode === 'park';
+  mode = 'user';
+  if (wasAuto){
+    // land in the final state at once: no rows sliding in, no hand-off rising, no numbers fading
+    numsEl.replaceChildren();
+    list.classList.add('instant'); handoff.classList.add('instant');
+    revealAll(); showHandoff();
+    void list.offsetWidth; void handoff.offsetWidth;
+    requestAnimationFrame(() => { list.classList.remove('instant'); handoff.classList.remove('instant'); });
+    if (!loupe.classList.contains('on')){ const p = moves.length ? moves[0].rest : restPose(-1); anchor = moves.length ? 0 : -1; setR(p.r); setPos(p.x, p.y); loupe.classList.add('on'); }
+    updateCurrent(true);
+  }
+}
+function takeover(){ stopAuto(); cancelGlide(); stopScroll(); }
+
+/* ------------------------------------------------------------ input: pointer */
+let drag = null;
+function local(e){ const r = base.getBoundingClientRect(); return { x:e.clientX - r.left, y:e.clientY - r.top }; }
+loupe.addEventListener('pointerdown', e => {
+  if (e.button !== 0) return;
+  takeover(); fromKeys = false; loupe.classList.add('ptr');
+  const p = local(e);
+  drag = { id:e.pointerId, ox:p.x - pos.x, oy:p.y - pos.y, sx:e.clientX, sy:e.clientY, type:e.pointerType, moved:false };
+  try { loupe.setPointerCapture(e.pointerId); } catch (_) {}
+  loupe.classList.add('drag');
+  e.preventDefault(); loupe.focus({ preventScroll:true });
+});
+stage.addEventListener('pointerdown', e => {
+  if (e.target.closest('.loupe') || e.button !== 0 || e.pointerType === 'touch') return;
+  takeover(); fromKeys = false; anchor = -1; loupe.classList.add('ptr');
+  const p = local(e); setPos(p.x, p.y); rTo(R3, 180);
+  drag = { id:e.pointerId, ox:0, oy:0, moved:true };
+  try { stage.setPointerCapture(e.pointerId); } catch (_) {}
+  loupe.classList.add('drag');
+  e.preventDefault(); loupe.focus({ preventScroll:true });
+});
+function onMove(e){
+  if (!drag || e.pointerId !== drag.id) return;
+  const p = local(e);
+  if (!drag.moved){
+    if (Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) < (drag.type === 'mouse' ? 3 : 8)) return; // a tap, not yet a drag
+    drag.moved = true; anchor = -1; rTo(R3, 180);
+  }
+  setPos(p.x - drag.ox, p.y - drag.oy);
+}
+function onUp(e){
+  if (!drag || e.pointerId !== drag.id) return;
+  const d = drag; drag = null; loupe.classList.remove('drag');
+  // a click or tap on a phrase in or under the loupe (no drag) sends the loupe to it
+  if (!d.moved && e.type === 'pointerup'){
+    const p = local(e), c = hit(p.x, p.y);
+    if (c >= 0 && c !== cur){ goMove(c, { dur:460 }); say(moveLine(c)); }
+  }
+}
+[loupe, stage].forEach(n => { n.addEventListener('pointermove', onMove); n.addEventListener('pointerup', onUp); n.addEventListener('pointercancel', onUp); });
+stage.addEventListener('click', e => { // touch: tap the print to send the loupe there
+  if (e.target.closest('.loupe')) return;
+  if (e.pointerType && e.pointerType !== 'touch') return;
+  if (!e.pointerType && !mqCoarse.matches) return;
+  takeover(); fromKeys = false; loupe.classList.add('ptr');
+  const p = local(e), c = hit(p.x, p.y);
+  if (c >= 0) goMove(c, { dur:460 }); else { anchor = -1; glideTo({ x:p.x, y:p.y, r:R3 }, 420); }
+});
+
+/* ------------------------------------------------------------ input: keys */
+loupe.addEventListener('focus', () => takeover());
+document.addEventListener('keydown', e => { if (!e.ctrlKey && !e.metaKey && !e.altKey) loupe.classList.remove('ptr'); }, true);
+function loupeKey(key, shift){
+  const step = shift ? 44 : 12;
+  const nudge = (dx, dy) => { takeover(); fromKeys = true; anchor = -1; if (R !== R3) rTo(R3, 160); setPos(pos.x + dx, pos.y + dy); };
+  let handled = true;
+  switch (key){
+    case 'ArrowLeft': nudge(-step, 0); break;
+    case 'ArrowRight': nudge(step, 0); break;
+    case 'ArrowUp': nudge(0, -step); break;
+    case 'ArrowDown': nudge(0, step); break;
+    case 'Enter': case ' ': {
+      takeover(); fromKeys = false;
+      if (!moves.length){ say('No moves in this text.'); break; }
+      // while the loupe glides to a move (or rests on one), step from that move, not from whatever passes under the glass
+      const n = moves.length, at = anchor >= 0 ? anchor : cur;
+      const next = at >= 0 ? at + (shift ? -1 : 1) : (shift ? nearestAfter() - 1 : nearestAfter());
+      const i = ((next % n) + n) % n;
+      goMove(i, { reveal:true, dur:520 }); say(moveLine(i));
+      break;
+    }
+    case 'Home': takeover(); fromKeys = false; if (moves.length){ goMove(0, { reveal:true, dur:520 }); say(moveLine(0)); } break;
+    case 'End': takeover(); fromKeys = false; if (moves.length){ goMove(moves.length - 1, { reveal:true, dur:520 }); say(moveLine(moves.length - 1)); } break;
+    default: handled = false;
+  }
+  return handled;
+}
+loupe.addEventListener('keydown', e => { if (loupeKey(e.key, e.shiftKey)) e.preventDefault(); });
+// "or use the arrow keys": left and right reach the loupe while the text is on screen and focus is on nothing, or on one of
+// the plain buttons around the text (a sample tab, the switch, a row of the list), none of which uses the arrow keys itself.
+// Up and down are left to scroll the page until the loupe has focus.
+const passKeys = '.chip, #markAll, #editOwn, #editOwnFoot, #moves button';
+document.addEventListener('keydown', e => {
+  if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) return;
+  const a = document.activeElement;
+  if (a && a !== document.body && a !== document.documentElement && !(a.matches && a.matches(passKeys))) return;
+  if (stage.hidden || !loupe.classList.contains('on')) return;
+  const r = stage.getBoundingClientRect();
+  if (r.bottom < 60 || r.top > innerHeight - 60) return;
+  e.preventDefault();
+  loupe.focus({ preventScroll:true });
+  loupeKey(e.key, e.shiftKey);
+});
+function nearestAfter(){ // the first move at or after the loupe, in reading order
+  for (let i = 0; i < moves.length; i++){ const r = moves[i].boxes[0]; if (r && (r.y > pos.y + 4 || (Math.abs(r.y + r.h / 2 - pos.y) < r.h && r.x + r.w >= pos.x))) return i; }
+  return 0;
+}
+list.addEventListener('click', e => {
+  const b = e.target.closest('button[data-i]'); if (!b) return;
+  takeover(); fromKeys = false;
+  const i = +b.dataset.i;
+  goMove(i, { reveal:true }); say(moveLine(i));
+});
+
+/* ------------------------------------------------------------ privacy counter */
+// It starts once the page has finished loading, typefaces included, and never resets, so nothing can drop out of view.
+// Until then it shows a dash, not a 0 it has not yet earned.
+let since = Infinity, reqCount = 0, counting = true;
+function armCounter(){ if (since !== Infinity) return; since = performance.now(); if (counting) reqOut.textContent = String(reqCount); }
+try {
+  new PerformanceObserver(l => {
+    let add = 0;
+    for (const en of l.getEntries()) if (en.startTime > since) add++;
+    if (add){ reqCount += add; reqOut.textContent = String(reqCount); }
+  }).observe({ type:'resource' });
+} catch (err) {
+  counting = false; reqOut.textContent = 'not available in this browser';
+}
+
+/* ------------------------------------------------------------ texts: tabs, editor, paste */
+let ownText = '', lastKey = 'pitch', ownCut = false, draftCut = false;
+const CUT_READ = 'Only the first 20,000 characters were read.', CUT_FIT = 'Only the first 20,000 characters fit. The rest was left out.';
+const cutNote = $('#cutNote');
+chips.forEach(c => {
+  const s = SAMPLES[c.dataset.k];
+  if (s){
+    const n = analyze(s.text).length;
+    const ct = document.createElement('span'); ct.className = 'ct'; ct.textContent = '\u00B7\u00A0' + n; ct.setAttribute('aria-hidden', 'true');
+    c.appendChild(ct); c.setAttribute('aria-label', `${s.label}, ${plural(n, 'move')}`);
+  }
+  c.addEventListener('click', () => {
+    takeover();
+    if (c.dataset.k !== 'own'){ closeEditor(false); pick(c.dataset.k); return; }
+    if (!editor.hidden){ own.focus(); return; }
+    if (ownText) pick('own'); // text already given: show it; "Edit your text" reopens the editor
+    else openEditor();
+  });
+});
+function press(k){ chips.forEach(c => c.setAttribute('aria-pressed', String(c.dataset.k === k))); }
+function pick(k, opts = {}){
+  key = k; lastKey = k; press(k);
+  if (k === 'own') render(ownText, 'Your text'); else render(SAMPLES[k].text, SAMPLES[k].label);
+  syncEdit();
+  goMove(0, { dur: opts.dur ?? 800 });
+  if (opts.announce){
+    const cut = k === 'own' && ownCut ? ' ' + CUT_READ : '';
+    say(`${k === 'own' ? 'Your text' : SAMPLES[k].label} is under the loupe.${cut} ` + (spans.length ? `${plural(spans.length, 'move')} found. The list follows.` : 'No moves found. That says nothing about whether the text is true.'));
+  }
+}
+const heroBody = $('.hero-body'), editOwn = $('#editOwn');
+const editFoot = $('#editFoot');
+function syncEdit(){ editOwn.hidden = editFoot.hidden = !(key === 'own' && ownText && editor.hidden); cutNote.hidden = !(key === 'own' && ownCut); }
+function openEditor(){
+  press('own');
+  ownChip.setAttribute('aria-expanded', 'true');
+  if (!own.value && ownText) own.value = ownText; // a draft survives Cancel, Escape and a look at the samples
+  syncCount();
+  edNote.textContent = draftCut ? CUT_FIT : 'Up to 20,000 characters. It stays in this tab.';
+  editor.hidden = false; stage.hidden = true;
+  heroBody.classList.add('editing');
+  readout.className = 'readout';
+  roIdx.textContent = ''; roName.textContent = 'Your text'; roTier.innerHTML = '';
+  roDesc.textContent = 'Paste or type it, then put it under the loupe.'; roQuote.textContent = ''; shownRO = -2;
+  syncEdit();
+  own.focus({ preventScroll:true });
+}
+function closeEditor(restore){
+  if (editor.hidden) return;
+  editor.hidden = true; stage.hidden = false;
+  heroBody.classList.remove('editing');
+  ownChip.setAttribute('aria-expanded', 'false');
+  if (restore) press(lastKey);
+  if (layout()) reposition();
+  updateCurrent(true); syncEdit();
+}
+editOwn.addEventListener('click', () => { takeover(); openEditor(); });
+$('#editOwnFoot').addEventListener('click', () => { takeover(); openEditor(); });
+function syncCount(){ count.textContent = nf(Math.min(own.value.length, MAX)) + ' / 20,000'; }
+own.addEventListener('input', () => { syncCount(); if (!own.value) draftCut = false; });
+// the box keeps what fits (maxlength); say so when a paste or a drop was cut
+const noteCut = () => { draftCut = true; edNote.textContent = CUT_FIT; };
+const roomInBox = () => MAX - (own.value.length - Math.abs(own.selectionEnd - own.selectionStart));
+const norm = t => String(t || '').replace(/\r\n?/g, '\n');
+own.addEventListener('paste', e => { const t = norm(e.clipboardData && e.clipboardData.getData('text/plain')); if (t.length > roomInBox()) noteCut(); });
+own.addEventListener('drop', e => { const t = norm(e.dataTransfer && e.dataTransfer.getData('text/plain')); if (t.length > roomInBox()) noteCut(); });
+own.addEventListener('keydown', e => { if (e.key === 'Escape'){ e.preventDefault(); closeEditor(true); ownChip.focus(); } });
+$('#cancel').addEventListener('click', () => { closeEditor(true); ownChip.focus(); });
+$('#go').addEventListener('click', () => {
+  const t = own.value.slice(0, MAX);
+  if (!t.trim()){ edNote.textContent = 'Paste or type something first.'; own.focus(); return; }
+  ownText = t; ownCut = draftCut;
+  closeEditor(false);
+  loupe.focus({ preventScroll:true });
+  pick('own', { dur:0, announce:true });
+  bringIntoView(moves.length ? moves[0].rest : restPose(-1));
+});
+const isField = n => !!n && (n.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(n.tagName));
+function usePasted(t){
+  t = norm(t);
+  if (!t.trim()) return;
+  // a draft is open: the paste joins it at the caret instead of replacing it
+  if (!editor.hidden){
+    const a = own.selectionStart ?? own.value.length, b = own.selectionEnd ?? a, room = roomInBox();
+    own.setRangeText(t.length > room ? t.slice(0, Math.max(0, room)) : t, a, b, 'end');
+    own.focus();
+    syncCount();
+    if (t.length > room) noteCut();
+    return;
+  }
+  takeover();
+  ownCut = draftCut = t.length > MAX;
+  t = t.slice(0, MAX);
+  ownText = t; own.value = t;
+  pick('own', { dur:0, announce:true });
+  const r = stage.getBoundingClientRect();
+  if (r.top < 0 || r.top > innerHeight * .6) glideScroll(b => stage.scrollIntoView({ block:'center', behavior:b }));
+}
+let pasteAt = -1;
+document.addEventListener('paste', e => {
+  if (isField(e.target) || isField(document.activeElement)) return;
+  pasteAt = performance.now();
+  const t = e.clipboardData ? e.clipboardData.getData('text/plain') : '';
+  if (!t || !t.trim()) return;
+  e.preventDefault();
+  usePasted(t);
+});
+document.addEventListener('keydown', e => { // some browsers send no paste event outside a text field
+  if (!(e.ctrlKey || e.metaKey) || e.altKey || (e.key !== 'v' && e.key !== 'V')) return;
+  if (isField(document.activeElement)) return;
+  const t0 = performance.now();
+  setTimeout(() => {
+    if (pasteAt >= t0) return;
+    try {
+      if (navigator.clipboard && navigator.clipboard.readText) navigator.clipboard.readText().then(usePasted, () => {});
+    } catch (err) {}
+  }, 150);
+});
+
+/* ------------------------------------------------------------ mark all on paper */
+markAll.addEventListener('click', () => {
+  const on = markAll.getAttribute('aria-checked') !== 'true';
+  markAll.setAttribute('aria-checked', String(on));
+  stage.classList.toggle('all', on);
+  // the marks only paint behind the words; if anything did move, the outlines and resting places follow it
+  if (geo() !== lastGeo && layout()) reposition();
+});
+
+/* ------------------------------------------------------------ tone */
+const tones = [...document.querySelectorAll('.tone button')];
+const mqDark = matchMedia('(prefers-color-scheme: dark)');
+function syncTone(){
+  const set = document.documentElement.dataset.theme;
+  const dark = set ? set === 'dark' : mqDark.matches;
+  tones.forEach(b => b.setAttribute('aria-pressed', String((b.dataset.tone === 'dark') === dark)));
+}
+tones.forEach(b => b.addEventListener('click', () => { document.documentElement.dataset.theme = b.dataset.tone; syncTone(); }));
+mqDark.addEventListener('change', syncTone); syncTone();
+
+/* ------------------------------------------------------------ section 02: film and print */
+document.querySelectorAll('.pair').forEach(fig => {
+  const t = fig.dataset.text, sp = analyze(t);
+  let out = '', p = 0;
+  sp.forEach(s => {
+    out += esc(t.slice(p, s.s)) + `<mark class="t${s.t}"><span class="fl"><b>${TIER[s.t][0]}</b>${esc(NAMES[s.id])}</span>${esc(t.slice(s.s, s.e))}</mark>`;
+    p = s.e;
+  });
+  fig.querySelector('.strip p').innerHTML = out + esc(t.slice(p));
+  const cap = fig.querySelector('figcaption');
+  if (cap) cap.textContent = sp.length ? 'Under the loupe, ' + sp.map(s => `“${t.slice(s.s, s.e)}” is outlined and named ${NAMES[s.id]}, Tier ${TIER[s.t][0]}.`).join(' ') + ' In print, the sentence reads as ordinary text.' : '';
+});
+
+/* The print takes the film's line breaks. Both have the same measure, and the film's outlined phrases take a
+   little more room, so the plain print always fits wherever the film breaks: same sentence, same lines. */
+function filmBreaks(p){
+  const out = []; let at = 0, lastTop = null;
+  const walk = n => {
+    if (n.nodeType === 3){
+      const rg = document.createRange();
+      for (let i = 0; i < n.data.length; i++, at++){
+        if (/\s/.test(n.data[i])) continue;
+        rg.setStart(n, i); rg.setEnd(n, i + 1);
+        const r = rg.getClientRects()[0]; if (!r) continue;
+        if (lastTop !== null && r.top > lastTop + r.height * .5) out.push(at);
+        lastTop = r.top;
+      }
+    } else if (!(n.classList && n.classList.contains('fl'))) n.childNodes.forEach(walk);
+  };
+  walk(p);
+  return out;
+}
+function syncPrint(fig){
+  const t = fig.dataset.text, pp = fig.querySelector('.print p');
+  const br = filmBreaks(fig.querySelector('.strip p'));
+  let html = '', a = 0;
+  br.forEach(b => { html += esc(t.slice(a, b).trimEnd()) + '<br>'; a = b; });
+  pp.innerHTML = html + esc(t.slice(a));
+}
+const pairs = [...document.querySelectorAll('.pair')];
+let prT = 0;
+const syncPrints = () => { cancelAnimationFrame(prT); prT = requestAnimationFrame(() => pairs.forEach(syncPrint)); };
+pairs.forEach(fig => { syncPrint(fig); new ResizeObserver(syncPrints).observe(fig.querySelector('.strip')); });
+if (document.fonts){ document.fonts.ready.then(syncPrints); if (document.fonts.addEventListener) document.fonts.addEventListener('loadingdone', syncPrints); }
+
+/* ------------------------------------------------------------ section 03: paper exhibits */
+function paper(node, missed){
+  const t = node.textContent, sp = analyze(t);
+  const ranges = sp.map(s => ({ s:s.s, e:s.e, k:'hit', sp:s }));
+  const missList = [];
+  (missed || []).forEach(m => {
+    const i = t.indexOf(m.q); if (i < 0) return; const e = i + m.q.length;
+    if (ranges.some(r => i < r.e && e > r.s)) return;
+    ranges.push({ s:i, e, k:'miss' }); missList.push(m);
+  });
+  ranges.sort((a, b) => a.s - b.s);
+  let out = '', p = 0;
+  ranges.forEach(r => {
+    out += esc(t.slice(p, r.s));
+    const q = esc(t.slice(r.s, r.e));
+    out += r.k === 'hit'
+      ? `<mark class="hl t${r.sp.t}">${q}<span class="sr-only"> (marked: ${esc(NAMES[r.sp.id])})</span></mark>`
+      : `<span class="miss">${q}<span class="sr-only"> (missed)</span></span>`;
+    p = r.e;
+  });
+  node.innerHTML = out + esc(t.slice(p));
+  return { t, sp, missList };
+}
+function exhibit(id, missed){
+  const r = paper($('#paper' + id), missed);
+  const c = $('#caught' + id), m = $('#missed' + id);
+  c.innerHTML = r.sp.map(s => `<li class="t${s.t}"><q>${esc(r.t.slice(s.s, s.e))}</q><small>Tier ${TIER[s.t][0]} · ${esc(NAMES[s.id])}</small></li>`).join('') || '<li>Nothing.</li>';
+  m.innerHTML = r.missList.map(x => `<li><q>${esc(x.q)}</q><span class="why">${esc(x.why)}</span></li>`).join('') || '<li>Nothing we know of.</li>';
+  const cnt = document.querySelector(`[data-count="ex${id}"]`);
+  if (cnt) cnt.textContent = `${r.sp.length} marked · ${r.missList.length} missed`;
+}
+exhibit('A', [
+  { q:'Industry-standard metrics confirm', why:'Vague authority, in words the rules do not know yet.' },
+  { q:'The future of finance is inevitable', why:'Inevitability, said plainly. The rules look for set phrases.' },
+  { q:'Don\'t be the one left behind', why:'Fear of missing out, with no fear words in it.' }
+]);
+exhibit('B', [
+  { q:'anyone who says otherwise simply has not done their research', why:'Competence dismissed, phrased outside the patterns.' },
+  { q:'You should feel confident moving forward today', why:'A soft push to act now. No urgency words, so no mark.' }
+]);
+document.querySelectorAll('td[data-live]').forEach(td => {
+  const r = paper(td, []);
+  const res = td.nextElementSibling;
+  if (r.sp.length){ res.classList.add('hit', 't' + r.sp[0].t); res.textContent = r.sp.map(s => NAMES[s.id]).join(', '); }
+  else res.textContent = 'No mark';
+});
+
+/* ------------------------------------------------------------ boot */
+function reposition(){
+  if (mode === 'sweep') return;
+  cancelGlide();
+  if (anchor >= 0 && moves[anchor]){ const p = moves[anchor].rest; setR(p.r); setPos(p.x, p.y); }
+  else if (!moves.length){ const p = restPose(-1); setR(p.r); setPos(p.x, p.y); }
+  else setPos(pos.x, pos.y);
+  if (mode === 'park'){ mode = 'rest'; showHandoff(); updateCurrent(true); }
+}
+buildRing();
+render(SAMPLES.pitch.text, SAMPLES.pitch.label);
+if (moves.length){ anchor = 0; const p = moves[0].rest; setR(p.r); setPos(p.x, p.y); }
+
+let roT = 0;
+new ResizeObserver(() => { cancelAnimationFrame(roT); roT = requestAnimationFrame(() => { if (layout()) reposition(); }); }).observe(base);
+// a font arriving re-lays the text only if it moved something (the extra pieces of the type change nothing on screen)
+if (document.fonts && document.fonts.addEventListener) document.fonts.addEventListener('loadingdone', () => { if (geo() === lastGeo && fontKey() === lastFontKey) return; if (layout()) reposition(); });
+mqSmall.addEventListener('change', () => { if (layout()) reposition(); });
+mqCoarse.addEventListener('change', buildRing);
+mqReduce.addEventListener('change', () => { if (mqReduce.matches){ takeover(); } });
+
+function begin(){
+  if (mode !== 'boot') return;
+  layout();
+  if (mqReduce.matches){
+    mode = 'rest'; anchor = moves.length ? 0 : -1;
+    reposition(); loupe.classList.add('on');
+    revealAll(); showHandoff(); updateCurrent(true);
+    return;
+  }
+  if (document.hidden){
+    const f = () => { if (!document.hidden){ document.removeEventListener('visibilitychange', f); begin(); } };
+    document.addEventListener('visibilitychange', f);
+    return;
+  }
+  startSweep();
+}
+const fontsReady = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+const pageLoaded = document.readyState === 'complete' ? Promise.resolve() : new Promise(r => addEventListener('load', r, { once:true }));
+const wait = ms => new Promise(r => setTimeout(r, ms));
+// the reading plays where it can be seen: once most of the text is on screen
+function whenInView(node){
+  return new Promise(res => {
+    if (!('IntersectionObserver' in window) || mqReduce.matches) return res();
+    const io = new IntersectionObserver(es => {
+      const e = es[es.length - 1];
+      const need = Math.min(e.boundingClientRect.height, innerHeight) * .6;
+      if (e.isIntersecting && e.intersectionRect.height >= need - 1){ io.disconnect(); res(); }
+    }, { threshold:[0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1] });
+    io.observe(node);
+  });
+}
+// start once the page has loaded and the type has settled, never later than 2.5 seconds in
+Promise.race([Promise.all([pageLoaded, Promise.race([fontsReady, wait(900)])]), wait(2500)])
+  .then(() => whenInView(stage))
+  .then(() => requestAnimationFrame(begin));
+
+/* Both typefaces are loaded whole (every subset, both styles) before the counter starts,
+   so no text pasted later can make the browser fetch another piece of them. */
+function primeFonts(){
+  const fs = document.fonts; if (!fs) return Promise.resolve();
+  const loads = [];
+  try { fs.forEach(f => { if (f.status === 'unloaded') loads.push(f.load().catch(() => {})); }); } catch (e) {}
+  ['400 16px Newsreader', 'italic 400 16px Newsreader', '400 16px "DM Mono"', '500 16px "DM Mono"'].forEach(q => {
+    try { loads.push(fs.load(q, '\u0105\u01A1').catch(() => {})); } catch (e) {}
+  });
+  return Promise.all(loads).then(() => fs.ready);
+}
+// the fallback timer starts at load, so a slow link cannot start the count before the priming has begun; if the timer wins,
+// type may still arrive and be counted, so the label stops promising that the typefaces are in
+pageLoaded.then(() => Promise.race([fontsReady.then(primeFonts).then(() => true), wait(15000).then(() => false)])).then(fontsIn => {
+  if (!fontsIn && since === Infinity) $('#reqLab').textContent = 'Requests sent since this page';
+  armCounter();
+});
+})();
+</script>

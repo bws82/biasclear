@@ -1,0 +1,10 @@
+BiasClear v2 public preview
+
+The rule pack (43 rules, rules 2.0.0a4), a Python engine and a
+zero-dependency TypeScript engine kept identical by parity tests, the
+swapped-pair fairness suite, the website that runs the engine in the
+visitor's browser, the README and the project docs.
+
+Rules hold no names of people, parties, ideologies, faiths, countries,
+programs, outlets, institutions or schools; a lint enforces it. Test
+text uses made-up names only. No accuracy figure is published.

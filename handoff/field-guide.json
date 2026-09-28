@@ -1,0 +1,1162 @@
+[
+  {
+    "id": "CONSENSUS_AS_EVIDENCE",
+    "rule_name": "Consensus Substituted for Evidence",
+    "pit_tier": 1,
+    "domain": "general",
+    "plain_name": "Consensus as proof",
+    "one_line": "It treats the fact that many people agree as if that agreement proved the claim, and never shows the evidence the agreement should rest on.",
+    "how_it_works": "Most of us trust what the people around us believe, and that is usually a sensible shortcut. This move uses that trust. It tells the reader who agrees but not why, so disagreeing feels like standing apart from the group, and the reader never gets anything to check.",
+    "tier_explained": "This is a Tier 1 (Ideological) move because it presents a claim as common sense that everyone already shares, which leaves the reason for believing it out of view.",
+    "examples": [
+      {
+        "text": "Everyone knows the new phone is worth the upgrade, so there is no reason to wait for reviews.",
+        "flagged_span": "Everyone knows",
+        "honest_version": "The new phone's battery lasted about two days in the maker's own test, and its camera is faster than last year's model; whether that is worth the upgrade depends on the phone you have now."
+      },
+      {
+        "text": "Among home builders it is widely accepted that a basement dehumidifier prevents mold, so every house on the street needs one.",
+        "flagged_span": "it is widely accepted",
+        "honest_version": "A basement dehumidifier keeps the air drier, and mold grows less in dry air; if your basement stays damp after rain, one may help."
+      }
+    ],
+    "false_alarm": {
+      "text": "In the garden club's vote on the spring plant swap, most people chose Saturday: 41 members voted for Saturday and 9 for Sunday.",
+      "why_fair": "The claim is only about what members prefer, so the vote is the evidence, and the sentence gives the full count. It does not use agreement to prove some other fact.",
+      "engine_flags_it": true
+    },
+    "misses": "The rule looks for a fixed list of phrases, so the same move gets through when it is worded differently. \"Any gardener will tell you that tomatoes go in after the last frost\" and \"Nobody serious disputes that the new bus schedule is better\" both lean on agreement alone, and neither is flagged. The rule also skips \"the consensus\" whenever the next word is \"view\", so \"The consensus view among riders is that the new bus schedule is better\" gets through even though it makes the same move.",
+    "source": "author_entry_verified_ok"
+  },
+  {
+    "id": "CLAIM_WITHOUT_CITATION",
+    "rule_name": "Authoritative Claim Without Citation",
+    "pit_tier": 1,
+    "domain": "general",
+    "plain_name": "Proof with no source",
+    "one_line": "It states a claim as settled by pointing to studies, data, or experts, but never says which ones.",
+    "how_it_works": "Phrases like \"studies show\" or \"data shows\" borrow the weight of research without showing any of it. The reader hears that someone checked, so the claim feels settled. With no source named, there is nothing to look up and no way to see what was actually found.",
+    "tier_explained": "This is a Tier 1 (Ideological) move because it makes a claim feel like common sense that everyone already knows is backed by research, so it seems odd to ask for the source.",
+    "examples": [
+      {
+        "text": "Studies show that tomatoes grow better when you water them at dawn, so the garden club is moving its watering hour.",
+        "flagged_span": "Studies show",
+        "honest_version": "The garden club is moving its watering hour to dawn. The county extension office's vegetable guide recommends morning watering so leaves dry before evening."
+      },
+      {
+        "text": "Data shows the new bus schedule has cut wait times, so riders on the east line should be happier this fall.",
+        "flagged_span": "Data shows",
+        "honest_version": "The transit office's first monthly report on the new schedule lists the average wait on the east line as nine minutes, down from twelve, so riders should see shorter waits this fall."
+      }
+    ],
+    "false_alarm": {
+      "text": "Our backyard rain gauge data shows that two inches of rain fell on Tuesday.",
+      "why_fair": "The sentence names its source (the speaker's own rain gauge) and gives the measured amount, so a reader knows exactly where the number came from. The engine still flags it because it only recognizes formal citation shapes, such as (Author, 2024), [1], or Table 2, and not a source named in plain words.",
+      "engine_flags_it": true
+    },
+    "misses": "Two ways the same move gets past the rule. (1) Other wording. The rule matches a fixed list of phrases, so \"Studies have shown...\", \"A recent study found...\", \"It has been proven...\", and \"Scientists found...\" are not flagged, though they make the same unsourced appeal. (2) Anything shaped like a citation within about 120 characters turns the rule off, whether or not it points to a real source. A bare \"[1]\" with no reference list is enough. So is an unrelated phrase like \"3 buses at 7\", which the citation check mistakes for a legal citation.",
+    "source": "author_entry_verified_ok"
+  },
+  {
+    "id": "DISSENT_DISMISSAL",
+    "rule_name": "Dissent Dismissed by Label",
+    "pit_tier": 1,
+    "domain": "general",
+    "plain_name": "Dismissing by label",
+    "one_line": "It waves away an opposing view by giving it a name like \"misinformation\" or \"debunked\" instead of showing why it is wrong.",
+    "how_it_works": "A label such as \"fringe\" or \"debunked\" sounds like a finished verdict, so the reader assumes the checking has already happened somewhere else. The reader gets the conclusion but never sees the reason. It also puts a social cost on the other view, so agreeing with it starts to feel careless.",
+    "tier_explained": "This is Tier 1 (Ideological) because the label decides which views count as reasonable before anyone weighs the evidence.",
+    "examples": [
+      {
+        "text": "Riders who say the new Route 9 timetable makes them late are spreading misinformation.",
+        "flagged_span": "misinformation",
+        "honest_version": "Riders say the new Route 9 timetable makes them late, but the transit office's arrival logs show buses reached the downtown stop within two minutes of schedule on 95 of 100 weekday trips last month."
+      },
+      {
+        "text": "Some members think the new compost is making the tomatoes wilt, but that idea has been thoroughly debunked.",
+        "flagged_span": "has been thoroughly debunked",
+        "honest_version": "Some members think the new compost is making the tomatoes wilt, but in the club's test beds this summer, plants with and without the compost wilted at the same rate."
+      }
+    ],
+    "false_alarm": {
+      "text": "The rumor that the bake sale was canceled has been debunked: the school calendar, posted Monday, still lists it for Saturday, May 3.",
+      "why_fair": "The word 'debunked' comes with its evidence in the same sentence: a named, checkable source and a specific date. Here the label sums up a rebuttal. It does not replace one.",
+      "engine_flags_it": true
+    },
+    "misses": "The rule matches a fixed word list, so the same move gets through when it uses other labels. \"That forecast of a wet spring is a crackpot idea from the usual complainers\" is not flagged, and neither are words like \"quackery\" or \"nonsense\". The rule also misses plurals of its own phrase. \"No serious expert thinks the phone upgrade slows the camera\" is flagged, but \"No serious experts think...\" is not, because the pattern has no \"s?\" after scientist, researcher, expert or scholar.",
+    "source": "author_entry_verified_ok"
+  },
+  {
+    "id": "INEVITABILITY_FRAME",
+    "rule_name": "Inevitability Framing",
+    "pit_tier": 1,
+    "domain": "general",
+    "plain_name": "Inevitability as argument",
+    "one_line": "It says an outcome is bound to happen, so there is no point in weighing it or pushing back.",
+    "how_it_works": "It swaps the question \"is this a good idea?\" for \"this is already happening.\" If the result is coming anyway, checking the evidence feels like wasted effort and objecting feels foolish. The reader gets a sense of momentum in place of a reason.",
+    "tier_explained": "This is a Tier 1 Ideological move because it sets what counts as common sense: the outcome is treated as a settled fact about the future, so questioning it seems out of step instead of reasonable.",
+    "examples": [
+      {
+        "text": "Fifteen-minute service on every route is the inevitable direction for the city, so the bus board should approve the new schedule tonight.",
+        "flagged_span": "the inevitable direction",
+        "honest_version": "I think the bus board should approve fifteen-minute service on every route tonight. Ridership counts and the cost of each route would show whether that case holds."
+      },
+      {
+        "text": "Online sign-ups are replacing paper sheets for the school bake sale, and there is no stopping this, so the committee should drop the paper list.",
+        "flagged_span": "there is no stopping this",
+        "honest_version": "Online sign-ups are replacing paper sheets for the school bake sale. I think the committee should drop the paper list, and a count of how many volunteers still use it would show whether that case holds."
+      }
+    ],
+    "false_alarm": {
+      "text": "The plumber's report found rust along the seams of our 22-year-old water heater, and she said a leak is the inevitable outcome if we do not replace it this year.",
+      "why_fair": "The inevitability claim names its source (the plumber's report) and gives the physical evidence behind it (a 22-year-old tank rusting at the seams). It also names a condition (\"if we do not replace it\"), which is the opposite of saying nothing can be done. The engine still flags \"the inevitable outcome\" because this rule matches the phrase and does not check for a cited source.",
+      "engine_flags_it": true
+    },
+    "misses": "1) Small wording changes get past it. The rule only accepts the full phrase \"there is no\". So \"there's no stopping this\" is not flagged, and neither is \"You can't stop this change\" (it looks for \"can't stopping\", which nobody writes). 2) Common phrasings that are not on its lists also pass. \"It is only a matter of time before every garden club drops the rose show\" and \"Folding phones are the inevitable future\" both go unflagged. The first has no listed trigger. In the second, \"future\" is not one of the nouns the rule accepts after \"inevitable\" (direction, trend, shift, outcome, and so on). The adverb \"inevitably\" is not covered either.",
+    "source": "verifier_corrected_entry"
+  },
+  {
+    "id": "APPEAL_TO_TRADITION",
+    "rule_name": "Appeal to Tradition / Precedent Inertia",
+    "pit_tier": 1,
+    "domain": "general",
+    "plain_name": "Because we always have",
+    "one_line": "It uses the fact that something has long been done one way as the reason to keep doing it.",
+    "how_it_works": "A long habit feels safe, so pointing to it makes a choice sound already settled. The sentence says the practice is old, but not why the practice works. The reader gets a feeling of certainty with no evidence behind it.",
+    "tier_explained": "This is a Tier 1 (Ideological) move because it treats the usual way of doing things as common sense that needs no defense.",
+    "examples": [
+      {
+        "text": "The garden club should hold the plant sale in May again, because we've always done it this way.",
+        "flagged_span": "we've always done it this way",
+        "honest_version": "The garden club should hold the plant sale in May again: the last three May sales sold out, and most seedlings are ready to plant by then."
+      },
+      {
+        "text": "The bake sale has always been in the school lobby, and departing from tradition would be unwise.",
+        "flagged_span": "departing from tradition would be unwise",
+        "honest_version": "The bake sale has always been in the school lobby, and it should stay there: parents walk through the lobby at pickup, and last year's sale raised $600 there."
+      }
+    ],
+    "false_alarm": {
+      "text": "Departing from established practice is dangerous here: the breaker must be off before anyone touches the outlet, or the person doing the repair can get a shock.",
+      "why_fair": "The sentence gives its reason right away. The practice is defended by what it prevents, a shock, and not by how old it is. The engine only matches the phrase and cannot tell that a real reason follows.",
+      "engine_flags_it": true
+    },
+    "misses": "1) Typography: the rule only matches a straight apostrophe. The same sentence with a curly one (\"because we’ve always done it this way\") is not flagged, and most typeset or word-processed text uses curly apostrophes. It also misses \"Longstanding practice dictates...\" written as one word, because the rule needs \"long-standing\" or \"long standing\". 2) Paraphrase: the rule only knows a few fixed phrases, so the same move in everyday words gets through. Examples: \"That's how the bake sale has always been run, so why change it now?\", \"We always do it this way\", \"It's always been this way\", or \"We have held the plant sale in May for twenty years, so it stays in May.\" None of these were flagged.",
+    "source": "verifier_corrected_entry"
+  },
+  {
+    "id": "FALSE_EQUIVALENCE",
+    "rule_name": "False Equivalence",
+    "pit_tier": 1,
+    "domain": "general",
+    "plain_name": "Splitting the difference",
+    "one_line": "It treats a strong case and a weak case as equals, so the weaker one looks just as good.",
+    "how_it_works": "Being balanced sounds fair, so readers relax when they hear both sides are equal. The phrase goes in place of comparing the evidence, and the gap between a careful inspection and a quick glance disappears. The reader leaves thinking the question is open when the evidence mostly points one way.",
+    "tier_explained": "It is Tier 1 (Ideological) because it sets a common-sense rule, that fair means the answer lies halfway between the two sides, before anyone weighs the evidence.",
+    "examples": [
+      {
+        "text": "One roofer climbed into the attic and found rot in twelve rafters, and the other looked from the driveway, but both sides make good points about whether the roof needs work.",
+        "flagged_span": "both sides make good points",
+        "honest_version": "One roofer climbed into the attic and found rot in twelve rafters; the other looked only from the driveway. The attic inspection is the stronger evidence, and it says the roof needs work."
+      },
+      {
+        "text": "Riders logged the Route 9 bus arriving late on 40 of 45 mornings, and one driver says it usually runs on time, so the truth lies somewhere in the middle.",
+        "flagged_span": "the truth lies somewhere in the middle",
+        "honest_version": "Riders logged the Route 9 bus arriving late on 40 of 45 mornings. One driver says it usually runs on time, but the 45-morning log is the fuller record, and it shows the bus is usually late."
+      }
+    ],
+    "false_alarm": {
+      "text": "Two identical rain gauges in the same yard read 1.1 and 1.3 inches, so the answer is somewhere in the middle, about 1.2 inches.",
+      "why_fair": "The two readings come from the same kind of instrument in the same place, so they deserve equal weight. Taking the midpoint is a sound way to combine them, and the sentence shows both numbers.",
+      "engine_flags_it": true
+    },
+    "misses": "1) The rule only catches a few fixed phrases. A plain 'opinions differ' gets through even when the facts are lopsided: 'One roofer found rot in twelve rafters and the other looked from the driveway; opinions differ on whether the roof needs work' is not flagged. 2) Small wording changes get past the regex. It wants 'side' or 'sides' and the verbs has, have, make, makes, present, or presents, so past tense or other nouns are missed: '...so both camps made fair points' is not flagged. The rule also cannot see the move when it is built from the layout alone, such as two quotes given equal space with no weighing of the evidence.",
+    "source": "verifier_corrected_entry"
+  },
+  {
+    "id": "SOFT_CONSENSUS",
+    "rule_name": "Soft Consensus Manufacturing",
+    "pit_tier": 1,
+    "domain": "general",
+    "plain_name": "Vague majority claims",
+    "one_line": "It says that most people, or a growing pile of evidence, back a claim, but never says who they are or what the evidence is.",
+    "how_it_works": "Phrases like \"the vast majority agree\" or \"a growing body of evidence suggests\" sound careful and measured, so readers take them as a summary of real findings. No survey, count, or source is given, so the reader cannot check how many people agreed or what the evidence was. The wording lends the claim the weight of agreement without showing the agreement.",
+    "tier_explained": "This is Tier 1 (Ideological) because it presents a claim as something most people already accept, which quietly sets what counts as common sense before any evidence is shown.",
+    "examples": [
+      {
+        "text": "The vast majority of our garden club members agree that the new compost mix works better than the old one.",
+        "flagged_span": "The vast majority of our garden club members agree",
+        "honest_version": "At the March meeting, eighteen of the twenty-two garden club members said the new compost mix worked better than the old one."
+      },
+      {
+        "text": "A growing body of evidence suggests that sealing the attic saves more on heating than replacing the windows.",
+        "flagged_span": "growing body of evidence suggests",
+        "honest_version": "Our home energy audit last fall estimated that sealing the attic would cut heating costs by about 15 percent, and new windows by about 5 percent."
+      }
+    ],
+    "false_alarm": {
+      "text": "The vast majority of the 40 bake sale volunteers agree on a 9 a.m. start, according to the sign-up sheet they filled out on Monday.",
+      "why_fair": "The sentence gives the group size (40 volunteers) and names where the answer came from (Monday's sign-up sheet), so a reader can check it. The engine still flags it because its citation check only looks for formal citation formats, such as (Table 2), [1], or p. 12. It does not recognize a source named in plain words. A version that cites '(Table 2)' next to the same phrase is not flagged.",
+      "engine_flags_it": true
+    },
+    "misses": "1) Verbs outside the rule's list get through. \"The overwhelming majority of shoppers prefer the new phone over last year's model\" is not flagged, because the rule only fires on verbs like agree, support, believe, accept, or endorse. \"Prefer\" is not on the list, and no other rule catches this sentence either. The rule also stops looking after five words between \"majority of\" and the verb, so a longer version slips past too: \"The vast majority of the people who ride the early bus every single morning agree...\" 2) A number that happens to look like a citation switches the rule off. \"As of 3 March 2025, the vast majority of riders agree the new bus schedule is easier to follow\" is not flagged, because the date \"3 March 2025\" matches the engine's citation pattern (number, word, number). The same sentence without the date is flagged.",
+    "source": "author_entry_verified_ok"
+  },
+  {
+    "id": "ASPIRATIONAL_DEFLECTION",
+    "rule_name": "Aspirational Deflection",
+    "pit_tier": 1,
+    "domain": "general",
+    "plain_name": "Promises in place of results",
+    "one_line": "It offers a goal or a promise where the reader expected a result.",
+    "how_it_works": "Phrases like \"our goal is to\" and \"we are committed to\" sound like good character, and readers tend to give good intentions the same credit as outcomes. When two or three of these phrases pile up, they fill the space where a number, a date, or a checked result would go. The reader comes away with a warm impression and nothing to check.",
+    "tier_explained": "It is Tier 1 (Ideological) because it quietly treats a stated intention as a result, so the reader starts to take the promise as the record.",
+    "examples": [
+      {
+        "text": "Our goal is to keep every bus on the new city schedule running on time, and we are committed to reliable service for every rider.",
+        "flagged_span": "Our goal is to",
+        "honest_version": "On the new city schedule, 88 of the 100 bus trips we checked last month left on time; we want to reach 95, and we will post next month's count at each stop."
+      },
+      {
+        "text": "With the new phone upgrade, we strive to deliver the longest battery life in its class, and we are fully committed to quality.",
+        "flagged_span": "we strive to deliver",
+        "honest_version": "In our lab test of video playback, the new phone ran 21 hours on one charge, two hours longer than last year's model; we have not tested it against other brands."
+      }
+    ],
+    "false_alarm": {
+      "text": "Our goal is to plant 200 trees along Mill Road this year; the garden club has planted 140 so far, and we are committed to finishing the last 60 by November.",
+      "why_fair": "The goal comes with the actual count (140 of 200) and a deadline, so the reader can check progress for themselves. The intention is labeled as an intention, and the result is stated right beside it. The engine still flags it because the rule counts two aspirational phrases and does not look for the evidence next to them.",
+      "engine_flags_it": true
+    },
+    "misses": "1) One phrase is not enough. The rule only fires when at least two aspirational phrases appear together (min_matches=2), so a single promise gets through. Example: \"With the new phone upgrade, we strive to deliver the longest battery life in its class.\" The engine does not flag it. 2) The rule only knows certain wordings, so contractions and close synonyms slip past it. Example: \"We're committed to quality, and our aim is to give you the longest battery life in its class.\" The engine does not flag it: \"We're\" does not match \"we are\", \"aim\" is not on the rule's list of goal words, and \"give\" is not on its list of verbs. The same goes for phrasing like \"our team is dedicated to\" (the rule expects \"are\", not \"is\") or \"we hope to\". Both cases were confirmed on the v1 engine.",
+    "source": "author_entry_verified_ok"
+  },
+  {
+    "id": "MEDIA_EDITORIAL_AS_NEWS",
+    "rule_name": "Editorializing Disguised as Reporting",
+    "pit_tier": 1,
+    "domain": "media",
+    "plain_name": "Opinion dressed as news",
+    "one_line": "It slips the writer's verdict into a news description, so a judgment reads as a plain fact.",
+    "how_it_works": "One loaded word, such as \"misguided\" or \"so-called\", hands the reader a conclusion before any facts arrive. Because it sits inside the description and not in a quote, nobody is named as holding that view, so there is no source to check. The reader absorbs the verdict with the facts and never gets to weigh it.",
+    "tier_explained": "It is Tier 1 (Ideological) because the verdict comes in as part of the basic description, so it quietly becomes the common-sense starting point instead of a claim to be tested.",
+    "examples": [
+      {
+        "text": "The transit office announced the misguided schedule plan on Monday: weekday buses on Route 9 will run every 20 minutes instead of every 15.",
+        "flagged_span": "the misguided schedule plan",
+        "honest_version": "The transit office announced a new schedule plan on Monday: weekday buses on Route 9 will run every 20 minutes instead of every 15. Two riders who spoke at the public hearing said the longer wait would make them late for work."
+      },
+      {
+        "text": "The so-called upgrade program lets customers trade in a two-year-old phone for $150 off a new model.",
+        "flagged_span": "The so-called upgrade program",
+        "honest_version": "The upgrade program lets customers trade in a two-year-old phone for $150 off a new model. The store's own terms say the credit applies only to phones in working condition."
+      }
+    ],
+    "false_alarm": {
+      "text": "After the league moved the final to a Tuesday night, the head coach told reporters it was \"a controversial decision\" that would keep many families home.",
+      "why_fair": "The judgment is in quotation marks and credited to a named role, the head coach. It reports what a source said instead of giving the writer's own verdict, and the reader can see who holds the view.",
+      "engine_flags_it": true
+    },
+    "misses": "The rule only catches a word from a fixed list, such as \"misguided\" or \"so-called\", that comes right after \"the\", \"a\" or \"an\" and is followed, with at most one word in between, by a noun from a short list such as plan, program or decision. A possessive in front gets past it (\"the city's misguided schedule plan\"). So does a second word before the noun (\"the misguided new weekday schedule plan\"), or a loaded word or noun that is not on the list (\"a baffling new bus timetable\"). A judgment carried by verbs and adverbs also goes unflagged, as in \"The garden club quietly slipped a fee increase into its spring newsletter.\" The rule runs only when the media domain (or auto) is selected, so the same sentence checked in the general domain is not flagged.",
+    "source": "verifier_corrected_entry"
+  },
+  {
+    "id": "MEDIA_FALSE_BALANCE",
+    "rule_name": "False Balance / Both-Sidesism",
+    "pit_tier": 1,
+    "domain": "media",
+    "plain_name": "False balance",
+    "one_line": "It sets a weak or long-rejected claim next to a well-tested one, as if the two had equal standing.",
+    "how_it_works": "A \"some say this, experts say that\" sentence looks fair, so readers assume both sides carry similar weight. The sentence never says how much evidence stands behind each side. The reader comes away thinking the question is still open when it is not.",
+    "tier_explained": "It is Tier 1 (Ideological) because it changes what readers take as common sense: a settled question starts to feel like an open debate.",
+    "examples": [
+      {
+        "text": "A few insist that caterpillar stripes predict a hard winter, yet scientists who study weather point out the stripes show no link to snowfall.",
+        "flagged_span": "A few insist that caterpillar stripes predict a hard winter, yet scientists who study weather point out",
+        "honest_version": "Caterpillar stripes do not predict a hard winter; scientists who study weather have compared the stripes with snowfall records and found no link."
+      },
+      {
+        "text": "Some claim that overnight charging ruins a phone battery in a month, while researchers who test batteries disagree.",
+        "flagged_span": "Some claim that overnight charging ruins a phone battery in a month, while researchers who test batteries disagree",
+        "honest_version": "Overnight charging does not ruin a phone battery in a month; battery test labs found that modern phones stop charging once the battery is full."
+      }
+    ],
+    "false_alarm": {
+      "text": "Some say the new bus schedule cuts wait times, while researchers who timed 400 trips note the average wait fell by two minutes (Route Study, 2025).",
+      "why_fair": "The researchers back up the claim instead of arguing against it. They give a measurement and name the source, and nobody's weak claim is being raised to equal standing. The rule matches the sentence's shape (\"some say ... while researchers ... note\") without checking whether the two sides actually disagree or whether one of them is fringe. This rule does not use the engine's citation check, so the cited source does not stop the flag.",
+      "engine_flags_it": true
+    },
+    "misses": "1) The expert word is not on the rule's short list. \"Some say a rainy spring means a dry summer, but most meteorologists disagree.\" is not flagged, because the rule only knows words like scientists, experts, researchers, doctors, economists and scholars. Words such as meteorologists, forecasters, engineers or mechanics get past it. 2) The move is built from layout rather than one \"some say ... while experts ...\" sentence. \"Do caterpillar stripes predict winter? Folk forecasters read the bands each fall, and weather scientists read ocean data. Both sides make their case below.\" is not flagged, even though it treats folklore and science as equal sides. The same happens with split headlines, back-to-back quotes or equal paragraph space. The rule also only runs when the domain is \"media\" or \"auto\". The same sentences checked as \"general\" are never flagged. It also misses when the weak claim runs longer than about 80 characters before the \"while/but/yet\" turn.",
+    "source": "author_entry_verified_ok"
+  },
+  {
+    "id": "MEDIA_SELECTIVE_QUOTATION",
+    "rule_name": "Scare Quotes / Selective Quotation",
+    "pit_tier": 1,
+    "domain": "media",
+    "plain_name": "Scare quotes",
+    "one_line": "It puts quotation marks around a single ordinary word to hint that the word is doubtful or silly, without saying why.",
+    "how_it_works": "Quotation marks normally mean \"someone said this.\" Around one plain word, they also carry a wink: the writer doubts it, but never says so. The reader picks up the doubt without being shown a fact to weigh, and there is no stated claim to check or dispute.",
+    "tier_explained": "It is a Tier 1 (Ideological) move because it sets what counts as common sense: the quotation marks treat a word as obviously doubtful, so the reader takes the doubt as a given instead of as a claim that needs support.",
+    "examples": [
+      {
+        "text": "Monday brings an \"improved\" bus schedule with \"shorter\" waits between stops.",
+        "flagged_span": "\"improved\"",
+        "honest_version": "Monday brings a new bus schedule. The transit office calls it an improvement and says waits between stops will be shorter."
+      },
+      {
+        "text": "The bake sale committee promised \"homemade\" treats, but the \"fresh\" cookies came in store boxes.",
+        "flagged_span": "\"homemade\"",
+        "honest_version": "The bake sale committee promised homemade, fresh treats, but the cookies came in store-bought boxes."
+      }
+    ],
+    "false_alarm": {
+      "text": "The garden club's planting guide says seed packets marked \"hardy\" or \"perennial\" should survive the winter.",
+      "why_fair": "The quotation marks show the exact labels printed on the seed packets. They mark words being named, not words being mocked, and the sentence gives its source (the planting guide).",
+      "engine_flags_it": true
+    },
+    "misses": "1) One scare quote gets through. The rule needs at least two quoted words before it fires, so The team's \"rebuilding\" season ended with four wins and twelve losses. is not flagged, even though the one quoted word does the same job. 2) Some quote shapes fall outside the pattern: multi-word phrases (\"fan favorite\" flavor, \"limited edition\" frosting), hyphenated words (\"top-rated\" roofer, \"same-day\" repair) and single quotes ('improved' schedule) all went unflagged in testing. The rule only matches one run of letters inside double or curly quotes.",
+    "source": "verifier_corrected_entry"
+  },
+  {
+    "id": "MEDIA_ASYMMETRIC_ATTRIBUTION",
+    "rule_name": "Asymmetric Source Attribution",
+    "pit_tier": 1,
+    "domain": "media",
+    "plain_name": "Loaded quote verbs",
+    "one_line": "It reports one side with a plain verb like 'said' and the other with a doubting verb like 'claimed' or 'insisted', so the reader learns whom to trust from the verbs alone.",
+    "how_it_works": "'Said' reads as a simple record of what someone said. 'Claimed', 'alleged' and 'insisted' add a hint of doubt or stubbornness. Readers pick up that hint before they weigh what either side actually said, so one account starts out sounding like fact and the other like an excuse, and no evidence has been offered for either.",
+    "tier_explained": "This is a Tier 1 (Ideological) move. The verbs quietly decide whose account counts as the normal, common-sense version and whose counts as the suspect one.",
+    "examples": [
+      {
+        "text": "The parent volunteers said the bake sale raised $400, but the treasurer claimed the total was lower and insisted on a recount.",
+        "flagged_span": "claimed",
+        "honest_version": "The parent volunteers said the bake sale raised $400. The treasurer said her count came out lower and asked for a recount."
+      },
+      {
+        "text": "The contractor said the roof repair was finished on schedule, while the homeowner alleged the gutters still leak and insisted the crew come back.",
+        "flagged_span": "alleged",
+        "honest_version": "The contractor said the roof repair was finished on schedule. The homeowner said the gutters still leak and asked the crew to come back."
+      }
+    ],
+    "false_alarm": {
+      "text": "The garden club admitted 12 new members this spring, and nine of them claimed a free seed packet at the first meeting.",
+      "why_fair": "Neither verb reports what anyone said. 'Admitted' means let in and 'claimed' means picked up. The sentence treats nobody's account differently from anyone else's.",
+      "engine_flags_it": true
+    },
+    "misses": "1) One loaded verb is enough to tilt a story, but the rule needs at least two before it fires. The basic form of the move gets through: \"The coach said the team trained hard all season, but the rival coach claimed the schedule was unfair.\" (Not flagged.) 2) The rule only looks for a fixed list of past-tense verbs. Headline-style present tense (\"one buyer claims ... and insists ...\") and loaded verbs that aren't on the list (\"riders complained ... and grumbled ...\") pass without a flag. The rule also counts loaded verbs anywhere in the text and never checks whether one side got 'said' and the other did not, so it can't tell an unfair contrast from even-handed wording.",
+    "source": "author_entry_verified_ok"
+  },
+  {
+    "id": "FIN_SURVIVORSHIP_BIAS",
+    "rule_name": "Survivorship Bias",
+    "pit_tier": 1,
+    "domain": "financial",
+    "plain_name": "Counting only the winners",
+    "one_line": "It draws a lesson from the people or things that succeeded and leaves out the ones that failed or dropped away.",
+    "how_it_works": "The survivors are easy to see, so a habit they share looks like the reason they survived. The ones that failed are missing from the picture, and they may have had the same habit. The reader sees a pattern but never gets the comparison that would show whether it means anything.",
+    "tier_explained": "It is a Tier 1 (Ideological) move because it makes \"look at who made it\" feel like common sense, so a sample with the failures left out passes for the whole story.",
+    "examples": [
+      {
+        "text": "Of the home repair shops on Main Street, the top firms all use same-day callbacks, so same-day callbacks must be what keeps a repair shop in business.",
+        "flagged_span": "top firms all use",
+        "honest_version": "Of the home repair shops still open on Main Street, the busiest three offer same-day callbacks. Two of the four shops that closed in the last five years offered them too, so callbacks alone do not explain which shops lasted."
+      },
+      {
+        "text": "A $40 investment in a backyard rain barrel would now be worth $300 in saved water, based on the garden club members who still use theirs.",
+        "flagged_span": "A $40 investment in a backyard rain barrel would now be worth",
+        "honest_version": "Garden club members who still use their $40 rain barrels say each one has saved about $300 in water. We did not hear from members whose barrels cracked or who stopped using them, so the typical saving may be lower."
+      }
+    ],
+    "false_alarm": {
+      "text": "A survey of all 60 bakeries that opened downtown since 2015, including the 38 that later closed, found that the top firms all use one flour supplier, and so did most of the bakeries that closed (Table 2).",
+      "why_fair": "The survey counts the bakeries that closed as well as the ones that stayed open, and it says the shared habit does not set the winners apart. It also points to its table. That is the opposite of survivorship bias, but it uses the same words, \"top firms all use.\"",
+      "engine_flags_it": true
+    },
+    "misses": "1) If the group is named with a noun the rule does not list, it gets through. For example: \"The five bakeries still open downtown all bake their own bread, so baking in-house is how a bakery lasts.\" The rule only knows words like funds, stocks, companies, firms, managers, investors and traders, so \"bakeries\" is not caught. Neither are shops, teams or schools. 2) In the \"top firms all use\" form, a past-tense verb gets through. For example: \"...the top firms all used same-day callbacks...\" That form only accepts present-tense verbs such as use, have and share. It is also a financial-domain rule. It runs only when text is checked as \"financial\" or \"auto\", so a check in the general domain never flags either example.",
+    "source": "verifier_corrected_entry"
+  },
+  {
+    "id": "FIN_CHERRY_PICKED_TIMEFRAME",
+    "rule_name": "Cherry-Picked Timeframe",
+    "pit_tier": 1,
+    "domain": "financial",
+    "plain_name": "Cherry-picked timeframe",
+    "one_line": "It picks the start and end dates that make a result look good, and leaves out what other date ranges would show.",
+    "how_it_works": "A number tied to a date range looks exact, so readers tend to trust it. But the writer chose where the range starts and stops, and a different choice could show a flat or opposite result. The date range carries the argument, and the reader never sees the longer record needed to judge it.",
+    "tier_explained": "This is Tier 1 (Ideological) because it quietly sets the frame: the chosen window becomes the normal way to look at the numbers, and no one is asked whether that window is fair.",
+    "examples": [
+      {
+        "text": "Since March, the school bake sale fund has gained 40%, so the new cookie table is paying off.",
+        "flagged_span": "Since March, the school bake sale fund has gained 40%",
+        "honest_version": "The bake sale fund grew 40% from March to May, after a slow winter; across the whole school year it is up about 5%, so it is too early to credit the new cookie table."
+      },
+      {
+        "text": "In the last two months, the Route 9 bus beat every other line for on-time arrivals.",
+        "flagged_span": "In the last two months, the Route 9 bus beat",
+        "honest_version": "Route 9 had the best on-time record of any line in the last two months; over the full year it ranks fourth of seven lines."
+      }
+    ],
+    "false_alarm": {
+      "text": "Since 1998, the club's first year, plant sales averaged 4% growth a year; that figure covers every sale on record.",
+      "why_fair": "The range starts at the club's first year and covers the full record, so the writer did not pick the start date to flatter the result. It also says plainly that no years were left out.",
+      "engine_flags_it": true
+    },
+    "misses": "1) The rule only catches the 'since' / 'over the past' form when a month name, a four-digit year, or a named event (such as 'the dip') follows. A count of years gets past it: \"Over the past three years, the garden club's seed fund returned 30%.\" is not flagged. Week-based windows (\"in the last six weeks\") and verbs outside its list (won, rose, grew) also get through. 2) Swap the words and the move gets past the rule: \"From the March low to today, the phone's resale value is up by a third.\" uses 'from ... to' instead of 'since' and 'a third' instead of a percent sign, so it is not flagged. The rule also runs only when text is scanned in the financial or auto domain. In the general domain it does not fire at all.",
+    "source": "author_entry_verified_ok"
+  },
+  {
+    "id": "FALSE_BINARY",
+    "rule_name": "False Binary / False Dilemma",
+    "pit_tier": 2,
+    "domain": "general",
+    "plain_name": "Only two choices",
+    "one_line": "It presents a situation as a choice between two options when others exist.",
+    "how_it_works": "Once a reader sees two options, their attention goes to picking one, and they stop asking whether there are more. Usually one option is made to look bad, so the other feels like the only sensible choice, even though nothing has been shown to rule out a third path. The frame does the persuading, not the evidence.",
+    "tier_explained": "This is a Tier 2 (Psychological) move because it relies on the pressure of a forced choice, often a fear of the worse option, rather than on reasons.",
+    "examples": [
+      {
+        "text": "Either we raise the bake sale prices this year or the class trip gets cancelled.",
+        "flagged_span": "Either we raise the bake sale prices this year or",
+        "honest_version": "The class trip is short on funds this year. Raising bake sale prices is one way to close the gap; a second sale day or a parent sponsor could also help."
+      },
+      {
+        "text": "When your old phone slows down, there are only two options: buy the new model or live with the lag.",
+        "flagged_span": "only two options",
+        "honest_version": "Your old phone has slowed down. Buying the new model is one fix; clearing storage or replacing the battery may also help."
+      }
+    ],
+    "false_alarm": {
+      "text": "The 12 bus runs on either the weekday schedule or the Sunday schedule; there is no Saturday service.",
+      "why_fair": "The timetable really does have just two schedules, so naming both is an accurate description, not a forced choice. Nothing is left out and nobody is being pushed toward an option.",
+      "engine_flags_it": true
+    },
+    "misses": "The rule looks for set phrases such as \"either ... or\", \"only two options\" or \"no middle ground\". A forced choice written without them gets through, for example \"Raise the bake sale prices this year, or the class trip is off.\" Small changes also slip past: one extra word (\"only two real choices\"), or a long stretch between \"either\" and \"or\", as in \"Either we raise the bake sale prices this year for every cookie, brownie, and lemon bar on the table or the class trip gets cancelled.\"",
+    "source": "verifier_corrected_entry"
+  },
+  {
+    "id": "FEAR_URGENCY",
+    "rule_name": "Fear-Based Urgency",
+    "pit_tier": 2,
+    "domain": "general",
+    "plain_name": "Fear and hurry",
+    "one_line": "It pushes the reader to act fast by pointing to disaster or a closing deadline, not by showing what is actually at stake.",
+    "how_it_works": "Fear and time pressure narrow attention. When a reader feels something terrible will happen, or that the chance is about to vanish, stopping to check the claim can feel like a risk in itself. The words carry the weight, so the reader never learns how likely the harm is, how big it is, or what waiting would really cost.",
+    "tier_explained": "This is a Tier 2 (Psychological) move because it works on the reader's fear and sense of alarm instead of giving reasons they can weigh.",
+    "examples": [
+      {
+        "text": "Act now, or you'll be stuck with a slow, outdated phone for years.",
+        "flagged_span": "Act now",
+        "honest_version": "Your phone is three years old and runs the newest apps slowly; if that bothers you, the upgrade offer runs through Friday."
+      },
+      {
+        "text": "Leave that small roof leak alone and the damage to your attic will be irreversible.",
+        "flagged_span": "irreversible",
+        "honest_version": "The roofer found one loose shingle over the attic; fixing it costs about $150, and a slow leak left all season can rot the boards underneath."
+      }
+    ],
+    "false_alarm": {
+      "text": "The regional weather service forecasts the river will crest at 18 feet on Tuesday and warns that this could bring devastating flooding to low-lying streets (Flood Bulletin No. 2026-09).",
+      "why_fair": "The strong word describes a specific forecast. The sentence names the source, the expected water level, the day, and the streets at risk, so the reader can check the warning and judge it for themselves. Nothing in it tells the reader to act without evidence.",
+      "engine_flags_it": true
+    },
+    "misses": "1) Curly apostrophes. The rule's phrases are written with a straight apostrophe, so \"If we don’t act this week, the school bake sale won’t have enough treats to sell\" (typographic ’) gets through. The same sentence with a straight ' is flagged. Word processors and phones often insert curly quotes automatically. 2) Pressure that avoids the listed words. Scarcity and countdown phrasing such as \"Only three upgrade slots left, and this price disappears at midnight. Don't wait.\" raises no flag. Neither does vivid imagery like \"Picture your family shivering in a dark, cold house next winter because you put off the furnace check.\" The rule matches set phrases like \"act now\", \"too late\", \"irreversible\" and \"complete collapse\", not the pressure itself.",
+    "source": "author_entry_verified_ok"
+  },
+  {
+    "id": "SHAME_LEVER",
+    "rule_name": "Shame or Social Pressure as Lever",
+    "pit_tier": 2,
+    "domain": "general",
+    "plain_name": "Shame as pressure",
+    "one_line": "It pushes you to agree by suggesting that only a foolish, careless, or bad person would disagree.",
+    "how_it_works": "The sentence swaps a reason for a judgment about the reader. Disagreeing now looks like admitting you are unreasonable or letting people down, so going along feels safer than asking for proof. The claim itself never gets any support. What gets pressed is your wish to be seen as sensible and decent.",
+    "tier_explained": "This is a Tier 2 (Psychological) move because it works through feelings of shame, guilt, and belonging rather than through evidence or through appeals to authority.",
+    "examples": [
+      {
+        "text": "Any reasonable person would upgrade to the new phone this fall.",
+        "flagged_span": "Any reasonable person",
+        "honest_version": "The new phone comes out this fall, and its battery lasts about six hours longer than last year's model, so upgrading may make sense if battery life matters to you."
+      },
+      {
+        "text": "How could anyone possibly skip the school bake sale after all the work the parents put into planning it?",
+        "flagged_span": "How could anyone possibly",
+        "honest_version": "The parents put a lot of work into planning the school bake sale, which runs Saturday from 9 to noon, and the money raised will pay for new library shelves."
+      }
+    ],
+    "false_alarm": {
+      "text": "How could anyone possibly carry the new couch up those stairs? We measured, and the stairwell is two inches too narrow.",
+      "why_fair": "This is a practical question about moving furniture, not a judgment of anyone's character, and the next sentence gives the measurement that answers it. No one is being shamed into agreeing.",
+      "engine_flags_it": true
+    },
+    "misses": "The rule only matches a short list of fixed phrases, so peer pressure written in ordinary words gets through. For example, \"Every other family on the street has already signed up for the bake sale, so don't be the one house that lets the kids down\" is not flagged. Swapping in a synonym also gets past it: \"Any sensible person would upgrade to the new phone this fall\" is not flagged, because the \"any ___ person\" phrase only matches \"reasonable\", \"rational\", \"intelligent\", \"educated\", and \"decent\".",
+    "source": "verifier_corrected_entry"
+  },
+  {
+    "id": "EMOTIONAL_SUBSTITUTION",
+    "rule_name": "Emotional Appeal Substituted for Argument",
+    "pit_tier": 2,
+    "domain": "general",
+    "plain_name": "Emotion instead of evidence",
+    "one_line": "It uses strong feeling words where the reasons or facts behind a point should be.",
+    "how_it_works": "A strong feeling arrives faster than a reason, and once it is there it feels like a reason. Words like \"heartbreaking\" or \"outrageous\" tell the reader how to feel about a fact before the fact is shown, and \"speaks for itself\" skips the showing entirely. The reader comes away with a reaction but not the details they would need to check it.",
+    "tier_explained": "This is a Tier 2 (Psychological) move because it works by pressing on the reader's feelings, such as sorrow, anger or alarm, rather than by setting what counts as common sense or by leaning on an authority.",
+    "examples": [
+      {
+        "text": "The new bus schedule is simply heartbreaking for everyone who rides Route 4.",
+        "flagged_span": "simply heartbreaking",
+        "honest_version": "The new bus schedule drops the last two evening runs on Route 4, so riders who finish work after 9 p.m. will need another way home."
+      },
+      {
+        "text": "The garden club wants members to chip in for new raised beds after the storm. The devastation speaks for itself.",
+        "flagged_span": "The devastation speaks for itself",
+        "honest_version": "The garden club wants members to chip in for new raised beds after the storm, which split 12 of the 20 beds."
+      }
+    ],
+    "false_alarm": {
+      "text": "It was heartbreaking when the late frost hit the garden club's seedlings: 40 of the 60 trays were lost overnight.",
+      "why_fair": "The feeling comes with the fact that explains it. The reader gets the count (40 of 60 trays, lost overnight) and can judge the loss for themselves. The emotion sits next to the evidence and does not replace it.",
+      "engine_flags_it": true
+    },
+    "misses": "1) The rule only matches set phrases, so a small change in wording gets past it. \"It is heartbreaking to see the Route 4 evening runs disappear from the new bus schedule\" is not flagged, because \"heartbreaking\" is caught only when followed by \"that,\" \"how\" or \"when,\" or when it comes after \"simply,\" \"truly,\" \"absolutely\" or \"utterly.\" Feeling words that are not on the list also pass: \"The new bus schedule is a gut-wrenching blow to everyone who rides Route 4\" is not flagged. 2) A vivid scene can do the same job without using any feeling word at all. \"Picture a nurse standing alone at a dark bus stop at 10 p.m., waiting for a Route 4 bus that no longer comes\" puts one imagined rider where the rider counts should be, and the engine does not flag it.",
+    "source": "author_entry_verified_ok"
+  },
+  {
+    "id": "MORAL_HIGH_GROUND",
+    "rule_name": "Moral Authority Claim",
+    "pit_tier": 2,
+    "domain": "general",
+    "plain_name": "Moral high ground",
+    "one_line": "It turns a practical disagreement into a test of character, so that anyone who disagrees looks like a bad person instead of just someone with a different view.",
+    "how_it_works": "The sentence does not give a reason for its view. It says that good people already hold it. Most readers want to see themselves as decent, so agreeing starts to feel like the price of staying decent. The question about the facts never gets weighed, because objecting now feels like confessing a flaw.",
+    "tier_explained": "It is a Tier 2 (Psychological) move because it works on the reader's wish to be seen as a good person, and on the shame of seeming otherwise, rather than on any evidence about the question.",
+    "examples": [
+      {
+        "text": "Any caring person would agree that the bake sale belongs on Saturday, not Friday.",
+        "flagged_span": "Any caring person would agree",
+        "honest_version": "I think the bake sale belongs on Saturday, not Friday: last year's Saturday sale drew twice as many families, and more parent volunteers are free that day."
+      },
+      {
+        "text": "Keeping the late bus on the schedule is not a budget question; it is simply a matter of basic decency.",
+        "flagged_span": "it is simply a matter of basic decency",
+        "honest_version": "Keeping the late bus on the schedule costs about $300 a week, and I think it is worth it: about 40 riders use it each night, and most have no other ride home after late shifts."
+      }
+    ],
+    "false_alarm": {
+      "text": "Any responsible professional should know to shut off the water before replacing a faucet, as the plumbing guide explains on p. 14.",
+      "why_fair": "This sentence states a basic safety step that anyone can check, and it names where to look it up. Nobody on the other side is being cast as a bad person, and no open question is being closed off. 'Responsible' here means competent at the job. It is not a moral verdict on people who disagree.",
+      "engine_flags_it": true
+    },
+    "misses": "1) Saying it without the stock phrase: \"Only someone who doesn't care about their neighbors would vote to cut the late bus\" makes the same move, but the rule does not flag it because none of its fixed wordings appear. 2) Small wording changes: \"Any caring parent would agree...\" gets through because \"parent\" is not on the rule's list of nouns (person, citizen, professional, and so on). \"It's simply a matter of basic decency\" also gets through when it is typed with a curly apostrophe (it’s), because the rule only matches a straight one.",
+    "source": "author_entry_verified_ok"
+  },
+  {
+    "id": "COMPETENCE_DISMISSAL",
+    "rule_name": "Competence-Based Dismissal",
+    "pit_tier": 2,
+    "domain": "general",
+    "plain_name": "Questioning the critic's competence",
+    "one_line": "It answers a disagreement by saying the people who disagree don't understand the subject, and never gets to what they actually said.",
+    "how_it_works": "The reader hears that the critics are out of their depth and stops weighing what they said. No evidence is offered about the question itself. The only claim is about the critics, and it is usually too vague to check.",
+    "tier_explained": "This is Tier 2 (Psychological) because it works through shame and identity: readers back away from a view once they're told that holding it means they don't understand.",
+    "examples": [
+      {
+        "text": "Those who object to the new bus schedule fail to grasp how the routes actually work.",
+        "flagged_span": "Those who object to the new bus schedule fail to grasp",
+        "honest_version": "Some riders object to the new bus schedule because the early run now leaves at 7:40. The transit office says the change cuts the average wait from 14 minutes to 9."
+      },
+      {
+        "text": "Customers who question the phone upgrade simply don't understand the technical requirements of the new chip.",
+        "flagged_span": "simply don't understand the technical requirements",
+        "honest_version": "Some customers question why the phone upgrade skips older models. The new chip needs 8 GB of memory, and the older models have 4 GB."
+      }
+    ],
+    "false_alarm": {
+      "text": "Most first-time gardeners lack the experience to prune fruit trees, so the garden club runs a free class each spring.",
+      "why_fair": "Nobody's view is being dismissed and no argument goes unanswered. The sentence says beginners haven't learned a skill yet and points to a class where they can learn it.",
+      "engine_flags_it": true
+    },
+    "misses": "The rule matches exact verb forms, so the third-person singular slips through: \"Anyone who objects to the bake sale prices misunderstands what the ingredients cost.\" It isn't flagged because \"objects\" and \"misunderstands\" don't match the rule's \"object\" and \"misunderstand\". The rule also misses any attack on the critic's competence that avoids its fixed phrases, as in \"Critics of the new bus schedule have clearly never ridden a bus at rush hour.\" That sentence makes the same move with none of the understand, grasp or expertise wording.",
+    "source": "author_entry_verified_ok"
+  },
+  {
+    "id": "DISMISSAL_BY_REFRAMING",
+    "rule_name": "Dismissal by Reframing",
+    "pit_tier": 2,
+    "domain": "general",
+    "plain_name": "Reframing to dismiss",
+    "one_line": "It restates someone's point as something they did not say, then answers that new version instead of the real one.",
+    "how_it_works": "The restatement is presented as a helpful clarification of what the other side really means, so readers tend to accept it as a fair summary. Once the new version stands in for the original, rejecting it feels like rejecting the original, but the original point is never answered. No evidence is offered that the new version is what the person meant.",
+    "tier_explained": "It is a Tier 2 (Psychological) move because it works on how readers feel about the people making the point, often by giving them a hidden or unflattering motive, rather than on facts about the point itself.",
+    "examples": [
+      {
+        "text": "Riders asked for one more evening bus on Route 4, but what they're really asking for is a private taxi that everyone else pays for.",
+        "flagged_span": "what they're really asking",
+        "honest_version": "Riders asked for one more evening bus on Route 4. The transit office says it would add about 40 minutes of driver time each weeknight, so the board will weigh that cost against expected ridership."
+      },
+      {
+        "text": "Parents asked that each item at the bake sale carry an ingredient label, but that is really just a way to push out the home bakers.",
+        "flagged_span": "that is really just",
+        "honest_version": "Parents asked that each item at the bake sale carry an ingredient label so families with allergies can choose safely. Home bakers would need to write out a label for every batch they bring."
+      }
+    ],
+    "false_alarm": {
+      "text": "When the transit office asked riders what they're really asking for, 212 of 300 survey replies named a later last bus.",
+      "why_fair": "Nobody's point is recast here. The riders were asked directly, the answer is in their own words, and the sentence gives the count of replies. The engine matches the phrase without checking who is doing the restating.",
+      "engine_flags_it": true
+    },
+    "misses": "The rule only looks for a few set phrases, so the same move gets through when it is worded differently. \"In other words, they want the city to run empty buses all night\" is not flagged. Neither is \"So what you're really asking for is a private taxi,\" because the phrase check covers only \"they,\" \"he\" and \"she,\" not \"you.\" A second gap is typography. Published text often uses a curly apostrophe (they’re), and the phrase check expects a straight one ('), so the first example goes unflagged when it is set in curly quotes.",
+    "source": "author_entry_verified_ok"
+  },
+  {
+    "id": "CAUSAL_TOTALIZATION",
+    "rule_name": "Causal Totalization",
+    "pit_tier": 2,
+    "domain": "general",
+    "plain_name": "One cause for everything",
+    "one_line": "It blames one person, group, or thing for wrecking a whole life, everything, or a whole system, with no evidence, no mechanism, and no limit on the damage.",
+    "how_it_works": "Big harm words like \"ruined\" and \"destroying\" land as a feeling before they land as a claim. Pinning all of it on one actor gives the reader a simple story and someone to be angry at. It never says what that actor did, how it caused the harm, or how far the harm really goes, so there is nothing to check.",
+    "tier_explained": "This is a Tier 2 (Psychological) move because it works through frustration and a sense of loss, pointing those feelings at a single target instead of giving the reader facts to weigh.",
+    "examples": [
+      {
+        "text": "The city's new bus schedule is ruining my life.",
+        "flagged_span": "is ruining my life",
+        "honest_version": "Since the new bus schedule moved my morning bus from 8:10 to 8:25, I have been late to work three times this month."
+      },
+      {
+        "text": "The garden club's new president ruined everything this spring.",
+        "flagged_span": "ruined everything",
+        "honest_version": "This spring the garden club's new president moved meetings to weekday mornings, and attendance fell from 30 members to 12."
+      }
+    ],
+    "false_alarm": {
+      "text": "A burst pipe ruined everything in the basement, including the washer, the dryer, and six boxes of books.",
+      "why_fair": "This is a literal account of physical damage. It names the cause (a burst pipe), limits the damage to one place (the basement), and lists what was lost. Nothing is exaggerated and nothing is hidden. The rule matches only the words \"ruined everything\" and does not look at the scope that follows, and it has no citation or detail check that could turn it off.",
+      "engine_flags_it": true
+    },
+    "misses": "1) Contractions get past it. \"The new bus schedule's ruining my life.\" makes the same claim, but the rule needs the full word \"is\", \"are\", \"has been\" or \"have been\" before a present-tense verb, so \"schedule's ruining\" is not matched. The v1 engine raises no flags at all on this sentence. 2) Blame without a destruction verb gets past it. \"The new coach is the reason our whole season fell apart.\" puts the whole collapse on one actor, but it uses \"is the reason ... fell apart\" instead of a listed verb such as ruin, destroy or wreck, so nothing fires. Targets outside the fixed list also get through. \"The new bus schedule is ruining the neighborhood.\" and \"The new president ruined our garden club.\" raise no flags, because \"the neighborhood\" and \"our garden club\" are not among the listed targets like \"everything\" or \"my life\".",
+    "source": "verifier_corrected_entry"
+  },
+  {
+    "id": "MONOCAUSAL_BLAME",
+    "rule_name": "Monocausal Blame Compression",
+    "pit_tier": 2,
+    "domain": "general",
+    "plain_name": "Single-cause blame",
+    "one_line": "It blames a broad outcome on one cause or one actor and leaves out everything else that played a part.",
+    "how_it_works": "Most outcomes have several causes, and sorting them out takes work. A single cause gives the reader a tidy story and one clear place to aim their frustration, so it feels like an explanation even when no evidence ties that cause to the whole result. Once readers accept it, they stop asking what else contributed.",
+    "tier_explained": "It is Tier 2 (Psychological) because it works by giving frustration a single target, and that simple, satisfying story takes the place of evidence about what actually happened.",
+    "examples": [
+      {
+        "text": "Because of the new coach everything has gone downhill this season.",
+        "flagged_span": "Because of the new coach everything has gone downhill",
+        "honest_version": "The team has done worse since the new coach arrived, and the coaching change may be one of several reasons."
+      },
+      {
+        "text": "The rain was the sole reason why the school bake sale came up short this year.",
+        "flagged_span": "the sole reason why",
+        "honest_version": "The school bake sale raised less this year, and rain on the day was one likely reason."
+      }
+    ],
+    "false_alarm": {
+      "text": "The plumber's inspection report found that a cracked seal was the main cause for the leak under the sink.",
+      "why_fair": "The claim is narrow (one leak), it names its source (an inspection report), and it points to a physical cause that anyone can check. The engine matches the phrase 'the main cause for' without looking at scope or source, so it flags this fair sentence on the span 'the main cause for'.",
+      "engine_flags_it": true
+    },
+    "misses": "The rule matches only fixed phrases. (1) The same claim with different wording gets through. \"Ever since the new coach arrived, nothing has gone right for this team.\" makes the same one-cause claim but uses none of the trigger phrases, and the engine does not flag it. (2) Small surface changes break the phrases that do exist. \"Because of the rain everything has gone wrong.\" is flagged, but the same sentence with a comma (\"Because of the rain, everything has gone wrong.\") is not. The cause can be at most three words: \"Because of the new schedule everything has gone wrong.\" is flagged, while \"Because of the new bus schedule everything has gone wrong.\" is not. A possessive (\"It's all the coach's fault.\") or a curly apostrophe (\"It’s all their fault.\") also gets through, even though \"It's all their fault.\" with a straight apostrophe is flagged.",
+    "source": "verifier_corrected_entry"
+  },
+  {
+    "id": "LEGAL_SANCTIONS_THREAT",
+    "rule_name": "Sanctions Threat as Silencing Tool",
+    "pit_tier": 2,
+    "domain": "legal",
+    "plain_name": "Penalty threat to silence",
+    "one_line": "It warns that the other side will be punished if it keeps making an argument, so the argument gets dropped instead of answered.",
+    "how_it_works": "A penalty warning makes an argument feel dangerous to keep, whether or not it is weak. The reader or the other side feels the risk and starts to doubt the claim, but nobody has shown why it is wrong. The threat stands in for the reasons that would actually settle the point.",
+    "tier_explained": "It is Tier 2 (Psychological) because it works through fear of being punished, not through evidence about the argument itself.",
+    "examples": [
+      {
+        "text": "The roofer's claim that the second coat was never paid for is baseless, and sanctions will be sought unless it is withdrawn by Friday.",
+        "flagged_span": "sanctions will be sought",
+        "honest_version": "The roofer's claim that the second coat was never paid for is wrong: the bank record from June 3 shows the full payment, and we will file it with our answer."
+      },
+      {
+        "text": "If the garden club keeps pressing its fence-line argument, we will move under Rule 11 before the spring hearing.",
+        "flagged_span": "Rule 11",
+        "honest_version": "We disagree with the garden club's fence-line argument because the March survey puts the post two feet inside our lot, and we will explain that at the spring hearing."
+      }
+    ],
+    "false_alarm": {
+      "text": "The judge's order in the bus-shelter repair case explained that Rule 11 requires every filing to have a factual basis, then declined to impose any penalty.",
+      "why_fair": "It reports what the rule requires and what the court actually decided. It does not threaten anyone or push anyone to drop an argument.",
+      "engine_flags_it": true
+    },
+    "misses": "The rule looks for particular words, such as \"Rule 11\", \"sanctions will be sought\", \"warrants sanctions\", or a referral to a disciplinary board. So the same threat gets past it in two ways. First, it can be hinted at without those words: \"You may want to think hard about what judges do to people who waste their time before you file that bake-sale refund claim again.\" The engine did not flag this. Second, the penalty can be named in plain terms instead of legal ones: \"Keep pushing the phone-upgrade fee argument and we will ask the court to make you pay every dollar of our legal fees.\" The engine did not flag this either. The rule also cannot judge whether the challenged argument is really frivolous. It flags the words, not the purpose behind them.",
+    "source": "author_entry_verified_ok"
+  },
+  {
+    "id": "LEGAL_STRAW_MAN",
+    "rule_name": "Straw Man Mischaracterization",
+    "pit_tier": 2,
+    "domain": "legal",
+    "plain_name": "Arguing with a straw man",
+    "one_line": "It restates the other side's argument in a bigger or cruder form than they gave it, then knocks down that weaker version.",
+    "how_it_works": "The reader usually hears the other side's position only through the writer's summary, so a stretched summary takes the place of the real one. Words like \"every,\" \"never,\" or \"essentially arguing\" make the stretched version sound extreme, and an extreme claim looks foolish without any proof against it. The reader ends up agreeing that the claim is wrong, but nobody has shown that the claim the other side actually made is wrong.",
+    "tier_explained": "This is a Tier 2 (Psychological) move because it works on how the reader feels about the other side, making them look unreasonable or extreme, and gives no evidence about what they really said.",
+    "examples": [
+      {
+        "text": "Plaintiff claims that every shingle on the roof was installed wrong, which is hard to square with a roof that has not leaked in two years.",
+        "flagged_span": "Plaintiff claims that every",
+        "honest_version": "Plaintiff claims that three shingles on the north slope were installed loose; our inspector's report found those three shingles fastened to code, and the roof has not leaked in two years."
+      },
+      {
+        "text": "The garden club is essentially arguing that we should never be allowed to use the shared water line again.",
+        "flagged_span": "is essentially arguing that we should",
+        "honest_version": "The garden club asks that the shared water line be used only on weekday mornings; we ask for evening hours too, because our beds dry out by noon."
+      }
+    ],
+    "false_alarm": {
+      "text": "Plaintiff argues that no refund was issued for the returned phone, and attaches the store receipt showing the return date.",
+      "why_fair": "The summary is accurate. The plaintiff's claim really is that no refund was issued, and the sentence points to the receipt as evidence. Here \"no\" is simply what the claim says, not an overstatement. The rule can't tell the two apart, because it matches the words and never checks them against what the party actually said.",
+      "engine_flags_it": true
+    },
+    "misses": "1) The rule looks for two fixed wordings. The first is a formal party label (plaintiff, defendant, petitioner, respondent, appellant, appellee, opposing or other party, side, or counsel), then a verb like \"argues\" or \"claims,\" then an absolute word such as \"every,\" \"no,\" or \"never.\" The second is a reducing frame such as \"essentially arguing\" or \"really asking,\" followed by \"we,\" \"this court,\" or \"the plaintiff\" and then \"should,\" \"must,\" or \"have to.\" A loose paraphrase that uses neither wording gets through even when it is just as distorted. For example, \"In other words, the homeowner wants the contractor to rebuild the entire porch for free\" and \"The bake sale committee wants every family to bake four dozen cookies, which no working parent could manage\" are not flagged. \"Homeowner\" and \"committee\" are not on the party list, \"wants\" is not on either verb list, and neither sentence uses the reducing frame. 2) The rule is loaded only when the engine runs in the legal domain (or auto). The same sentence, \"Plaintiff claims that every shingle on the roof was installed wrong,\" is not flagged in the default general domain.",
+    "source": "verifier_corrected_entry"
+  },
+  {
+    "id": "MEDIA_WEASEL_QUANTIFIERS",
+    "rule_name": "Weasel Words / Vague Quantifiers",
+    "pit_tier": 2,
+    "domain": "media",
+    "plain_name": "Vague crowd words",
+    "one_line": "It says an unnamed and uncounted group agrees, so a claim seems widely held when nobody can check how many people actually hold it.",
+    "how_it_works": "Phrases like \"many people say\" or \"it is widely believed\" suggest that a crowd already agrees. The reader feels the weight of that crowd but never finds out who is in it, how many there are, or what they based their view on. Since no number or name is given, the claim can't be checked, and it can't be shown to be wrong either.",
+    "tier_explained": "This is a Tier 2 (Psychological) move because it plays on the wish to agree with others, so a reader goes along with the claim because \"many\" seem to believe it, not because of any evidence.",
+    "examples": [
+      {
+        "text": "Many people say the garden club's spring plant sale was the best in years, and some experts think sales will double next year.",
+        "flagged_span": "Many people",
+        "honest_version": "The garden club's treasurer said spring plant sale receipts were the highest in five years, and she expects sales to double next year based on early pre-orders."
+      },
+      {
+        "text": "It is widely believed that the new city bus schedule saves riders time, and there is growing support for adding a Sunday route.",
+        "flagged_span": "It is widely believed",
+        "honest_version": "The transit office's ride logs show trips on the new city bus schedule average six minutes shorter, and 140 riders have signed a petition asking for a Sunday route."
+      }
+    ],
+    "false_alarm": {
+      "text": "At the garden club meeting, 18 of 24 members voted to hold the plant sale on Saturday; some people wanted Sunday instead, and several people abstained.",
+      "why_fair": "The sentence gives the real count first (18 of 24 in a named vote). \"Some\" and \"several\" only split up the six members who were left over. They don't suggest a larger agreement than the tally shows. The engine still flags it, because the rule counts two quantifier phrases and does not look at the numbers around them. A citation doesn't stop it either: this rule has no citation check, and a similar bake-sale sentence with \"(Table 2)\" was also flagged.",
+      "engine_flags_it": true
+    },
+    "misses": "1) The rule only fires after two vague phrases. One phrase on its own gets through: \"Many experts think the new phone upgrade is worth the price.\" is not flagged. 2) Any wording outside the rule's fixed word lists also gets through. Contractions do too: the rule looks for \"it is\" and \"it has been\", so \"it's\" is missed. Nothing in \"Most fans think this is the team's best season in years, and a lot of folks expect a title.\" is flagged (\"most\", \"a lot of\", \"fans\" and \"folks\" are not in the lists). Nothing in \"It's widely believed the new phone upgrade fixes the battery problem, and it's generally thought the camera is better too.\" is flagged either.",
+    "source": "author_entry_verified_ok"
+  },
+  {
+    "id": "MEDIA_EMOTIONAL_LEAD",
+    "rule_name": "Emotional Lead / Hook",
+    "pit_tier": 2,
+    "domain": "media",
+    "plain_name": "Feelings before facts",
+    "one_line": "It opens a story with a strong feeling word, so the reader reacts before learning what happened.",
+    "how_it_works": "The first words of a story set the mood for everything after them. A word like 'shocking' or 'heartbreaking' tells the reader how to feel before they know the facts, so the facts that follow get read through that feeling. The word carries no evidence of its own. It only reports the writer's reaction, or the reaction the writer wants you to have.",
+    "tier_explained": "It is a Tier 2 (Psychological) move because it works on the reader's feelings, setting a mood of alarm, anger or sorrow before any fact arrives.",
+    "examples": [
+      {
+        "text": "Shocking changes are coming to the Route 9 bus: starting Monday, buses will run every 20 minutes instead of every 15.",
+        "flagged_span": "Shocking",
+        "honest_version": "Starting Monday, Route 9 buses will run every 20 minutes instead of every 15, according to the schedule the city transit office posted this week."
+      },
+      {
+        "text": "Heartbreaking news from the school bake sale: this year's sale raised $450, down from $600 last year.",
+        "flagged_span": "Heartbreaking",
+        "honest_version": "This year's school bake sale raised $450, down from $600 last year, according to the parent group's treasurer."
+      }
+    ],
+    "false_alarm": {
+      "text": "Damaging winds of up to 60 mph are possible Tuesday evening, the county weather office said in its storm advisory.",
+      "why_fair": "'Damaging winds' is a standard forecast term for wind strong enough to break branches or bring down lines. The sentence gives the speed and names the source, so the word reports a measured risk. It is not there to set a mood. The engine flags it anyway because it matches the word itself and does not look at how the word is used.",
+      "engine_flags_it": true
+    },
+    "misses": "The rule checks a fixed list of words, and only when one starts within about the first 50 characters of the text. (1) A charged word that is not on the list gets through. 'Nightmare commute ahead: starting Monday, Route 9 buses will run every 20 minutes instead of every 15.' is not flagged. (2) A listed word placed a little later also gets through. In 'Riders who count on the Route 9 bus every morning got a shocking surprise this week: ...' the word 'shocking' starts after character 50, so it is not flagged. The same goes for a scene-setting opening with no charged word at all, such as 'The rain had soaked through her coat by the time the Route 9 bus finally came, twenty minutes late.' It still leads with feeling, and the rule does not flag it.",
+    "source": "author_entry_verified_ok"
+  },
+  {
+    "id": "MEDIA_BURIED_QUALIFIER",
+    "rule_name": "Buried Qualifier / Buried Denial",
+    "pit_tier": 2,
+    "domain": "media",
+    "plain_name": "Correction at the bottom",
+    "one_line": "It opens with the story people will remember and puts the fact that weakens it, such as a denial, a correction or \"no evidence,\" at the end.",
+    "how_it_works": "Readers form their view of a story from its opening lines, and many stop reading before the end. When the correction or denial comes last, it is technically there, but it arrives after the reader has already made up their mind. Nothing false has to be said. The order of the facts does the work that evidence should do.",
+    "tier_explained": "It is a Tier 2 (Psychological) move because it works on how people hold first impressions: the feeling the opening creates stays with the reader even after the correction arrives.",
+    "examples": [
+      {
+        "text": "Last night's storm left fallen branches on nearly every street in town, flooded a dozen basements and sent a long line of neighbors to the hardware store, and by breakfast most of them were blaming the old storm drains on Elm Street. However, the town engineer found no evidence that the drains failed.",
+        "flagged_span": "However, the town engineer found no evidence",
+        "honest_version": "The town engineer found no evidence that the old storm drains on Elm Street failed in last night's storm, though by breakfast most neighbors were blaming them after the storm left fallen branches on nearly every street, flooded a dozen basements and sent a long line of neighbors to the hardware store."
+      },
+      {
+        "text": "Owners who installed this week's phone update flooded the help forums with posts saying their batteries now die before lunch, and the most shared thread, titled \"This update ruined my phone,\" drew thousands of angry replies within a day. In the phone maker's lab tests, though, the drain was not confirmed on any model.",
+        "flagged_span": "though, the drain was not confirmed",
+        "honest_version": "The phone maker's lab tests did not confirm a battery drain on any model, though owners who installed this week's update flooded the help forums with posts saying their batteries now die before lunch, and the most shared thread, titled \"This update ruined my phone,\" drew thousands of angry replies within a day."
+      }
+    ],
+    "false_alarm": {
+      "text": "Starting Monday, Route 4 buses will run every 15 minutes instead of every 20, Route 9 will add a stop at the public library, and the last evening bus on both routes will leave the depot at 11:10 p.m. instead of 10:40 p.m. However, the start date for the new Sunday service is not confirmed yet.",
+      "why_fair": "The main news is stated plainly and is not changed by the last sentence. The caveat is about a different detail, the Sunday service, and it is said clearly. Nothing earlier in the text sets up an impression that the caveat has to undo, so the order is simply the natural order of importance.",
+      "engine_flags_it": true
+    },
+    "misses": "1) Wording outside its short list. The rule only fires when a \"however / but / though\" is followed within about 150 characters by one of a few fixed phrases (\"no evidence,\" \"not confirmed,\" \"denied,\" \"could not be confirmed,\" \"remains unclear,\" and so on). A buried denial worded as \"has not been confirmed,\" \"could not confirm,\" or \"did not confirm\" goes unflagged. So does one with no transition word, like \"The town engineer's report, for its part, found the drains worked as designed.\" All of these were tested and none was flagged. 2) It counts characters, not reading order. If the frame is set in under 200 characters, as in a headline or a short alert followed right away by the qualifier, the rule stays silent. It also stays silent when the qualifier comes more than about 150 characters after the \"however,\" even though that pushes the qualifier deeper into the text.",
+    "source": "verifier_corrected_entry"
+  },
+  {
+    "id": "MEDIA_SPECULATIVE_FRAMING",
+    "rule_name": "Speculation Presented as Likely",
+    "pit_tier": 2,
+    "domain": "media",
+    "plain_name": "Guesses dressed as likely",
+    "one_line": "It uses forecast words like \"is expected to\" or \"could well lead to\" to make a guess about the future sound nearly settled, without saying who expects it or why.",
+    "how_it_works": "Words like \"expected\", \"poised\", \"set to\", and \"signs point to\" suggest that someone has weighed the evidence, but they never say who did or what they found. Each phrase is hedged, so none of them can be proven wrong. Stack two or three together and the reader walks away treating the outcome as close to certain.",
+    "tier_explained": "This is a Tier 2 (Psychological) move because it works on what readers hope for or brace for, and that expectation replaces a claim they could check.",
+    "examples": [
+      {
+        "text": "The new city bus schedule is expected to cut wait times, and it could well lead to fuller buses by spring.",
+        "flagged_span": "is expected to",
+        "honest_version": "Transit planners estimate the new city bus schedule will cut average waits from 15 minutes to 10, based on a three-month trial. They have not projected how many more riders it will bring."
+      },
+      {
+        "text": "The home team is poised to win the title this season, and signs point to a sold-out final.",
+        "flagged_span": "is poised to",
+        "honest_version": "The home team leads the league by six points with four games left, and 9,000 of the 10,000 seats for the final have been sold."
+      }
+    ],
+    "false_alarm": {
+      "text": "The posted timetable says the new city bus schedule is set to start on June 1, and the Route 4 bus is slated to run every 12 minutes.",
+      "why_fair": "This is not a guess. It reports a published plan, names where the plan comes from, and gives exact dates and times that a reader can check. Here \"set to\" and \"slated to\" are ordinary scheduling words, not a forecast made to sound certain.",
+      "engine_flags_it": true
+    },
+    "misses": "1) A single phrase passes. The rule needs at least two matching phrases, so \"The new phone upgrade is expected to sell out on the first day.\" raises no flag, and neither does the same guess followed by a sentence without a listed phrase (\"...is expected to sell out. Stores are bracing for long lines.\"). 2) Wording outside the fixed list passes. \"Could face delays\" on its own (the rule only catches \"could soon/eventually/ultimately/well face\"), \"will likely\", and contractions such as \"It's expected to\" or \"the storm's likely to\" do not match. So \"The garden club's spring show could face delays, and it will likely draw a smaller crowd.\" is not flagged. (Also note that the rule runs only when the domain is \"media\" or \"auto\". Under \"general\", the first example is not flagged.)",
+    "source": "author_entry_verified_ok"
+  },
+  {
+    "id": "FIN_ANCHORING",
+    "rule_name": "Arbitrary Anchoring",
+    "pit_tier": 2,
+    "domain": "financial",
+    "plain_name": "Convenient reference point",
+    "one_line": "It measures a number against a hand-picked high or low, so the same figure looks like a bargain or a boom.",
+    "how_it_works": "The first number a reader sees becomes the yardstick for the numbers after it. A price \"down 45% from the record high\" feels cheap because the record high is the comparison, even if that high was unusual and today's price is ordinary. The reader comes away with a sense of value or momentum but never learns whether the reference point was a fair one to pick.",
+    "tier_explained": "It is Tier 2 (Psychological) because it works on the feeling of a bargain or a missed chance, not on evidence about the number itself.",
+    "examples": [
+      {
+        "text": "Season tickets are down 45% from the record high, so this is the year to finally buy them.",
+        "flagged_span": "down 45% from the record high",
+        "honest_version": "Season tickets cost $330 this year, about the same as last year's $320; three seasons ago they peaked at $600."
+      },
+      {
+        "text": "Last year's phone is now selling at just 40% of its peak price, which makes it a steal for anyone ready to upgrade.",
+        "flagged_span": "selling at just 40% of its peak price",
+        "honest_version": "Last year's phone now costs $360, down from $900 at launch, while this year's model costs $950."
+      }
+    ],
+    "false_alarm": {
+      "text": "The river is down 30% from its record high in April, which the county flood office says is normal for late summer.",
+      "why_fair": "The reference point is dated and relevant to the reader. A source supplies the context, and the sentence says what the drop means instead of using it to push a choice.",
+      "engine_flags_it": true
+    },
+    "misses": "1) Small changes in wording get past the regex. \"Down 45% from their record high\" is not flagged because the rule accepts only \"its\", \"the\", or no word before the anchor. \"Less than half of what they did at the peak\" is not flagged because there is no percent figure. 2) The most common retail anchor has no percent and no peak/high wording at all: \"Was $900, now only $360\" and \"40% below the list price\" both pass unflagged. The rule also runs only when domain is \"financial\" or \"auto\". Under the default \"general\" domain it flags nothing, even on the examples above.",
+    "source": "verifier_corrected_entry"
+  },
+  {
+    "id": "FIN_PROJECTION_AS_FACT",
+    "rule_name": "Projection Presented as Fact",
+    "pit_tier": 2,
+    "domain": "financial",
+    "plain_name": "Forecast stated as fact",
+    "one_line": "It states a guess about the future, like a price or a sales total, as if it were already settled.",
+    "how_it_works": "A forecast is an estimate, and it can be wrong. Writing \"will reach\" in place of \"is expected to reach\" drops the words that tell readers they are looking at an estimate. Readers take in a confident number as a known one and never ask what it rests on.",
+    "tier_explained": "This is Tier 2 (Psychological) because it works on how readers feel about uncertainty: sounding sure gives comfort or urgency where the evidence gives neither.",
+    "examples": [
+      {
+        "text": "The school bake sale opens at nine on Saturday, and sales will reach $600.",
+        "flagged_span": "sales will reach $600",
+        "honest_version": "The school bake sale opens at nine on Saturday. Last year it took in $540, so the committee expects sales of about $600."
+      },
+      {
+        "text": "The new phone goes on sale in March, and the price will fall by half before summer.",
+        "flagged_span": "the price will fall",
+        "honest_version": "The new phone goes on sale in March. The maker's last two models dropped about 40% within four months, so the price may fall by half before summer."
+      }
+    ],
+    "false_alarm": {
+      "text": "On July 1, under the fare change the transit board approved in May, bus ticket prices will reach $2.50.",
+      "why_fair": "This isn't a forecast. The new fare was already voted on and has a start date, so \"will\" describes a scheduled fact, and the sentence says where it comes from.",
+      "engine_flags_it": true
+    },
+    "misses": "The rule only matches a short list of money words followed by a short list of verbs. So \"sales will climb to $600\" passes, because \"climb\" is not on the verb list. \"The garden club's plant sale will bring in $900\" also passes, because the subject is not on the list. The rule also runs only when the text is checked in the financial (or auto) domain. In the default general domain, the same bake-sale sentence is not flagged at all.",
+    "source": "author_entry_verified_ok"
+  },
+  {
+    "id": "FIN_RECENCY_EXTRAPOLATION",
+    "rule_name": "Recency Bias / Trend Extrapolation",
+    "pit_tier": 2,
+    "domain": "financial",
+    "plain_name": "Hot streak forever",
+    "one_line": "It takes a short run of good results and treats the run as if it will keep going, without saying why.",
+    "how_it_works": "A recent streak is easy to picture, so the reader carries it forward without being asked to. The writer never states or defends the prediction. They only point at the streak, or say nothing suggests it will end. Because the forecast is never spelled out, the reader is never shown the evidence it would need, such as how long the run has lasted, what caused it, or what might change.",
+    "tier_explained": "It is a Tier 2 (Psychological) move because it works on hope and the fear of missing out, not on evidence.",
+    "examples": [
+      {
+        "text": "The school bake sale has raised more than the year before for three springs in a row, and there's no reason to think this will stop.",
+        "flagged_span": "there's no reason to think this will stop",
+        "honest_version": "The school bake sale has raised more than the year before for three springs in a row. Three years is a short run, and turnout and donated goods change each spring, so we are planning for a total near last year's."
+      },
+      {
+        "text": "After six straight wins, the home team continues its winning ways, so fans are already planning the championship parade.",
+        "flagged_span": "continues its winning ways",
+        "honest_version": "The home team has won six straight games. Half the season is left, and four of the remaining games are against the top teams in the league, so the title is still open."
+      }
+    ],
+    "false_alarm": {
+      "text": "The Route 9 bus has consistently delivered on-time arrivals 95 percent of the time over five years of monthly logs, but the schedule changes in January, so that record may not hold.",
+      "why_fair": "It reports a measured past record, names the source and the time span, and says plainly that the record may not continue. It does not extrapolate.",
+      "engine_flags_it": true
+    },
+    "misses": "1) It only matches a few fixed phrases. A sentence like \"The new phone sold out in its first week, and the trend shows no sign of slowing\" makes the same move and is not flagged. The regex needs \"no sign\" to be followed directly by \"this/it/the ... will stop/slow\", so \"no sign of slowing\" gets through. The same goes for \"keeps winning\", \"is on a roll\", or \"has outperformed three years straight\" when no word like \"consistently\" or \"always\" appears. 2) When the conclusion is left for the reader to draw, as in \"The garden club doubled its membership last spring. Imagine how big it will be in five years.\", no trigger phrase appears and nothing is flagged. Also, the rule is financial-only: it runs when the domain is \"financial\" or \"auto\". In a \"general\" scan it never fires, even on the exact example text.",
+    "source": "author_entry_verified_ok"
+  },
+  {
+    "id": "BUREAUCRATIC_OBSCURITY",
+    "rule_name": "Bureaucratic Language Obscuring Meaning",
+    "pit_tier": 3,
+    "domain": "general",
+    "plain_name": "Hiding behind official jargon",
+    "one_line": "It wraps a simple claim in stiff, official-sounding words, so the claim sounds more settled than it is, or so its real meaning is harder to see.",
+    "how_it_works": "Formal legal and office phrases sound like a rule or a procedure is speaking, not a person, so readers tend to accept the sentence rather than question it. The dense wording also slows readers down, and a plain point, often an unwelcome one like a cut, a delay or a cost, can slip past them. No evidence has been added; only the tone has changed.",
+    "tier_explained": "This is a Tier 3 (Institutional) move because it borrows the voice of an office or a legal document, so the claim leans on how official it sounds, not on reasons the reader can check.",
+    "examples": [
+      {
+        "text": "Pursuant to the implementation of the revised service plan, Route 9 buses will arrive every 20 minutes instead of every 15.",
+        "flagged_span": "Pursuant to the implementation",
+        "honest_version": "Route 9 buses will now come every 20 minutes instead of every 15. That means a longer wait at each stop."
+      },
+      {
+        "text": "Notwithstanding the foregoing, the contractor has determined that the leak under the sink falls outside the scope of the warranty.",
+        "flagged_span": "Notwithstanding the foregoing",
+        "honest_version": "Even so, the contractor says the warranty does not cover the leak under the sink."
+      }
+    ],
+    "false_alarm": {
+      "text": "It should be noted that the garden club survey covered only 40 households (Table 2), so the result may not hold for the whole town.",
+      "why_fair": "Here the formal phrase points to a real limit in the evidence and says where the numbers are (Table 2). It makes the claim weaker and easier to check, not more official. The rule matches the words \"It should be noted that\" no matter what follows, and this rule is not switched off when a citation is present, so the engine flags the sentence anyway.",
+      "engine_flags_it": true
+    },
+    "misses": "1) The rule only catches a fixed list of phrases, so newer office jargon gets through. For example, \"To right-size service levels, the transit team will leverage stakeholder alignment across Route 9\" hides a service cut in the same way, and the engine does not flag it. 2) The buzzword check needs exactly one word between the buzzword and the noun. \"The phone plan will effectuate a streamlined trade-in mechanism for all customers\" has two words in between, so it is missed. Long noun phrases with no listed words are also missed, such as \"A service frequency optimization initiative has been undertaken for Route 9.\"",
+    "source": "verifier_corrected_entry"
+  },
+  {
+    "id": "VAGUE_INSTITUTIONAL_APPEAL",
+    "rule_name": "Vague Institutional Appeal",
+    "pit_tier": 3,
+    "domain": "general",
+    "plain_name": "Unnamed authorities",
+    "one_line": "It says important organizations back a claim but never says which ones.",
+    "how_it_works": "Words like \"leading\" or \"key\" make readers picture serious, trusted bodies standing behind the claim. No names are given, so the reader cannot check who said it, what they said, or whether anyone said it. The claim gets the weight of authority without anything a reader can test.",
+    "tier_explained": "This is a Tier 3 (Institutional) move. It borrows the standing of institutions to carry a claim, in place of the evidence those institutions would supply.",
+    "examples": [
+      {
+        "text": "Leading organizations recommend watering tomatoes at dawn, so the garden club is moving its watering hour.",
+        "flagged_span": "Leading organizations recommend",
+        "honest_version": "The garden club is moving its watering hour to dawn. The county extension office's vegetable guide recommends morning watering so the leaves dry before evening."
+      },
+      {
+        "text": "Industry leaders have long recognized that a roof should be replaced every twenty years, so we booked a crew for spring.",
+        "flagged_span": "Industry leaders have long recognized",
+        "honest_version": "The label on our shingles lists a twenty-year lifespan, and the roof is now twenty-two years old, so we booked a crew for spring."
+      }
+    ],
+    "false_alarm": {
+      "text": "Two key groups support the new bus schedule: the riders' council, which voted for it in June, and the school board, which asked for an earlier first bus.",
+      "why_fair": "The sentence names both groups and says what each one did, so a reader can check it. The engine still flags it. It matches \"key groups support\" and finds nothing nearby that it counts as a citation, because it does not read the names that come after the colon.",
+      "engine_flags_it": true
+    },
+    "misses": "1) Small changes in wording get past it. The rule knows only a fixed list of adjectives, nouns and verbs, in one word order, with no more than five words between the group and the verb. None of these are flagged: \"Well-known organizations recommend watering tomatoes at dawn\" (\"well-known\" is not on the list), \"Watering tomatoes at dawn is recommended by leading organizations\" (passive order), and \"Top experts back the new watering schedule\" (\"experts\" and \"back\" are not on the list). 2) Plain numbers near the claim can switch the rule off. \"Leading organizations recommend watering tomatoes at dawn, 2 or 3 times a week, so the garden club is moving its watering hour\" is not flagged. The citation check treats \"2 or 3\" as a reference, so it assumes a source was given.",
+    "source": "author_entry_verified_ok"
+  },
+  {
+    "id": "TOTALIZING_HARM_LANGUAGE",
+    "rule_name": "Totalizing Harm Language",
+    "pit_tier": 3,
+    "domain": "general",
+    "plain_name": "Sweeping damage claims",
+    "one_line": "It describes harm as total and final, with everything ruined and nothing left, without saying what was actually damaged or how much.",
+    "how_it_works": "Phrases like 'completely destroyed' or 'nothing left' give the reader a finished verdict instead of a measurement. A picture of total loss is vivid and hard to argue with, so readers tend to accept the scale without asking what was counted. Because no scope is given, there is nothing to check, and a partial loss can pass as a total one.",
+    "tier_explained": "BiasClear files it under Tier 3, Institutional, because it speaks with the finality of an official damage report and settles the question of scope the way a signed assessment would, but with no assessment behind it.",
+    "examples": [
+      {
+        "text": "Last night's hailstorm completely destroyed the community garden.",
+        "flagged_span": "completely destroyed",
+        "honest_version": "Last night's hailstorm flattened the tomato and squash beds in the community garden; the herb beds and the fruit trees lost leaves but no branches."
+      },
+      {
+        "text": "The basement flooded over the weekend, and everything is ruined.",
+        "flagged_span": "everything is ruined",
+        "honest_version": "The basement flooded over the weekend with about two inches of water; the carpet and three boxes of books are soaked, but the furnace and the washer are dry and working."
+      }
+    ],
+    "false_alarm": {
+      "text": "The backyard shed was completely destroyed in Tuesday's fire, but the house ten feet away had only a scorched fence post.",
+      "why_fair": "The sentence names one object, the shed, says what happened to it, and marks where the damage stopped. That makes 'completely' a checkable fact about a bounded thing, not a sweeping verdict. The engine flags it anyway because the rule matches the words 'completely destroyed' and cannot see that the scope is limited.",
+      "engine_flags_it": true
+    },
+    "misses": "1) Plain past tense gets through. 'Last night's hailstorm destroyed the whole community garden.' and 'Last night's hailstorm wiped out the whole community garden.' are not flagged. The rule catches 'the whole' or 'the entire' only after -ing verbs like 'destroying'. It catches a past-tense word like 'destroyed' or 'ruined' only right after an intensifier such as 'completely', or right after 'everything' or 'everything is'. 2) A nearby reference mark turns the rule off. 'Last night's hailstorm completely destroyed the community garden [1].' and the same sentence ending in '(see p. 2)' are not flagged. The rule skips a match when a bracketed number, a page number, or a similar reference mark appears within about 120 characters of it. That mark says nothing about whether the whole garden was lost.",
+    "source": "verifier_corrected_entry"
+  },
+  {
+    "id": "LEGAL_SETTLED_DISMISSAL",
+    "rule_name": "Settled Law Dismissal",
+    "pit_tier": 3,
+    "domain": "legal",
+    "plain_name": "Settled law as shutdown",
+    "one_line": "It calls a rule \"settled\" to end a discussion, without showing how the rule answers the point someone raised.",
+    "how_it_works": "The word \"settled\" tells readers that people with authority answered the question long ago, so asking again feels pointless or rude. The sentence never names the rule, quotes it, or shows how it fits the case at hand. The reader gets a verdict and a closed door, not a reason they can check.",
+    "tier_explained": "This is a Tier 3 (Institutional) move because it uses the weight of past rulings and rulebooks, the authority of the institution, where an argument the reader could test should be.",
+    "examples": [
+      {
+        "text": "The garden club's plot rules are settled law, so the new member's question about the waiting list needs no answer.",
+        "flagged_span": "settled law",
+        "honest_version": "Rule 3 of the garden club's bylaws gives open plots to members in the order they joined; the new member joined in May, so she is fourth on the waiting list."
+      },
+      {
+        "text": "It is well settled that a rained-out game counts as a tie, so the coach's request for a makeup game fails.",
+        "flagged_span": "well settled that",
+        "honest_version": "League rule 7.2 says a rained-out game counts as a tie and is not replayed, so the coach's request for a makeup game does not fit that rule."
+      }
+    ],
+    "false_alarm": {
+      "text": "It is well settled that rained-out games count as ties: league rule 7.2 says so on page 4, and the board applied it to three games last season.",
+      "why_fair": "The sentence names the rule, says where to find it, and points to past cases where it was applied, so a reader can check the claim. Here \"well settled\" sums up evidence that is given instead of standing in for it. The engine still flags it because this rule has no citation check and matches on the phrase alone.",
+      "engine_flags_it": true
+    },
+    "misses": "The rule only looks for a short list of stock phrases: well settled (with or without a hyphen), clearly or plainly established, settled, or erroneous, black-letter law, hornbook law, settled law, principle, precedent or authority, and \"controlling authority is clear\". Other wording that makes the same move gets through. For example, \"That question was answered years ago, so the new member's complaint about the waiting list needs no reply\" is not flagged, and neither is \"It is firmly established that a rained-out game counts as a tie, so the coach's request fails.\" The rule also runs only in the legal (or auto) domain. In a general scan, \"It is well settled that a rained-out game counts as a tie, so the coach's request for a makeup game fails\" raises no flag at all.",
+    "source": "verifier_corrected_entry"
+  },
+  {
+    "id": "LEGAL_MERIT_DISMISSAL",
+    "rule_name": "Merit Dismissed Without Engagement",
+    "pit_tier": 3,
+    "domain": "legal",
+    "plain_name": "Dismissed without an answer",
+    "one_line": "It calls an argument meritless or frivolous so that nobody has to answer what the argument actually says.",
+    "how_it_works": "Words like \"plainly meritless\" or \"wholly without merit\" sound like a finished judgment, so the reader assumes someone has already checked the argument. But the sentence gives no fact, rule, or record showing why the argument fails. The strong label does the work that a reason should do.",
+    "tier_explained": "It is Tier 3 (Institutional) because it borrows the tone of a court's final ruling, and that official weight stands in for actually engaging with the argument.",
+    "examples": [
+      {
+        "text": "The homeowner's claim that the contractor skipped the second coat of sealant on the deck is plainly meritless, and the court should dismiss it.",
+        "flagged_span": "plainly meritless",
+        "honest_version": "The homeowner's claim that the contractor skipped the second coat of sealant on the deck should be dismissed: the job log and dated photos from both days show two coats going on."
+      },
+      {
+        "text": "The garden club's challenge to the new plot fees is wholly without merit and should be rejected.",
+        "flagged_span": "wholly without merit",
+        "honest_version": "The garden club's challenge to the new plot fees should be rejected because the club's own bylaws, in section 3, let the board set fees each spring without a member vote."
+      }
+    ],
+    "false_alarm": {
+      "text": "The small-claims judge found the fence claim had no merit because the survey map placed the fence two feet inside the owner's own lot.",
+      "why_fair": "It reports a judge's finding and gives the reason right away: a survey map anyone can check. The reader gets the evidence along with the verdict.",
+      "engine_flags_it": true
+    },
+    "misses": "The rule only knows a fixed list of phrases. Plain synonyms get past it: \"baseless,\" \"devoid of merit,\" \"lacks merit\" (without \"any\"), \"meritless on its face,\" \"without any merit,\" and \"frivolous\" on its own with no \"clearly,\" \"obviously,\" or \"patently\" in front all go unflagged. The rule also runs only when the text is checked as legal (or auto) writing, so the same sentence checked as general writing is never flagged.",
+    "source": "author_entry_verified_ok"
+  },
+  {
+    "id": "LEGAL_WEIGHT_STACKING",
+    "rule_name": "Authority Weight Stacking",
+    "pit_tier": 3,
+    "domain": "legal",
+    "plain_name": "Piling on authority",
+    "one_line": "It treats a big, unnamed pile of authority as if its size settled the question, and never shows why the claim is right.",
+    "how_it_works": "Hearing that \"every court\" or \"the weight of authority\" agrees makes a point feel closed before the reader asks what those sources actually said. The reader gets a sense of size, not a reason: no source is named, nothing is counted, and the reasoning that decided the matter is left out. Checking a whole stack of sources feels like too much work, so most readers just take the summary.",
+    "tier_explained": "This is Tier 3, Institutional, because it leans on the combined standing of courts and other official sources and asks readers to trust that weight instead of judging the argument.",
+    "examples": [
+      {
+        "text": "The weight of authority is against moving the bake sale outside, so it stays in the gym.",
+        "flagged_span": "The weight of authority",
+        "honest_version": "The school's event handbook says food sales must be held indoors, so the bake sale stays in the gym unless the committee changes that rule."
+      },
+      {
+        "text": "Every court that has addressed a leaky-gutter dispute sided with the homeowner, so the roofer must redo the job for free.",
+        "flagged_span": "Every court that has addressed",
+        "honest_version": "Two small-claims rulings on the same warranty wording sided with the homeowner because the warranty covers gutter leaks for two years; this leak began at eight months, so the roofer must redo the job for free."
+      }
+    ],
+    "false_alarm": {
+      "text": "The weight of authority on gutter warranties is evenly split, four small-claims rulings each way, so this case turns on the wording of the roofer's contract.",
+      "why_fair": "It reports what the authority actually shows, gives the count on each side, says plainly that there is no consensus, and points to the contract wording as the thing that decides the case. It is not using the pile of rulings to win the point.",
+      "engine_flags_it": true
+    },
+    "misses": "Small changes in wording get past it. \"Every court to have considered a leaky-gutter dispute sided with the homeowner\" is not flagged. The rule accepts \"every court to consider\" and \"every court that has considered\", but not \"to have considered\". A plain list also gets through: \"Three past rulings, two consumer guides, a trade handbook and a repair pamphlet all side with the homeowner\" stacks up authority without any of the stock phrases the rule watches for. (The rule also runs only when text is checked in legal or auto mode. The same flagged sentences checked in general mode return no flags.)",
+    "source": "verifier_corrected_entry"
+  },
+  {
+    "id": "LEGAL_PROCEDURAL_GATEKEEPING",
+    "rule_name": "Procedural Gatekeeping to Avoid Substance",
+    "pit_tier": 3,
+    "domain": "legal",
+    "plain_name": "Too late to hear",
+    "one_line": "It turns down a complaint on a procedural point, such as a missed deadline, the wrong person asking, or the wrong step, and never says whether the complaint is right.",
+    "how_it_works": "A rule about timing or who may speak sounds fair and neutral, so readers accept the refusal without asking about the actual problem. The procedural point may be true, but it answers a different question. The reader comes away thinking the matter is settled when nobody has checked the facts.",
+    "tier_explained": "This is a Tier 3 (Institutional) move because it uses an institution's own rules and procedures to decide the question, so nobody has to weigh the evidence.",
+    "examples": [
+      {
+        "text": "The bake sale committee said the parent failed to raise her concern about the prices before the sign-up deadline, so it will not look at whether the cookies cost too much.",
+        "flagged_span": "failed to raise",
+        "honest_version": "The parent raised her concern about the prices after the sign-up deadline. The committee is not reviewing it for that reason, so it has not decided whether the cookies cost too much."
+      },
+      {
+        "text": "Riders who missed the comment period have waived any objection to the new bus schedule, so the transit board will not discuss the longer waits on Route 9.",
+        "flagged_span": "waived any objection",
+        "honest_version": "Some riders sent their objections after the comment period closed. The transit board will not discuss them at this meeting, so nobody has yet checked the longer waits on Route 9."
+      }
+    ],
+    "false_alarm": {
+      "text": "The league ruled that the coach failed to raise his protest before the final whistle, as the rulebook requires, but it still reviewed the game video and found the goal was clean.",
+      "why_fair": "The sentence gives the procedural point and its source (the rulebook). Then it deals with the substance: the league checked the video and gives its finding. The late protest is not the only reason for the decision.",
+      "engine_flags_it": true
+    },
+    "misses": "1) Plain wording gets past the rule. The rule matches set phrases like \"failed to raise\", \"waived any objection\", \"lacks standing to raise\" and \"procedurally barred\". \"You brought this up too late, so we won't be looking at the prices at all\" makes the same move and is not flagged by this rule. (Another rule, FEAR_URGENCY, catches \"too late\" in it.) Neither is \"That point was not raised in time, and the board considers the matter closed.\" 2) The rule only matches \"before the court\", \"before this court\", \"before the tribunal\" or \"before this tribunal\". A sentence that names any other body is missed: \"The complaint about the roof repair is not properly before the committee, so we will move on\" is not flagged. Also note that the rule only runs when the domain is legal (or auto). The same sentences get no flag in the general domain.",
+    "source": "verifier_corrected_entry"
+  },
+  {
+    "id": "MEDIA_ANONYMOUS_ATTRIBUTION",
+    "rule_name": "Anonymous or Unverifiable Source Attribution",
+    "pit_tier": 3,
+    "domain": "media",
+    "plain_name": "Faceless source",
+    "one_line": "It pins a claim on sources the reader cannot name or check, so the claim sounds reported without being shown.",
+    "how_it_works": "Phrases like \"insiders say\" or \"people familiar with the matter\" suggest that someone close to the facts has spoken. The reader cannot see who they are, how they know, or whether anyone checked. The vague label stands in for the evidence and lends the claim the weight of inside access.",
+    "tier_explained": "This is Tier 3 (Institutional) because the claim borrows authority from an implied position inside an organization instead of from anything the reader can check.",
+    "examples": [
+      {
+        "text": "People familiar with the discussions say the city will drop the late-night bus route next month.",
+        "flagged_span": "People familiar with the discussions",
+        "honest_version": "The transit board voted on Tuesday to drop the late-night bus route starting next month, according to the posted meeting minutes."
+      },
+      {
+        "text": "Unnamed sources say the new phone upgrade will cost more than last year's model.",
+        "flagged_span": "Unnamed sources",
+        "honest_version": "The maker's posted price list shows the new phone upgrade costs $50 more than last year's model."
+      }
+    ],
+    "false_alarm": {
+      "text": "Two unnamed staffers at the bus depot, who are not allowed to speak publicly, showed the reporter the repair logs for the broken buses.",
+      "why_fair": "The sentence gives the reason the sources are not named, and it points to evidence the reporter saw with their own eyes (the repair logs). This is careful, legitimate anonymous sourcing, not vagueness standing in for proof.",
+      "engine_flags_it": true
+    },
+    "misses": "1) Wording outside the rule's fixed list gets through. Bare \"Sources say the new phone upgrade will cost more than last year's model.\" is not flagged. The rule counts \"sources\" only after \"unnamed\", \"anonymous\" or \"unidentified\", or before \"close to\", \"familiar with\" or \"with knowledge/insight\". \"Word around the garden club is that the spring plant sale will be canceled.\" is not flagged either. 2) Numbers near the phrase can switch the rule off. The rule is skipped when something that looks like a citation sits within 120 characters, and a plain time range can look like one. \"Unnamed sources say the bus will now run every 15 minutes from 6 to 9.\" is not flagged, because \"6 to 9\" matches the number-word-number citation shape. Also note that the rule only runs when the domain is media or auto. In the general domain, \"Unnamed sources say...\" is not flagged.",
+    "source": "verifier_corrected_entry"
+  }
+]
