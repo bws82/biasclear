@@ -1,34 +1,25 @@
-# Resume guide (paused 2026-09-27)
+# Resume guide (paused 2026-09-28, evening)
 
-BiasClear v2 is paused while the owner finishes another project. This folder holds everything needed to pick it back up quickly. Nothing here is secret: the owner's private checklist lives in his private Owner Console, and private drafts live in his Google Drive "BiasClear Archive" folder.
+The owner paused for the week to save usage. Everything needed to pick up is on this branch. Nothing here is secret.
 
-## Before or during the pause (owner)
+## Where things stand
 
-1. The 1-minute safety check at the top of the Owner Console: suspend the old v1 services if the old log still answers.
-2. The one-time note to the old beta signups should go out by about **2026-10-26**. It needs the mailbox (console Sitting 4), the saved list, and the owner pressing Send. Start here if that date is close.
-
-## What's in this folder
-
-| File | What it is |
-|---|---|
-| `biasclear-v2-work.bundle` | Git bundle with three branches: `main` (the seed for the new repository), `e2-ts-engine` (browser engine, verified: 0 differences from Python in 6,258 scans), `e3-symmetry` (structural rules + fairness suite; the last commit is an interrupted round-3 fix, so re-run all tests before using it) |
-| `v1-final-snapshot.tar.gz` | Scrubbed v1 code for the `v1-final` tag the preprint cites. Its one gitleaks hit is the known fake key literal in `tests/test_infra.py` (allowlisted in the seed's `.gitleaks.toml`) |
-| `field-guide.md`, `field-guide.json` | Field Guide: 40 entries, every example re-checked against the engine. The two rules rebuilt in E3 still need entries |
-| `homepage-lightbox.html` | Finished homepage design |
-
-Restore the branches: `git clone handoff/biasclear-v2-work.bundle biasclear-v2 && cd biasclear-v2 && git branch -a`.
+- **The v2 preview is one pull request in biasclear/biasclear** (branch `claude/v2-preview`), built from `handoff/preview/preview-seed.bundle` (one parentless commit, tree `324f62314dbf9ed9516a8baed19734177fe1a24e`, rules 2.0.0a4). The owner merges it; merging publishes https://biasclear.github.io/biasclear/ as a Preview.
+- **What was done to it:** E3 fairness rules through red-team round 5; rules hold no group names (lint-enforced); every real person and organization in test text replaced by a made-up name; the website and README; one five-lens red team (fairness, truth in copy, privacy and security, first impression and accessibility, code and CI) and one fix round for every finding. Tests at packaging: pytest 10,683 passed / 20 strict xfails; engine 137/137 three runs, parity identical; site and Playwright suites green.
+- **Not done yet:** the fresh re-check of that fix round (it was stopped on purpose to save usage), and Jarvis's independent review.
+- **Repository settings done (2026-09-28, owner's browser):** description, topics, Wiki and Projects off, auto-delete merged branches; read-only workflow token and all security scanners were already on. Still open: the `pypi` environment's approval rule (needed before the first release), require-2FA for the organization (owner's own tick), the Pages verified domain with its Namecheap TXT record, and review limits (fold into the mailbox run).
 
 ## Resume order (PM)
 
-1. Read the Owner Console for anything the owner pressed during the pause (Done notes, especially the safety check).
-2. Finish E3: restore `e3-symmetry`, run the full Python and TypeScript test suites and the parity script, and resume the red-team hunt from round 3 until a round comes back dry.
-3. When the owner has done console Sittings 1 to 2: attach `biasclear/biasclear`, build the seed commit on top of its README commit, push the `claude/` branch, open the seed PR, and unlock Sitting 3.
-4. Hosting decision (dream session 2026-09-27): the site and both AI modes on AWS (S3 + CloudFront free plan; Mode C = Lambda + Bedrock with an IAM role, spend cap $25/month default, budget alert with credits excluded, one-file CloudFormation setup, GitHub OIDC deploys, no stored keys). GitHub Pages is the fallback. Render stays idle. The AWS Activate credit is $978.57, valid until 2028-03-31, and has been covering Claude on Bedrock. Build the CloudFormation template and have it red-teamed before the owner runs it.
-5. Update `ops/BLUEPRINT.md` and `ops/BOARD.md` for the AWS hosting decision (the owner merges).
+1. Check the pull request's CI and merge state; if merged, check the Pages deploy and the live site.
+2. Fresh-eyes re-check of the merged tree (all five lenses); fix what it finds in follow-up pull requests. The fix round's open PM questions were accepted: plural objects ending a clause count for CAUSAL_TOTALIZATION; "Typical ___!" only before "!"; neutral stance words (activists, advocates, skeptics) are not labels; "pigs" is a known limit; CODEOWNERS lists paths without owners.
+3. Jarvis: fill the constants in `handoff/jarvis/jarvis-review.sh` (branch, commit, PR number, brief URL and its sha256), move it to `ops/easy/`, add a queue item. The owner types "next" in the Hands thread and presses run. Read his answer from Drive (the shared Claude-Jarvis folder syncs there).
+4. The `v1-final` tag (orphan commit from `handoff/v1-final-snapshot.tar.gz`), then a follow-up PR that links it.
+5. Mailbox run (owner pays about $15): hello@biasclear.com, DMARC p=none, mail test; the Pages domain TXT and Verify; review limits; then PyPI with a passkey.
+6. Render cleanup and the signup export; the public note, then the signup notice by about 2026-10-26.
+7. Point biasclear.com at Pages; retire the old repository (this one). When retiring, remember that this branch's history and `handoff/biasclear-v2-work.bundle` hold older drafts, including real names in old test text and the old owner-steps draft.
+8. Explain (Mode C, AWS): code in `handoff/explain/explain-c.patch` (apply on top of the preview tree; it was built on the tree just before the last fix round), design in `SPEC.md`, the owner's 14 decisions in `DECISIONS.md`. Still open from its red team: 1 high (the verdict screen can pass an answer that obeys an injected instruction) and 2 medium (side-word forms not caught symmetrically; the plainer rewrite can reverse the claim). Nothing is deployed and nothing costs money.
 
-## Where everything else is
+## Private items
 
-- Plan: `ops/BLUEPRINT.md` (revision 3) and `ops/BOARD.md` on this branch.
-- Agent rules: `AGENTS.md`.
-- Owner steps: the private Owner Console (claude.ai artifact; the owner has the link).
-- Private: the PIT v2 corrections memo (sent to the owner), the signup-notice draft (Drive), and the old-project inventory (Drive sweep, 2026-09-27).
+The owner's private checklist and the signup-notice draft live in the owner's console and Google Drive ("BiasClear Archive"). The map from real to made-up test names was not kept: the v1 golden file in the repository stands on its own.
