@@ -1,0 +1,119 @@
+From d0f97c10ac16897e11cb227a8a646b4858aa21c2 Mon Sep 17 00:00:00 2001
+From: BiasClear <noreply@biasclear.com>
+Date: Wed, 7 Oct 2026 10:55:47 +0000
+Subject: [PATCH] Site: make "Check your own text" the first, filled action;
+ 44px touch targets
+
+- The own-text button comes first in the sample row, in print and in tab
+  order, filled in ink; once your text is under the loupe it turns to an
+  outline like a chosen sample. On phones it takes a full-width row.
+- On touch screens every checker control, the menu links and the
+  Paper/Ink switch are at least 44px tall.
+- The quiet Cancel button's border uses ink-3 (5.4:1 light, 6.3:1 dark)
+  instead of the rule colour (1.5:1).
+- No content, rule, engine or script changes.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01Fy4TaEjEhBEtL3VktBVdzi
+---
+ site/css/checker.css  | 23 ++++++++++++++++-------
+ site/css/site.css     |  6 ++++++
+ site/pages/index.html |  3 ++-
+ 3 files changed, 24 insertions(+), 8 deletions(-)
+
+diff --git a/site/css/checker.css b/site/css/checker.css
+index 2901d5e..963a0c1 100644
+--- a/site/css/checker.css
++++ b/site/css/checker.css
+@@ -21,10 +21,13 @@
+ .chip .ct{font-style:normal;font-size:.86em;font-variant-numeric:lining-nums tabular-nums;color:var(--ink-3);margin-left:.3em}
+ .chip:hover{color:var(--ink)}
+ .chip[aria-pressed="true"]{color:var(--ink);border-bottom-color:var(--ink)}
+-/* your own text is the main thing to do here: a button, not a fifth sample */
+-.chip.own{margin-left:auto;align-self:center;border:1px solid var(--ink-3);border-radius:2px;padding:6px 12px 7px;margin-bottom:6px;color:var(--ink)}
+-.chip.own:hover{border-color:var(--ink)}
+-.chip.own[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 -2px 0 var(--ink)}
++/* your own text is the main thing to do here: a button, not a fifth sample. It comes first, in print and in the tab
++   order, and is filled; once your text is under the loupe it turns to an outline, like a chosen sample */
++.tabs-br{flex:0 0 100%;height:0}
++.chip.own{align-self:center;margin:4px 0 6px;border:1px solid var(--ink);border-radius:2px;padding:9px 16px 10px;
++  background:var(--ink);color:var(--paper);font-weight:500}
++.chip.own:hover{background:var(--ink-2);border-color:var(--ink-2);color:var(--paper)}
++.chip.own[aria-pressed="true"]{background:none;color:var(--ink);border-color:var(--ink);box-shadow:inset 0 -2px 0 var(--ink)}
+ 
+ .spec-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px 16px;padding-top:12px}
+ .sh-l{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 14px}
+@@ -58,8 +61,8 @@
+ .ed-btns{display:flex;gap:10px;margin-left:auto}
+ .btn{background:var(--ink);color:var(--paper);border:1px solid var(--ink);border-radius:2px;padding:11px 16px 10px;font:500 13px/1 var(--mono);cursor:pointer}
+ .btn:hover{background:var(--ink-2);border-color:var(--ink-2)}
+-.btn.quiet{background:none;color:var(--ink-2);border-color:var(--rule)}
+-.btn.quiet:hover{color:var(--ink);border-color:var(--ink-3);background:none}
++.btn.quiet{background:none;color:var(--ink-2);border-color:var(--ink-3)}
++.btn.quiet:hover{color:var(--ink);border-color:var(--ink);background:none}
+ 
+ /* The stage: print underneath, film on top, loupe above both */
+ .stage{position:relative;--E:140px;margin-top:24px;margin-bottom:20px;margin-inline:max(0px,calc(44px - var(--gut)));touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:crosshair}
+@@ -340,6 +343,7 @@
+   .dek .dek-s{display:block}
+   .dek-m{display:block;margin-top:6px;font-size:17px;line-height:1.5;color:var(--ink-2)}
+   .chip{padding:4px 0 5px}
++  .chip.own{flex:1 0 100%;margin:0 0 2px;padding:11px 16px 12px;font-size:17px}
+   /* on a phone the edit link would take a second row above the text and push it down: it sits under the text instead */
+   .spec-head .edit-own{display:none}
+   .edit-foot{display:block}
+@@ -352,13 +356,18 @@
+ @media (hover:none) and (pointer:coarse){
+   .kbd{display:none}
+   .touch{display:inline}
++  /* fingers: every control on the checker is at least 44px tall */
++  .chip,.switch,.edit-own,.btn{min-height:44px}
++  .chip:not(.own),.edit-own{display:inline-flex;align-items:center}
++  .chip.own:hover{background:var(--ink);border-color:var(--ink)}
++  .chip.own[aria-pressed="true"]:hover{background:none}
+ }
+ @media (forced-colors:active){
+   .loupe:focus-visible{outline:3px solid CanvasText;outline-offset:3px}
+   .switch .knob{forced-color-adjust:none;background:CanvasText}
+   .chip{border-bottom-color:Canvas}
+   .chip[aria-pressed="true"]{border-bottom-color:Highlight}
+-  .chip.own{border-color:CanvasText}
++  .chip.own{border-color:CanvasText;border-width:2px}
+   /* forced colours drop box-shadow outlines and keep background images: the film strips show outlined marks on a
+      plain ground, and the current row of the move list keeps a bar */
+   .strip,.film{background-image:none}
+diff --git a/site/css/site.css b/site/css/site.css
+index 8f82432..d2e8ef7 100644
+--- a/site/css/site.css
++++ b/site/css/site.css
+@@ -296,6 +296,12 @@ footer{padding-block:0 40px;margin-top:clamp(12px,2vw,28px)}
+   .mast nav{column-gap:15px}
+   .mast nav a{font-size:15.5px}
+ }
++/* fingers: the menu links and the Paper/Ink switch are at least 44px tall */
++@media (hover:none) and (pointer:coarse){
++  .mast nav a{display:inline-block;padding-block:14px}
++  .mast nav{row-gap:0}
++  .tone button{min-height:44px;min-width:52px}
++}
+ @media (forced-colors:active){
+   .pv{border-color:CanvasText}
+   /* marked words keep a system mark colour, and a pressed tone button shows as pressed */
+diff --git a/site/pages/index.html b/site/pages/index.html
+index d856640..80c56fc 100644
+--- a/site/pages/index.html
++++ b/site/pages/index.html
+@@ -23,8 +23,9 @@
+   <div class="g12 hero-body">
+     <div class="spec-col">
+       <div class="tabs" role="group" aria-label="Text under the loupe">
+-{{sampleChips}}
+         <button type="button" class="chip own" data-k="own" aria-pressed="false" aria-expanded="false" aria-controls="editor">Check your own text</button>
++        <span class="tabs-br" aria-hidden="true"></span>
++{{sampleChips}}
+       </div>
+       <div class="spec-head">
+         <div class="sh-l">
+-- 
+2.43.0
+

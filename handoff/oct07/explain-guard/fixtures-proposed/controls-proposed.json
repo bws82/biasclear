@@ -1,0 +1,149 @@
+{
+  "about": "PROPOSED side-free controls (no side or group named). Validated: the listed rule fires on engine rules 2.0.0a5.",
+  "controls": [
+    {
+      "id": "c01",
+      "rule": "CONSENSUS_AS_EVIDENCE",
+      "topic": "housing",
+      "sentence": "Every serious economist agrees that the new zoning code will wreck the housing market."
+    },
+    {
+      "id": "c02",
+      "rule": "CLAIM_WITHOUT_CITATION",
+      "topic": "taxes",
+      "sentence": "Studies show that the sales tax change hurts the town budget."
+    },
+    {
+      "id": "c03",
+      "rule": "DISSENT_DISMISSAL",
+      "topic": "health",
+      "sentence": "Critics of the clinic merger are spreading misinformation about wait times."
+    },
+    {
+      "id": "c04",
+      "rule": "FALSE_BINARY",
+      "topic": "climate/energy",
+      "sentence": "Either the town builds the new plant or the lights go out next winter."
+    },
+    {
+      "id": "c05",
+      "rule": "FEAR_URGENCY",
+      "topic": "immigration",
+      "sentence": "We must act now on the asylum backlog before it is too late."
+    },
+    {
+      "id": "c06",
+      "rule": "SHAME_LEVER",
+      "topic": "schools",
+      "sentence": "Only a fool would still believe the school calendar plan will save money."
+    },
+    {
+      "id": "c07",
+      "rule": "EMOTIONAL_SUBSTITUTION",
+      "topic": "labor",
+      "sentence": "The pension shortfall is simply heartbreaking for everyone in town."
+    },
+    {
+      "id": "c08",
+      "rule": "CREDENTIAL_AS_PREMISE",
+      "topic": "health",
+      "sentence": "As a doctor with thirty years of experience, I can tell you the clinic merger will fail."
+    },
+    {
+      "id": "c09",
+      "rule": "INSTITUTIONAL_POSITION_AS_SETTLED",
+      "topic": "policing",
+      "sentence": "The board has concluded that the new patrol schedule is the answer."
+    },
+    {
+      "id": "c10",
+      "rule": "INEVITABILITY_FRAME",
+      "topic": "climate/energy",
+      "sentence": "The grid upgrade is the inevitable direction for the region, so the council should approve it tonight."
+    },
+    {
+      "id": "c11",
+      "rule": "MORAL_HIGH_GROUND",
+      "topic": "foreign aid",
+      "sentence": "Any decent person can see that the aid package must pass."
+    },
+    {
+      "id": "c12",
+      "rule": "SOFT_CONSENSUS",
+      "topic": "speech",
+      "sentence": "The vast majority of residents agree that the library speech policy works better."
+    },
+    {
+      "id": "c13",
+      "rule": "COMPETENCE_DISMISSAL",
+      "topic": "taxes",
+      "sentence": "Those who object to the levy fail to grasp how budgets work."
+    },
+    {
+      "id": "c14",
+      "rule": "VAGUE_INSTITUTIONAL_APPEAL",
+      "topic": "schools",
+      "sentence": "Leading organizations recommend the four-day school week."
+    },
+    {
+      "id": "c15",
+      "rule": "MONOCAUSAL_BLAME",
+      "topic": "housing",
+      "sentence": "The new permit rule is the only reason why rents went up."
+    },
+    {
+      "id": "c16",
+      "rule": "TOTALIZING_HARM_LANGUAGE",
+      "topic": "labor",
+      "sentence": "The overtime rule completely destroyed the local job market."
+    },
+    {
+      "id": "c17",
+      "rule": "CONSENSUS_AS_EVIDENCE",
+      "topic": "foreign aid",
+      "sentence": "Everyone agrees that the aid package will pay for itself."
+    },
+    {
+      "id": "c18",
+      "rule": "CLAIM_WITHOUT_CITATION",
+      "topic": "policing",
+      "sentence": "Experts say the curfew has cut crime in half."
+    },
+    {
+      "id": "c19",
+      "rule": "FEAR_URGENCY",
+      "topic": "health",
+      "sentence": "We must act now to save the hospital before it is too late."
+    },
+    {
+      "id": "c20",
+      "rule": "SHAME_LEVER",
+      "topic": "faith-and-public-life",
+      "sentence": "Only a fool would still doubt that the holiday display rule is fair."
+    },
+    {
+      "id": "c21",
+      "rule": "DISSENT_DISMISSAL",
+      "topic": "speech",
+      "sentence": "Anyone who questions the campus speech code is just repeating propaganda."
+    },
+    {
+      "id": "c22",
+      "rule": "MONOCAUSAL_BLAME",
+      "topic": "immigration",
+      "sentence": "Because of the new visa rule everything has gone downhill this year."
+    },
+    {
+      "id": "c23",
+      "rule": "SOFT_CONSENSUS",
+      "topic": "faith-and-public-life",
+      "sentence": "The vast majority of parents agree that the school prayer policy works better."
+    },
+    {
+      "id": "c24",
+      "rule": "FALSE_BINARY",
+      "topic": "taxes",
+      "sentence": "Either we pass the levy or the town goes broke."
+    }
+  ]
+}

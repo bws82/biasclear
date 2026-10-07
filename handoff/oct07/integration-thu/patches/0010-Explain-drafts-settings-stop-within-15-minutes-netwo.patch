@@ -1,0 +1,158 @@
+From 089bcdb118b56383bd4f79ce53bb1392b5db23a5 Mon Sep 17 00:00:00 2001
+From: BiasClear <noreply@biasclear.com>
+Date: Wed, 7 Oct 2026 14:02:29 -0500
+Subject: [PATCH 10/10] Explain drafts: settings stop within 15 minutes;
+ network-address handling disclosed (306)
+
+Draft wording only; the public site is unchanged.
+
+- Consent said "Explain pauses if that setting changes", but each warm
+  instance rechecks the account settings every 15 minutes
+  (SETTINGS_INTERVAL_MS), so traffic can continue that long. It now says
+  "stops within 15 minutes", in the generator, SITE_CONTRACT and SPEC.
+- The drafts never said the service reads the visitor's network address.
+  Consent now says it keeps only a code made from it; the privacy draft
+  says how (salted hash with a daily random key, only as a request count,
+  about an hour or to the end of the next day), that the address is never
+  stored or logged, that each key expires after two days and Amazon
+  erases expired items within a few days, and that AWS handles the
+  connection.
+- PRIVACY-DRAFTS.md regenerated (--check passes).
+
+Regression: test/privacy.test.ts holds the copy to SETTINGS_INTERVAL_MS
+and SALT_TTL_MS and requires the address wording for every model; it
+fails on the old generator.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ handoff/explain/PRIVACY-DRAFTS.md           | 12 ++++++------
+ handoff/explain/SPEC.md                     |  2 +-
+ packages/explain/SITE_CONTRACT.md           |  2 +-
+ packages/explain/scripts/privacy-drafts.mjs |  4 ++--
+ packages/explain/test/privacy.test.ts       | 19 +++++++++++++++++++
+ 5 files changed, 29 insertions(+), 10 deletions(-)
+
+diff --git a/handoff/explain/PRIVACY-DRAFTS.md b/handoff/explain/PRIVACY-DRAFTS.md
+index ee4831c..cdaed0f 100644
+--- a/handoff/explain/PRIVACY-DRAFTS.md
++++ b/handoff/explain/PRIVACY-DRAFTS.md
+@@ -12,11 +12,11 @@ Provenance: base ID — AWS Bedrock Model catalog, us-east-1, copied 2026-10-07;
+ 
+ Consent draft:
+ 
+-> Explain sends this sentence, and nothing else you pasted, to BiasClear's service on Amazon Web Services. It asks Grok 4.7, an AI model made by xAI, through Amazon Bedrock, how the wording works. Amazon may process it in N. Virginia (us-east-1), Ohio (us-east-2) or Oregon (us-west-2) in the United States. We keep no copy. Our Amazon account uses Bedrock's zero data retention setting; Explain pauses if that setting changes.
++> Explain sends this sentence, and nothing else you pasted, to BiasClear's service on Amazon Web Services. It asks Grok 4.7, an AI model made by xAI, through Amazon Bedrock, how the wording works. Amazon may process it in N. Virginia (us-east-1), Ohio (us-east-2) or Oregon (us-west-2) in the United States. We keep no copy. Our Amazon account uses Bedrock's zero data retention setting; Explain stops within 15 minutes if that setting changes. The service sees your network address but keeps only a code made from it, to count requests.
+ 
+ Privacy draft:
+ 
+-> After you agree, the page sends one marked sentence (at most 500 characters), the move and its position, the domain and rules version to BiasClear's Explain service on Amazon Web Services. Nothing else you pasted is sent. The service rechecks the mark, then sends that sentence and our fixed wording prompt to Grok 4.7, made by xAI, through Amazon Bedrock. It calls Amazon from N. Virginia (us-east-1); the approved US profile us.xai.grok-4.7 may process the sentence in N. Virginia (us-east-1), Ohio (us-east-2) or Oregon (us-west-2) in the United States. BiasClear does not request web or X search, grounding or tools. It sends no conversation history or the rest of your text. The service keeps no copy of the sentence, answer or reasoning. Its logs keep counts and settings only for 7 days. The approved account retention setting is none; invocation logging must be off. Publishing this wording requires a successful owner-approved zero-retention compatibility check for this exact model and route.
++> After you agree, the page sends one marked sentence (at most 500 characters), the move and its position, the domain and rules version to BiasClear's Explain service on Amazon Web Services. Nothing else you pasted is sent. The service rechecks the mark, then sends that sentence and our fixed wording prompt to Grok 4.7, made by xAI, through Amazon Bedrock. It calls Amazon from N. Virginia (us-east-1); the approved US profile us.xai.grok-4.7 may process the sentence in N. Virginia (us-east-1), Ohio (us-east-2) or Oregon (us-west-2) in the United States. BiasClear does not request web or X search, grounding or tools. It sends no conversation history or the rest of your text. The service keeps no copy of the sentence, answer or reasoning. Its logs keep counts and settings only for 7 days. To apply the per-connection limits, the service reads your network address from the request and turns it into a salted hash with a random key made each UTC day. It keeps only that hash, as a request count: about an hour for the ten-minute count, and until the end of the next day for the daily count. The address itself is never stored or logged. Each day's key expires after two days and is deleted; Amazon erases expired items within a few days, after which no one can turn a stored hash back into an address. Amazon Web Services also handles the connection itself. If the account's retention or logging setting changes, Explain stops within 15 minutes: each running copy of the service rechecks it at least that often. The approved account retention setting is none; invocation logging must be off. Publishing this wording requires a successful owner-approved zero-retention compatibility check for this exact model and route.
+ 
+ ## Claude Sonnet 5.5 (sonnet55)
+ 
+@@ -26,11 +26,11 @@ Provenance: base ID — AWS Bedrock Model catalog, us-east-1, copied 2026-10-07;
+ 
+ Consent draft:
+ 
+-> Explain sends this sentence, and nothing else you pasted, to BiasClear's service on Amazon Web Services. It asks Claude Sonnet 5.5, an AI model made by Anthropic, through Amazon Bedrock, how the wording works. Amazon may process it in N. Virginia (us-east-1), Ohio (us-east-2) or Oregon (us-west-2) in the United States. We keep no copy. Our Amazon account uses Bedrock's zero data retention setting; Explain pauses if that setting changes.
++> Explain sends this sentence, and nothing else you pasted, to BiasClear's service on Amazon Web Services. It asks Claude Sonnet 5.5, an AI model made by Anthropic, through Amazon Bedrock, how the wording works. Amazon may process it in N. Virginia (us-east-1), Ohio (us-east-2) or Oregon (us-west-2) in the United States. We keep no copy. Our Amazon account uses Bedrock's zero data retention setting; Explain stops within 15 minutes if that setting changes. The service sees your network address but keeps only a code made from it, to count requests.
+ 
+ Privacy draft:
+ 
+-> After you agree, the page sends one marked sentence (at most 500 characters), the move and its position, the domain and rules version to BiasClear's Explain service on Amazon Web Services. Nothing else you pasted is sent. The service rechecks the mark, then sends that sentence and our fixed wording prompt to Claude Sonnet 5.5, made by Anthropic, through Amazon Bedrock. It calls Amazon from N. Virginia (us-east-1); the approved US profile us.anthropic.claude-sonnet-5-5 may process the sentence in N. Virginia (us-east-1), Ohio (us-east-2) or Oregon (us-west-2) in the United States. BiasClear does not request web or X search, grounding or tools. It sends no conversation history or the rest of your text. The service keeps no copy of the sentence, answer or reasoning. Its logs keep counts and settings only for 7 days. The approved account retention setting is none; invocation logging must be off. Publishing this wording requires a successful owner-approved zero-retention compatibility check for this exact model and route.
++> After you agree, the page sends one marked sentence (at most 500 characters), the move and its position, the domain and rules version to BiasClear's Explain service on Amazon Web Services. Nothing else you pasted is sent. The service rechecks the mark, then sends that sentence and our fixed wording prompt to Claude Sonnet 5.5, made by Anthropic, through Amazon Bedrock. It calls Amazon from N. Virginia (us-east-1); the approved US profile us.anthropic.claude-sonnet-5-5 may process the sentence in N. Virginia (us-east-1), Ohio (us-east-2) or Oregon (us-west-2) in the United States. BiasClear does not request web or X search, grounding or tools. It sends no conversation history or the rest of your text. The service keeps no copy of the sentence, answer or reasoning. Its logs keep counts and settings only for 7 days. To apply the per-connection limits, the service reads your network address from the request and turns it into a salted hash with a random key made each UTC day. It keeps only that hash, as a request count: about an hour for the ten-minute count, and until the end of the next day for the daily count. The address itself is never stored or logged. Each day's key expires after two days and is deleted; Amazon erases expired items within a few days, after which no one can turn a stored hash back into an address. Amazon Web Services also handles the connection itself. If the account's retention or logging setting changes, Explain stops within 15 minutes: each running copy of the service rechecks it at least that often. The approved account retention setting is none; invocation logging must be off. Publishing this wording requires a successful owner-approved zero-retention compatibility check for this exact model and route.
+ 
+ ## GPT-6.1 Sol (sol61)
+ 
+@@ -40,8 +40,8 @@ Provenance: base ID — AWS Bedrock Model catalog, us-east-1, copied 2026-10-07;
+ 
+ Consent draft:
+ 
+-> Explain sends this sentence, and nothing else you pasted, to BiasClear's service on Amazon Web Services. It asks GPT-6.1 Sol, an AI model made by OpenAI, through Amazon Bedrock, how the wording works. Amazon may process it in N. Virginia (us-east-1), Ohio (us-east-2) or Oregon (us-west-2) in the United States. We keep no copy. Our Amazon account uses Bedrock's zero data retention setting; Explain pauses if that setting changes.
++> Explain sends this sentence, and nothing else you pasted, to BiasClear's service on Amazon Web Services. It asks GPT-6.1 Sol, an AI model made by OpenAI, through Amazon Bedrock, how the wording works. Amazon may process it in N. Virginia (us-east-1), Ohio (us-east-2) or Oregon (us-west-2) in the United States. We keep no copy. Our Amazon account uses Bedrock's zero data retention setting; Explain stops within 15 minutes if that setting changes. The service sees your network address but keeps only a code made from it, to count requests.
+ 
+ Privacy draft:
+ 
+-> After you agree, the page sends one marked sentence (at most 500 characters), the move and its position, the domain and rules version to BiasClear's Explain service on Amazon Web Services. Nothing else you pasted is sent. The service rechecks the mark, then sends that sentence and our fixed wording prompt to GPT-6.1 Sol, made by OpenAI, through Amazon Bedrock. It calls Amazon from N. Virginia (us-east-1); the approved US profile us.openai.gpt-6.1-sol may process the sentence in N. Virginia (us-east-1), Ohio (us-east-2) or Oregon (us-west-2) in the United States. BiasClear does not request web or X search, grounding or tools. It sends no conversation history or the rest of your text. The service keeps no copy of the sentence, answer or reasoning. Its logs keep counts and settings only for 7 days. The approved account retention setting is none; invocation logging must be off. Publishing this wording requires a successful owner-approved zero-retention compatibility check for this exact model and route.
++> After you agree, the page sends one marked sentence (at most 500 characters), the move and its position, the domain and rules version to BiasClear's Explain service on Amazon Web Services. Nothing else you pasted is sent. The service rechecks the mark, then sends that sentence and our fixed wording prompt to GPT-6.1 Sol, made by OpenAI, through Amazon Bedrock. It calls Amazon from N. Virginia (us-east-1); the approved US profile us.openai.gpt-6.1-sol may process the sentence in N. Virginia (us-east-1), Ohio (us-east-2) or Oregon (us-west-2) in the United States. BiasClear does not request web or X search, grounding or tools. It sends no conversation history or the rest of your text. The service keeps no copy of the sentence, answer or reasoning. Its logs keep counts and settings only for 7 days. To apply the per-connection limits, the service reads your network address from the request and turns it into a salted hash with a random key made each UTC day. It keeps only that hash, as a request count: about an hour for the ten-minute count, and until the end of the next day for the daily count. The address itself is never stored or logged. Each day's key expires after two days and is deleted; Amazon erases expired items within a few days, after which no one can turn a stored hash back into an address. Amazon Web Services also handles the connection itself. If the account's retention or logging setting changes, Explain stops within 15 minutes: each running copy of the service rechecks it at least that often. The approved account retention setting is none; invocation logging must be off. Publishing this wording requires a successful owner-approved zero-retention compatibility check for this exact model and route.
+diff --git a/handoff/explain/SPEC.md b/handoff/explain/SPEC.md
+index 0144399..6a80019 100644
+--- a/handoff/explain/SPEC.md
++++ b/handoff/explain/SPEC.md
+@@ -404,7 +404,7 @@ Otherwise the row shows the plain note: "Explain works on one sentence at a time
+ 
+ **Consent, exactly.** The first press in a page visit opens an inline box. It quotes the exact text that will be sent, then shows this line and two buttons:
+ 
+-> Explain sends this sentence, and nothing else you pasted, to BiasClear's service on Amazon Web Services. It asks {model display name}, an AI model made by {maker}, through Amazon Bedrock, how the wording works. Amazon may process it in {locations from the selected reviewed model entry}. We keep no copy. Our Amazon account uses Bedrock's zero data retention setting; Explain pauses if that setting changes.
++> Explain sends this sentence, and nothing else you pasted, to BiasClear's service on Amazon Web Services. It asks {model display name}, an AI model made by {maker}, through Amazon Bedrock, how the wording works. Amazon may process it in {locations from the selected reviewed model entry}. We keep no copy. Our Amazon account uses Bedrock's zero data retention setting; Explain stops within 15 minutes if that setting changes. The service sees your network address but keeps only a code made from it, to count requests.
+ > **[Send this sentence]** **[Not now]** · [How Explain handles text](privacy.html#explain)
+ 
+ - The choice lasts until the page is closed or reloaded. The site stores nothing, so a later visit asks again.
+diff --git a/packages/explain/SITE_CONTRACT.md b/packages/explain/SITE_CONTRACT.md
+index b033214..bfcc126 100644
+--- a/packages/explain/SITE_CONTRACT.md
++++ b/packages/explain/SITE_CONTRACT.md
+@@ -51,7 +51,7 @@ Because of check 4, the service's own mark check never surprises a visitor.
+ 
+ The first press in a page visit opens an inline box. It quotes the exact text that will be sent, then shows the consent line derived from the selected reviewed model table entry and verified zero-retention configuration (see section 1):
+ 
+-> Explain sends this sentence, and nothing else you pasted, to BiasClear's service on Amazon Web Services. It asks {model display name}, an AI model made by {maker}, through Amazon Bedrock, how the wording works. Amazon may process it in {locations from the selected reviewed model entry}. We keep no copy. Our Amazon account uses Bedrock's zero data retention setting; Explain pauses if that setting changes.
++> Explain sends this sentence, and nothing else you pasted, to BiasClear's service on Amazon Web Services. It asks {model display name}, an AI model made by {maker}, through Amazon Bedrock, how the wording works. Amazon may process it in {locations from the selected reviewed model entry}. We keep no copy. Our Amazon account uses Bedrock's zero data retention setting; Explain stops within 15 minutes if that setting changes. The service sees your network address but keeps only a code made from it, to count requests.
+ >
+ > **[Send this sentence]** **[Not now]** · [How Explain handles text](privacy.html#explain)
+ 
+diff --git a/packages/explain/scripts/privacy-drafts.mjs b/packages/explain/scripts/privacy-drafts.mjs
+index 1718b1c..5199473 100644
+--- a/packages/explain/scripts/privacy-drafts.mjs
++++ b/packages/explain/scripts/privacy-drafts.mjs
+@@ -26,8 +26,8 @@ export function privacyDraft(id, model) {
+   return {
+     id, key: model.key, maker: model.provider, displayName: model.displayName,
+     sourceRegion: model.region, destinationRegions: [...model.destinationRegions],
+-    consent: `Explain sends this sentence, and nothing else you pasted, to BiasClear's service on Amazon Web Services. It asks ${model.displayName}, an AI model made by ${model.provider}, through Amazon Bedrock, how the wording works. Amazon may process it in ${destinations} in the United States. We keep no copy. Our Amazon account uses Bedrock's zero data retention setting; Explain pauses if that setting changes.`,
+-    privacy: `After you agree, the page sends one marked sentence (at most 500 characters), the move and its position, the domain and rules version to BiasClear's Explain service on Amazon Web Services. Nothing else you pasted is sent. The service rechecks the mark, then sends that sentence and our fixed wording prompt to ${model.displayName}, made by ${model.provider}, through Amazon Bedrock. It calls Amazon from ${source} (${model.region}); the approved US profile ${id} may process the sentence in ${destinations} in the United States. BiasClear does not request web or X search, grounding or tools. It sends no conversation history or the rest of your text. The service keeps no copy of the sentence, answer or reasoning. Its logs keep counts and settings only for 7 days. The approved account retention setting is none; invocation logging must be off. Publishing this wording requires a successful owner-approved zero-retention compatibility check for this exact model and route.`,
++    consent: `Explain sends this sentence, and nothing else you pasted, to BiasClear's service on Amazon Web Services. It asks ${model.displayName}, an AI model made by ${model.provider}, through Amazon Bedrock, how the wording works. Amazon may process it in ${destinations} in the United States. We keep no copy. Our Amazon account uses Bedrock's zero data retention setting; Explain stops within 15 minutes if that setting changes. The service sees your network address but keeps only a code made from it, to count requests.`,
++    privacy: `After you agree, the page sends one marked sentence (at most 500 characters), the move and its position, the domain and rules version to BiasClear's Explain service on Amazon Web Services. Nothing else you pasted is sent. The service rechecks the mark, then sends that sentence and our fixed wording prompt to ${model.displayName}, made by ${model.provider}, through Amazon Bedrock. It calls Amazon from ${source} (${model.region}); the approved US profile ${id} may process the sentence in ${destinations} in the United States. BiasClear does not request web or X search, grounding or tools. It sends no conversation history or the rest of your text. The service keeps no copy of the sentence, answer or reasoning. Its logs keep counts and settings only for 7 days. To apply the per-connection limits, the service reads your network address from the request and turns it into a salted hash with a random key made each UTC day. It keeps only that hash, as a request count: about an hour for the ten-minute count, and until the end of the next day for the daily count. The address itself is never stored or logged. Each day's key expires after two days and is deleted; Amazon erases expired items within a few days, after which no one can turn a stored hash back into an address. Amazon Web Services also handles the connection itself. If the account's retention or logging setting changes, Explain stops within 15 minutes: each running copy of the service rechecks it at least that often. The approved account retention setting is none; invocation logging must be off. Publishing this wording requires a successful owner-approved zero-retention compatibility check for this exact model and route.`,
+   };
+ }
+ 
+diff --git a/packages/explain/test/privacy.test.ts b/packages/explain/test/privacy.test.ts
+index db5f89c..da5bb59 100644
+--- a/packages/explain/test/privacy.test.ts
++++ b/packages/explain/test/privacy.test.ts
+@@ -1,6 +1,9 @@
+ import { readFileSync } from "node:fs";
+ import { describe, expect, it } from "vitest";
+ import { MODELS } from "../src/models.js";
++import { SALT_TTL_MS } from "../src/ratelimit.js";
++import { SETTINGS_INTERVAL_MS } from "../src/state.js";
++import { DAY_MS } from "../src/time.js";
+ import { DRAFT_FILE, privacyDraft, renderDrafts } from "../scripts/privacy-drafts.mjs";
+ 
+ describe("model-bound unpublished privacy copy", () => {
+@@ -19,6 +22,22 @@ describe("model-bound unpublished privacy copy", () => {
+     }
+   });
+ 
++  it("says how long a settings change takes to stop Explain and what happens to the network address (306)", () => {
++    // The copy is held to the code: each instance rechecks settings every SETTINGS_INTERVAL_MS, and the salt that
++    // could link a stored hash to an address expires after SALT_TTL_MS.
++    expect(SETTINGS_INTERVAL_MS).toBe(15 * 60 * 1000);
++    expect(SALT_TTL_MS).toBe(2 * DAY_MS);
++    for (const [id, model] of Object.entries(MODELS)) {
++      const draft = privacyDraft(id, model);
++      expect(draft.consent).toContain("Explain stops within 15 minutes if that setting changes");
++      expect(draft.consent).not.toContain("Explain pauses if that setting changes");
++      expect(draft.consent).toContain("network address");
++      for (const words of ["network address", "salted hash", "The address itself is never stored or logged", "expires after two days", "within 15 minutes"]) {
++        expect(draft.privacy).toContain(words);
++      }
++    }
++  });
++
+   it("refuses unknown or global locations rather than guessing privacy words", () => {
+     const model = MODELS["us.xai.grok-4.7"]!;
+     expect(() => privacyDraft("global.xai.grok-4.7", model)).toThrow();
+-- 
+2.54.0 (Apple Git-157)
+

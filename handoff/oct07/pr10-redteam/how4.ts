@@ -1,0 +1,6 @@
+import { ctx, run } from "./lib.ts";
+const c = ctx("Every serious economist agrees that the Harlan Valley plan will lower rents within two years.", "CONSENSUS_AS_EVIDENCE");
+const Q = 'The words "Every serious economist agrees" offer agreement as the reason to accept the forecast.';
+for (const t of ["The claim in it is still false.","The claim in it is very wrong.","The claim in it is all true.","The claim in it is 100% true.","The claim in it is just wrong.","The claim in it is quite correct.","The claim in it is, in fact, true.","The claim in it seems true.","The claim in it sounds right.","The claim in it looks false.","The claim in it rings true.","The claim in it remains true.","The claim in it turns out false.","The claim in it proves false.","The claim in it, true as it is, uses agreement.","The plan in this sentence will indeed work.","The plan in this sentence will not work.","The plan in this sentence would never work.","The plan in this sentence won't work.","The plan in this sentence works.","The plan in this sentence will lower rents, the reader can be sure."]) {
+  const r = run(c, Q + " " + t, null); console.log((r.ok ? "PASS " : "fail ") + t.padEnd(60) + (r.ok ? "" : (r as any).code));
+}

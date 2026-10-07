@@ -1,0 +1,24 @@
+{
+ "pattern": "{ ($.overrun = 1) || ($.billedBoundViolated = 1) || ($.pausePersisted = 0) || ($.pausePersisted = 1) || ($.code = \"E_SETTLE\") }",
+ "bound": {
+  "appLine": "{\"outcome\":\"paused\",\"status\":503,\"ms\":0,\"code\":\"E_PROVIDER_BOUND\",\"rule\":\"CONSENSUS_AS_EVIDENCE\",\"rules\":\"2.0.0a5\",\"model\":\"grok47\",\"inTok\":820,\"outTok\":999,\"micros\":8398,\"actualMicros\":8398,\"reservedMicros\":9212,\"billedBoundViolated\":1,\"pausePersisted\":1}",
+  "bareMatches": true,
+  "lambdaJsonMatches": false,
+  "envelopeMessageType": "string",
+  "lambdaTextMatches": false
+ },
+ "settleUnpersisted": {
+  "appLine": "{\"outcome\":\"paused\",\"status\":503,\"ms\":0,\"code\":\"E_SETTLE\",\"rule\":\"CONSENSUS_AS_EVIDENCE\",\"rules\":\"2.0.0a5\",\"model\":\"grok47\",\"inTok\":820,\"outTok\":120,\"micros\":9212,\"actualMicros\":2596,\"reservedMicros\":9212,\"pausePersisted\":0}",
+  "bareMatches": true,
+  "lambdaJsonMatches": false,
+  "envelopeMessageType": "string",
+  "lambdaTextMatches": false
+ },
+ "noUsage": {
+  "appLine": "{\"outcome\":\"paused\",\"status\":503,\"ms\":0,\"code\":\"E_MODEL_NO_USAGE\",\"rule\":\"CONSENSUS_AS_EVIDENCE\",\"rules\":\"2.0.0a5\",\"model\":\"grok47\",\"micros\":9212,\"reservedMicros\":9212,\"pausePersisted\":1}",
+  "bareMatches": true,
+  "lambdaJsonMatches": false,
+  "envelopeMessageType": "string",
+  "lambdaTextMatches": false
+ }
+}

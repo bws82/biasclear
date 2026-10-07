@@ -1,0 +1,88 @@
+diff --git a/packages/explain/eval/dry-run.ts b/packages/explain/eval/dry-run.ts
+index 16bb227..3139f65 100644
+--- a/packages/explain/eval/dry-run.ts
++++ b/packages/explain/eval/dry-run.ts
+@@ -61,7 +61,7 @@ export async function runDryEvaluation(fixtures: Fixtures) {
+         if (unsafeRewrite) unsafeRewriteProbes++; else safeRewriteProbes++;
+       }
+       const move = defaults.moves.get(call.request.rule as string)!;
+-      const prompt = buildPrompt(defaults.promptMode, move, sentence, call.request.start as number, call.request.end as number);
++      const prompt = buildPrompt(defaults.promptMode, move, sentence, call.request.start as number, call.request.end as number, call.request.rule as string);
+       // This fallback is ONLY the synthetic stub's known output bound. The
+       // real entrypoint refuses unverified billed-reasoning bounds.
+       const reservation = worstCaseMicros(prompt.bytes, model.billedMaxTokens ?? model.maxTokens, cfg);
+diff --git a/packages/explain/src/app.ts b/packages/explain/src/app.ts
+index e941928..7582bb4 100644
+--- a/packages/explain/src/app.ts
++++ b/packages/explain/src/app.ts
+@@ -282,7 +282,7 @@ async function explain(
+   const model = MODELS[config.modelId];
+   if (model === undefined) return stop("paused", "E_CONFIG");
+   line.model = model.key;
+-  const prompt = buildPrompt(deps.promptMode, move, req.sentence, req.start, req.end);
++  const prompt = buildPrompt(deps.promptMode, move, req.sentence, req.start, req.end, req.rule);
+   detail.promptBytes = prompt.bytes;
+   const worst = worstCaseMicros(prompt.bytes, model.billedMaxTokens ?? model.maxTokens, config);
+   if (worst > config.dailyMicros || worst > config.capMicros) stop("paused", "E_TOO_COSTLY");
+diff --git a/packages/explain/test/handler.test.ts b/packages/explain/test/handler.test.ts
+index bee2c15..3f19fa9 100644
+--- a/packages/explain/test/handler.test.ts
++++ b/packages/explain/test/handler.test.ts
+@@ -372,7 +372,7 @@ describe("the spend cap fails closed", () => {
+       const r = await h.call(httpEvent());
+       expect(r.statusCode).toBe(502);
+       const worst = lastLog(h).micros as number;
+-      expect(worst).toBe(worstCaseMicros(buildPrompt("how-and-plainer", bundledMoves().get(RULE)!, SENTENCE, START, END).bytes, MODELS[config().modelId]!.maxTokens, config()));
++      expect(worst).toBe(worstCaseMicros(buildPrompt("how-and-plainer", bundledMoves().get(RULE)!, SENTENCE, START, END, RULE).bytes, MODELS[config().modelId]!.maxTokens, config()));
+       expect(h.aws.table.num(MONTH, "m")).toBe(worst);
+       expect(h.aws.table.num(DAY, "m")).toBe(worst);
+     }
+@@ -471,7 +471,7 @@ describe("the spend cap fails closed", () => {
+ describe("the concurrent cap race", () => {
+   /** Usage whose real cost equals the reservation exactly, so settling gives nothing back mid-race. */
+   function exactWorst(): { inTok: number; outTok: number; worst: number } {
+-    const p = buildPrompt("how-and-plainer", bundledMoves().get(RULE)!, SENTENCE, START, END);
++    const p = buildPrompt("how-and-plainer", bundledMoves().get(RULE)!, SENTENCE, START, END, RULE);
+     const cfg = config();
+     const outTok = MODELS["us.xai.grok-4.7"]!.maxTokens;
+     return { inTok: p.bytes + 50, outTok, worst: worstCaseMicros(p.bytes, outTok, cfg) };
+diff --git a/packages/explain/test/helpers.ts b/packages/explain/test/helpers.ts
+index b46a999..b349a0f 100644
+--- a/packages/explain/test/helpers.ts
++++ b/packages/explain/test/helpers.ts
+@@ -23,9 +23,12 @@ export const ORIGIN = "https://biasclear.github.io";
+ /** A made-up evaluation key (64 hex characters), not a credential. */
+ export const EVAL_KEY = "e".repeat(64);
+ 
++/** The model's choice for the documented example: reviewed phrase ids (data/explain-phrases.json). */
++export const GOOD_CHOICE = { does: ["d1"], unsaid: ["u1", "u2"] };
++/** The explanation the server writes from GOOD_CHOICE (src/compose.ts). */
+ export const GOOD_HOW =
+-  'The words "Every serious economist agrees" offer agreement as the reason to accept the forecast. ' +
+-  "The sentence does not say what evidence those economists rely on.";
++  'The words \u{201C}Every serious economist agrees\u{201D} treat agreement as if it were evidence. ' +
++  "The sentence does not say who exactly agrees or what evidence the agreement rests on.";
+ export const GOOD_PLAINER = "Many economists say that the Harlan Valley plan will lower rents within two years.";
+ 
+ export const ENV: Record<string, string> = {
+@@ -102,7 +105,10 @@ export function httpEvent(o: EventOptions = {}): Record<string, unknown> {
+ }
+ 
+ export interface ModelReplyOptions {
++  /** A free-text explanation: the old reply shape, which the checker now refuses. */
+   how?: string;
++  does?: unknown;
++  unsaid?: unknown;
+   plainer?: string | null;
+   text?: string;
+   stop_reason?: string;
+@@ -113,7 +119,8 @@ export interface ModelReplyOptions {
+ }
+ 
+ export function modelReply(o: ModelReplyOptions = {}): Record<string, unknown> {
+-  const payload: Record<string, unknown> = { how: o.how ?? GOOD_HOW };
++  const payload: Record<string, unknown> =
++    o.how !== undefined ? { how: o.how } : { does: o.does ?? GOOD_CHOICE.does, unsaid: o.unsaid ?? GOOD_CHOICE.unsaid };
+   if (o.plainer !== null) payload.plainer = o.plainer ?? GOOD_PLAINER;
+   return {
+     id: "msg_test",
