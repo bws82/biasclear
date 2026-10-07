@@ -1,0 +1,150 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index c3783bf..3f434d6 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -8,6 +8,8 @@ The first release of v2: one rule pack, a Python engine and a TypeScript engine
+ 
+ Package version 2.0.0a1; rules version 2.0.0a5.
+ 
++The site moved from its preview address to https://biasclear.com/ on 2026-10-06; links in the README, the PyPI readme and the package metadata (`Homepage`) point there.
++
+ Test inputs, in `tests/` and in `rules/RULE_CHANGES.md`, are paired with their mirrors and some quote insults. The people, parties, organizations, faith bodies, outlets, schools, awards and programs in them are made up, each with the shape of the name it replaced, and the golden files were made again from the renamed texts: every text raises the same rules on the same words. This file describes each change by its structure.
+ 
+ ### Rules version 2.0.0a5 (preview review)
+diff --git a/README.md b/README.md
+index cb020f6..39ca7f0 100644
+--- a/README.md
++++ b/README.md
+@@ -4,9 +4,9 @@
+ 
+ **See how a text is built to move you.** BiasClear is a free persuasion checker. It marks the moves a text makes on its reader and names each one. It points at structure, never at people.
+ 
+-**[Try it in your browser](https://biasclear.github.io/biasclear/)** (public preview). Nothing you type is sent anywhere.
++**[Try it in your browser](https://biasclear.com/)** (public preview). Nothing you type is sent anywhere.
+ 
+-<a href="https://biasclear.github.io/biasclear/">
++<a href="https://biasclear.com/">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="docs/img/hero-dark.png">
+   <img src="docs/img/hero.png" alt="The BiasClear checker reading a sample ad for a kettle. Six phrases are highlighted and underlined in three tier colors, such as “Everyone knows” and “Only a fool”. A loupe over “Top groups agree” shows the words as a film negative, with that phrase outlined and named Vague authority, Tier III. A list beside the text names all six moves.">
+@@ -15,11 +15,11 @@
+ 
+ ## Try it
+ 
+-Open **[biasclear.github.io/biasclear](https://biasclear.github.io/biasclear/)** and paste an email, a post, an ad or a chatbot answer. Each move is outlined, named and listed with its tier.
++Open **[biasclear.com](https://biasclear.com/)** and paste an email, a post, an ad or a chatbot answer. Each move is outlined, named and listed with its tier.
+ 
+ - **It runs in your browser.** The rules run inside the page. The page's code sends nothing, and its security policy lets it load files only from its own site and blocks the usual ways a script sends data (fetch, XHR, beacons, WebSockets: `connect-src 'none'`). Nothing you type is sent anywhere.
+ - **No cookies, no accounts.** Nothing to sign up for.
+-- **The moves are explained.** The [Field Guide](https://biasclear.github.io/biasclear/guide/) shows how they work, with examples and what the rules miss.
++- **The moves are explained.** The [Field Guide](https://biasclear.com/guide/) shows how they work, with examples and what the rules miss.
+ 
+ It is an alpha: 43 rules, rules version 2.0.0a5. How often the rules are right on new text has not been measured yet. See [Status and roadmap](#status-and-roadmap).
+ 
+@@ -45,7 +45,7 @@ It is an alpha: 43 rules, rules version 2.0.0a5. How often the rules are right o
+ - Credential as proof: "**As a roofer with 20 years of experience, I can tell you** the whole roof has to go."
+ - Fog language: "**Pursuant to the implementation** of the revised plan, buses will come every 20 minutes."
+ 
+-A tier says how a move works, not how serious it is. The [Field Guide](https://biasclear.github.io/biasclear/guide/) covers every rule, grouped by tier.
++A tier says how a move works, not how serious it is. The [Field Guide](https://biasclear.com/guide/) covers every rule, grouped by tier.
+ 
+ ## What it is not
+ 
+@@ -54,7 +54,7 @@ A tier says how a move works, not how serious it is. The [Field Guide](https://b
+ - **Not about people or parties.** The rules match wording, not names. No rule lists the names of people, parties, ideologies, faiths, countries, programs, outlets, institutions or schools, and [a lint](tests/test_neutrality_lint.py) fails if a rule holds a word from its reference list of such names.
+ - **One exception, for sentence ends.** A shared list of abbreviations that do not end a sentence holds titles of every major faith ("Rev.", "Fr.", "Rab.", "Ust.", "Shri.", "Ven.") and both parties' "Rep." and "Dem.", treated alike. It decides only where a sentence ends, and the lint allows exactly these, in that list only ([why](rules/RULE_CHANGES.md#party-and-country-abbreviations)).
+ - **Not an AI model.** The rules are fixed patterns, and nothing is learned from what you paste. The same text gives the same result every time with the same engine and runtime. The Python and TypeScript engines agree on every text the tests run; they can differ only on characters newer than one runtime's Unicode version ([packages/engine](packages/engine/README.md)).
+-- **Not complete.** It misses persuasion put in other words, tone and insinuation. It is designed for English; coverage in other languages has not been evaluated. A quoted dismissal is marked the same as one the writer makes. The [Method page](https://biasclear.github.io/biasclear/method.html#misses) lists what the rules cannot see.
++- **Not complete.** It misses persuasion put in other words, tone and insinuation. It is designed for English; coverage in other languages has not been evaluated. A quoted dismissal is marked the same as one the writer makes. The [Method page](https://biasclear.com/method.html#misses) lists what the rules cannot see.
+ 
+ ## Swapped-side tests
+ 
+diff --git a/docs/PYPI_README.md b/docs/PYPI_README.md
+index d090dfd..53adaf6 100644
+--- a/docs/PYPI_README.md
++++ b/docs/PYPI_README.md
+@@ -2,7 +2,7 @@
+ 
+ **See how a text is built to move you.** BiasClear is a free persuasion checker. It marks the moves a text makes on its reader and names each one. It points at structure, never at people.
+ 
+-This is the Python engine. The same rules run in your browser at [biasclear.github.io/biasclear](https://biasclear.github.io/biasclear/), and nothing you type there is sent anywhere.
++This is the Python engine. The same rules run in your browser at [biasclear.com](https://biasclear.com/), and nothing you type there is sent anywhere.
+ 
+ ## Use
+ 
+@@ -44,7 +44,7 @@ The rules are an alpha and will change. How often they are right on new text has
+ ## More
+ 
+ - Source, tests and the rule pack: [github.com/biasclear/biasclear](https://github.com/biasclear/biasclear)
+-- What each move is and what the rules miss: [the Field Guide](https://biasclear.github.io/biasclear/guide/) and [the Method page](https://biasclear.github.io/biasclear/method.html)
++- What each move is and what the rules miss: [the Field Guide](https://biasclear.com/guide/) and [the Method page](https://biasclear.com/method.html)
+ - Every rule change and why: [rules/RULE_CHANGES.md](https://github.com/biasclear/biasclear/blob/main/rules/RULE_CHANGES.md)
+ - Changes by version: [CHANGELOG.md](https://github.com/biasclear/biasclear/blob/main/CHANGELOG.md)
+ 
+diff --git a/docs/REPO_SETTINGS.md b/docs/REPO_SETTINGS.md
+index 66b9bb1..0521f9b 100644
+--- a/docs/REPO_SETTINGS.md
++++ b/docs/REPO_SETTINGS.md
+@@ -29,10 +29,10 @@ A free persuasion checker. It marks the moves a text makes on its reader and nam
+ **Website:**
+ 
+ ```text
+-https://biasclear.github.io/biasclear/
++https://biasclear.com/
+ ```
+ 
+-Ticking **Use your GitHub Pages website** fills in the same address. After the move to biasclear.com, change it to `https://biasclear.com/`.
++The site moved from the preview address `https://biasclear.github.io/biasclear/` to biasclear.com on 2026-10-06; GitHub redirects the old address. Ticking **Use your GitHub Pages website** fills in the same address.
+ 
+ **Topics** (9):
+ 
+diff --git a/ops/BLUEPRINT.md b/ops/BLUEPRINT.md
+index 8605aec..4e51534 100644
+--- a/ops/BLUEPRINT.md
++++ b/ops/BLUEPRINT.md
+@@ -79,7 +79,7 @@ Nothing is decided unless it's written here. Changing a decision means changing
+ | Asset | Where | Notes |
+ |---|---|---|
+ | Code, rules, site source, plan | `biasclear/biasclear` on GitHub | Seeded by one PR on top of the repository's README commit, which the owner merges (§6). |
+-| Website | GitHub Pages on `biasclear/biasclear`, built by `.github/workflows/pages.yml` | A public preview at `https://biasclear.github.io/biasclear/`; later at `https://biasclear.com/` (owner step, private checklist). GitHub logs visitor IP addresses, and the Privacy page says so. Pages can't send response headers, so the site's policies are meta tags. |
++| Website | GitHub Pages on `biasclear/biasclear`, built by `.github/workflows/pages.yml` | A public preview at `https://biasclear.com/` since 2026-10-06 (it started at `https://biasclear.github.io/biasclear/`, which GitHub now redirects). GitHub logs visitor IP addresses, and the Privacy page says so. Pages can't send response headers, so the site's policies are meta tags. |
+ | Python package | PyPI project `biasclear` | Published only by `release.yml` through Trusted Publishing and the owner-approved `pypi` environment. The first release claims the name. First version 2.0.0a1, never 0.x or 1.x. Never delete the project, a release or a file; yank instead. The PyPI account and its pending publisher are owner steps (private checklist). |
+ | npm `@biasclear/engine` | Later (after launch) | npm Trusted Publishing can't make a first publish, so the first npm release gets its own plan. |
+ | Retired v1 code | The tag `v1-final` | The PIT preprint refers to it. Kept under AGPL-3.0. |
+diff --git a/pyproject.toml b/pyproject.toml
+index 00ded5c..50fa65f 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -31,9 +31,7 @@ classifiers = [
+ ]
+ 
+ [project.urls]
+-# No Homepage yet: the site is at a preview address until biasclear.com
+-# serves it, and a release's metadata can't be edited. Add
+-# Homepage = "https://biasclear.com" in the first release after that.
++Homepage = "https://biasclear.com"
+ Repository = "https://github.com/biasclear/biasclear"
+ 
+ [project.optional-dependencies]
+diff --git a/tests/test_readme.py b/tests/test_readme.py
+index e254515..8a537a8 100644
+--- a/tests/test_readme.py
++++ b/tests/test_readme.py
+@@ -221,7 +221,7 @@ def test_repo_settings_fit_github():
+     description = block("Description")
+     assert "\n" not in description and len(description) < 120
+     assert f"**Description** ({len(description)} characters)" in doc
+-    assert block("Website:") == "https://biasclear.github.io/biasclear/"
++    assert block("Website:") == "https://biasclear.com/"
+     topics = block("Topics").split("\n")
+     assert 6 <= len(topics) <= 10 and len(set(topics)) == len(topics)
+     assert f"**Topics** ({len(topics)})" in doc
+@@ -243,7 +243,7 @@ def test_pypi_readme_links_are_absolute_and_its_example_runs():
+     targets = re.findall(r"\]\(([^)\s]+)\)", doc) + re.findall(r'(?:src|srcset)="([^"]+)"', doc)
+     assert targets
+     for target in targets:
+-        assert re.match(r"https://(github\.com/biasclear/biasclear|biasclear\.github\.io/biasclear/)", target), target
++        assert re.match(r"https://(github\.com/biasclear/biasclear|biasclear\.com/)", target), target
+     for stale in ("coming", "until then", "not on npm", "from source", "first release"):
+         assert stale not in doc.lower(), stale
+     m = re.search(r"```python\n(.*?)```\s*```text\n(.*?)```", doc, re.DOTALL)

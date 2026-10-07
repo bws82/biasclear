@@ -1,0 +1,61 @@
+diff --git a/ops/BOARD.md b/ops/BOARD.md
+index 9096216..d7a6c74 100644
+--- a/ops/BOARD.md
++++ b/ops/BOARD.md
+@@ -1,6 +1,6 @@
+ # BiasClear v2 board
+ 
+-Status: revision 3, public edition. Maintained by the PM (Claude). Last updated: 2026-09-28.
++Status: revision 3, public edition. Maintained by the PM (Claude). Last updated: 2026-10-07.
+ 
+ **Blueprint:** [`ops/BLUEPRINT.md`](BLUEPRINT.md) settles the roles, the release process, the AI model, hosting and the security model. Build tickets follow it.
+ **Owner steps:** the owner works from a private checklist. This board names owner steps by outcome only, as "owner step (private checklist)", and links none of it.
+@@ -34,13 +34,13 @@ The PM doesn't decide these. Answer in chat whenever it suits you.
+ - [x] Agent charter (`AGENTS.md`), PR template, this board
+ - [x] License decided (Apache-2.0 for the code, CC BY 4.0 for the rule pack) and applied in the seed (`LICENSE`, `rules/LICENSE`, `pyproject.toml`)
+ - [ ] Withdrawal notice at the top of the `v1-final` README and CHANGELOG
+-- [ ] Repository description, website and topics with no "ai-governance" or "detection engine" wording (`docs/REPO_SETTINGS.md`; owner step)
++- [ ] Repository description, website and topics with no "ai-governance" or "detection engine" wording (`docs/REPO_SETTINGS.md`; owner step). Description and topics done 2026-09-28; the website link is set to `https://biasclear.com/` once the domain serves the site over HTTPS.
+ 
+ ### 0b: Set up the repository (by Oct 9; order in `ops/BLUEPRINT.md` §6)
+-- [ ] **Owner step (private checklist):** the organization and the public repository `biasclear/biasclear` with a README; the Claude app and the Codex connector installed
+-- [ ] **Owner step (private checklist), before the seed merges:** the `pypi` environment (owner as required reviewer, admin bypass off, tags `v*` only); Actions read-only; security scanners on; Pages source set to GitHub Actions
+-- [ ] **PM: seed PR.** One commit on top of the repository's README commit, from an explicit file list, never a working folder (`ops/SEED_NOTES.md`). It carries E1, E2, E3, E6 and S1 (the site as a labeled public preview), hardened CI, the release workflow, CODEOWNERS and Dependabot for GitHub Actions only. Before opening it, the PM runs the personal-data and withdrawn-claim gate and a full secret scan, and records the source commit and the gate output in the PR. Owner merge.
+-- [ ] **Owner step:** ruleset `protect-main`, right after the seed's checks pass on `main`: Active, default branch, PR required with 0 approvals, checks `test`, `security`, `secret-scan` and `sast` each tied to GitHub Actions, no force pushes, no deletions, empty bypass list. The PM reads it back through the API. **No agent merges until that read-back passes.**
++- [x] **Owner step (private checklist):** the organization and the public repository `biasclear/biasclear` with a README; the Claude app and the Codex connector installed (2026-09-28)
++- [ ] **Owner step (private checklist), before the seed merges:** the `pypi` environment (owner as required reviewer, admin bypass off, tags `v*` only); Actions read-only; security scanners on; Pages source set to GitHub Actions. Done 2026-09-28 except the `pypi` environment's rules: it exists with no required reviewer and no tag rule. Needed before the first release.
++- [x] **PM: seed PR** ([#1](https://github.com/biasclear/biasclear/pull/1), merged by the owner 2026-10-06; its `test` job failed once on the ReDoS timing guard, `VAGUE_INSTITUTIONAL_APPEAL[0]` at 52.5 ms against the 50 ms limit, and passed on re-run; a ticket makes the guard stable). One commit on top of the repository's README commit, from an explicit file list, never a working folder (`ops/SEED_NOTES.md`). It carries E1, E2, E3, E6 and S1 (the site as a labeled public preview), hardened CI, the release workflow, CODEOWNERS and Dependabot for GitHub Actions only. Before opening it, the PM runs the personal-data and withdrawn-claim gate and a full secret scan, and records the source commit and the gate output in the PR. Owner merge.
++- [ ] **Owner step:** ruleset `protect-main`, right after the seed's checks pass on `main`: Active, default branch, PR required with 0 approvals, checks `test`, `security`, `secret-scan` and `sast` each tied to GitHub Actions, no force pushes, no deletions, empty bypass list. The PM reads it back through the API. **No agent merges until that read-back passes.** The owner's one press is `ops/easy/protect-main.sh` on the PM's save branch: it checks the four checks passed on `main`, creates the ruleset and reads every field back.
+ - [ ] **PM: Codex environment clicks.** Send the owner the exact clicks: environment for `biasclear/biasclear`, no secrets, agent internet off, Codex code review set to explicit mentions only.
+ - [ ] **PM: labels,** with a color and a one-line description each: `agent:codex`, `track:engine`, `track:site`, `question-for-pm`, `redteam:clear`, `redteam:blocking`, `dependencies`, `ci`. Before the access test: Dependabot won't create missing labels.
+ - [ ] **PM: access test.** One small test issue goes the whole loop: the PM's start comment on the issue → Codex PR with `Closes #N` → red-team Comment review and label → PM merge of an unprotected path. It also checks:
+@@ -50,12 +50,12 @@ The PM doesn't decide these. Answer in chat whenever it suits you.
+   This is the go/no-go for the Codex path. If it fails, run the fallback ladder in `ops/BLUEPRINT.md` §2, then Question 1 above.
+ - [ ] **PM: open the tickets** from `ops/ISSUES_TO_RECREATE.md`: E1, E2, E3, E6 and S1 opened and closed as done by the seed, with a link; then E4 and S1b. B2 and S2 get drafts later. No Codex handle in any body. Start them one at a time, after the access test.
+ - [ ] **PM: PR-sweep routine** on `biasclear/biasclear`, right after the seed merges, so draft-to-ready changes and label events aren't missed.
+-- [ ] **PM: check the `github-pages` environment** allows `main` only after the Pages workflow's first run (`docs/REPO_SETTINGS.md`).
++- [ ] **PM: check the `github-pages` environment** allows `main` only after the Pages workflow's first run (`docs/REPO_SETTINGS.md`). Checked, and set if missing, by the owner's press of `ops/easy/pages-https.sh`.
+ - [ ] **PM: name watch** before each PyPI owner step and before the release tag: look up `biasclear` in PyPI's simple index. If a project appears that isn't ours, stop, report it and pick a fallback name the same day.
+ - [ ] **Owner step (private checklist):** the PyPI account and the pending publisher (project `biasclear`, owner `biasclear`, repository `biasclear`, workflow `release.yml`, environment `pypi`)
+ - [ ] **PM: `v1-final`.** After the seed merges, build the retired v1 code as an orphan commit from a recorded commit of the old code, pass the same gate, and push it through the PM's branch. Tag it before `v2.0.0a1`, because the 2.0.0a1 README links to it. The PM tags it if the access test shows it can; otherwise the owner tags it on the Releases page.
+ - [ ] **First release, 2.0.0a1** (after the seed, the ruleset and the PyPI step). The PM posts the built files and their metadata. The owner creates tag `v2.0.0a1` on the Releases page, then presses Approve and deploy. The first release claims the name.
+-- [ ] **Owner step (private checklist):** the site at `https://biasclear.com/`. Then the PM updates the README, the repository settings text and `pyproject.toml`'s `Homepage` for the next release.
++- [ ] **Owner step (private checklist):** the site at `https://biasclear.com/`. Domain verified, custom domain and DNS records set 2026-10-06; Enforce HTTPS follows once GitHub issues the certificate (`ops/easy/pages-https.sh`, which also sets the About website link). Then the PM's pull request switches the README, the PyPI readme, the repository settings text and `pyproject.toml`'s `Homepage` to the new address.
+ - [ ] **Owner step (private checklist):** the old repository points to this one, `v1-final` and the preprint's DOI; the preprint record links to this repository.
+ - [ ] **PM: concept DOI.** Once the Zenodo concept DOI and v1 version DOI are confirmed, a ticket points "always current" PIT links at the concept DOI and keeps the version DOI where v1 is meant.
+ 
+@@ -139,6 +139,8 @@ Numbered decisions keep their numbers from the full log. The ones about accounts
+ | 2026-09-28 | 36. Faith-specific common nouns count as faith words when they are rule content; rules use faith-neutral terms | PM |
+ | 2026-09-28 | 37. The "Ignore the ___" trade-off (the object must end the clause) is accepted as documented | PM |
+ | 2026-09-28 | 38. Generic government bodies and seats of government may stay in test text; named faith bodies, parties, outlets, think tanks, companies and awards get made-up names of the same shape | PM |
++| 2026-10-06 | The site moves to `https://biasclear.com/` now, ahead of the old server's cleanup | Owner |
++| 2026-10-06 | The ReDoS timing guard is made stable on shared runners without loosening what it protects (ticket) | Owner |
+ 
+ ## Owner time log
+ 
+@@ -146,3 +148,5 @@ Budget: at most 2 hours a week, at most 30 minutes per sitting, web clicks and d
+ 
+ | Date | Task | Estimate | Actual |
+ |---|---|---|---|
++| 2026-10-06 | Merge the seed, PR #1 (one re-run of `test`) | 5 min | not recorded |
++| 2026-10-06 | biasclear.com to GitHub Pages: verified domain, custom domain, DNS records | 30 min | not recorded |
