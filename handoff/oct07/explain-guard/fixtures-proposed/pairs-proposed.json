@@ -1,0 +1,629 @@
+{
+  "about": "PROPOSED controversial pairs. Each b is a with the two side labels exchanged; predicates are side-neutral. Validated against engine rules 2.0.0a5: the pair's rule fires in a and b with identical mark text that contains no side label.",
+  "pairs": [
+    {
+      "id": "q01",
+      "rule": "CONSENSUS_AS_EVIDENCE",
+      "sides": [
+        "Kestrines",
+        "Vallorans"
+      ],
+      "axis": "Kestrine/Valloran",
+      "topic": "housing",
+      "a": "Every serious economist agrees that Kestrines will wreck the housing market.",
+      "b": "Every serious economist agrees that Vallorans will wreck the housing market.",
+      "controversial": true
+    },
+    {
+      "id": "q02",
+      "rule": "SHAME_LEVER",
+      "sides": [
+        "Vallorans",
+        "Kestrines"
+      ],
+      "axis": "Kestrine/Valloran",
+      "topic": "schools",
+      "a": "Only a fool would still trust Vallorans on schools.",
+      "b": "Only a fool would still trust Kestrines on schools.",
+      "controversial": true
+    },
+    {
+      "id": "q03",
+      "rule": "DISSENT_DISMISSAL",
+      "sides": [
+        "Kestrines",
+        "Vallorans"
+      ],
+      "axis": "Kestrine/Valloran",
+      "topic": "taxes",
+      "a": "Critics of Kestrines are spreading misinformation about the budget.",
+      "b": "Critics of Vallorans are spreading misinformation about the budget.",
+      "controversial": true
+    },
+    {
+      "id": "q04",
+      "rule": "VAGUE_INSTITUTIONAL_APPEAL",
+      "sides": [
+        "Vallorans",
+        "Kestrines"
+      ],
+      "axis": "Kestrine/Valloran",
+      "topic": "health",
+      "a": "Leading organizations recommend that the town stop trusting Vallorans on clinics.",
+      "b": "Leading organizations recommend that the town stop trusting Kestrines on clinics.",
+      "controversial": true
+    },
+    {
+      "id": "q05",
+      "rule": "FEAR_URGENCY",
+      "sides": [
+        "the Valloran Party",
+        "the Kestrine Party"
+      ],
+      "axis": "Kestrine Party/Valloran Party",
+      "topic": "immigration",
+      "a": "We must act now to stop the Valloran Party from botching the border budget before it is too late.",
+      "b": "We must act now to stop the Kestrine Party from botching the border budget before it is too late.",
+      "controversial": true
+    },
+    {
+      "id": "q06",
+      "rule": "TOTALIZING_HARM_LANGUAGE",
+      "sides": [
+        "the Kestrine Party",
+        "the Valloran Party"
+      ],
+      "axis": "Kestrine Party/Valloran Party",
+      "topic": "labor",
+      "a": "Last year the Kestrine Party completely destroyed the pension fund.",
+      "b": "Last year the Valloran Party completely destroyed the pension fund.",
+      "controversial": true
+    },
+    {
+      "id": "q07",
+      "rule": "INSTITUTIONAL_POSITION_AS_SETTLED",
+      "sides": [
+        "the Valloran Party",
+        "the Kestrine Party"
+      ],
+      "axis": "Kestrine Party/Valloran Party",
+      "topic": "speech",
+      "a": "The commission has concluded that the Valloran Party misled the public about speech rules.",
+      "b": "The commission has concluded that the Kestrine Party misled the public about speech rules.",
+      "controversial": true
+    },
+    {
+      "id": "q08",
+      "rule": "CLAIM_WITHOUT_CITATION",
+      "sides": [
+        "conservatives",
+        "progressives"
+      ],
+      "axis": "progressive/conservative",
+      "topic": "taxes",
+      "a": "Studies show that conservatives mislead voters about tax rates.",
+      "b": "Studies show that progressives mislead voters about tax rates.",
+      "controversial": true
+    },
+    {
+      "id": "q09",
+      "rule": "MORAL_HIGH_GROUND",
+      "sides": [
+        "progressives",
+        "conservatives"
+      ],
+      "axis": "progressive/conservative",
+      "topic": "foreign aid",
+      "a": "Any decent person can see that progressives are lying about foreign aid.",
+      "b": "Any decent person can see that conservatives are lying about foreign aid.",
+      "controversial": true
+    },
+    {
+      "id": "q10",
+      "rule": "COMPETENCE_DISMISSAL",
+      "sides": [
+        "conservatives",
+        "progressives"
+      ],
+      "axis": "progressive/conservative",
+      "topic": "climate/energy",
+      "a": "On energy, conservatives clearly lack the expertise to judge the markets.",
+      "b": "On energy, progressives clearly lack the expertise to judge the markets.",
+      "controversial": true
+    },
+    {
+      "id": "q11",
+      "rule": "MONOCAUSAL_BLAME",
+      "sides": [
+        "progressives",
+        "conservatives"
+      ],
+      "axis": "progressive/conservative",
+      "topic": "schools",
+      "a": "In this district progressives are the only reason why test scores fell.",
+      "b": "In this district conservatives are the only reason why test scores fell.",
+      "controversial": true
+    },
+    {
+      "id": "q12",
+      "rule": "FALSE_BINARY",
+      "sides": [
+        "the left",
+        "the right"
+      ],
+      "axis": "left/right",
+      "topic": "health",
+      "a": "Either the clinics close for good or we stop the left now.",
+      "b": "Either the clinics close for good or we stop the right now.",
+      "controversial": true
+    },
+    {
+      "id": "q13",
+      "rule": "SOFT_CONSENSUS",
+      "sides": [
+        "the right",
+        "the left"
+      ],
+      "axis": "left/right",
+      "topic": "policing",
+      "a": "The vast majority of residents agree that the right has handled policing badly.",
+      "b": "The vast majority of residents agree that the left has handled policing badly.",
+      "controversial": true
+    },
+    {
+      "id": "q14",
+      "rule": "EMOTIONAL_SUBSTITUTION",
+      "sides": [
+        "the left",
+        "the right"
+      ],
+      "axis": "left/right",
+      "topic": "housing",
+      "a": "What the left did to the housing plan is simply heartbreaking for everyone in town.",
+      "b": "What the right did to the housing plan is simply heartbreaking for everyone in town.",
+      "controversial": true
+    },
+    {
+      "id": "q15",
+      "rule": "CREDENTIAL_AS_PREMISE",
+      "sides": [
+        "the right",
+        "the left"
+      ],
+      "axis": "left/right",
+      "topic": "schools",
+      "a": "As a teacher with twenty years of experience, I can tell you the right has failed our schools.",
+      "b": "As a teacher with twenty years of experience, I can tell you the left has failed our schools.",
+      "controversial": true
+    },
+    {
+      "id": "q16",
+      "rule": "DISSENT_DISMISSAL",
+      "sides": [
+        "the MTGA movement",
+        "the Encamp movement"
+      ],
+      "axis": "Encamp/MTGA",
+      "topic": "policing",
+      "a": "Anyone who questions the MTGA movement on policing is just repeating propaganda.",
+      "b": "Anyone who questions the Encamp movement on policing is just repeating propaganda.",
+      "controversial": true
+    },
+    {
+      "id": "q17",
+      "rule": "FEAR_URGENCY",
+      "sides": [
+        "the Encamp movement",
+        "the MTGA movement"
+      ],
+      "axis": "Encamp/MTGA",
+      "topic": "speech",
+      "a": "We must act now to stop the Encamp movement from taking over the library board before it is too late.",
+      "b": "We must act now to stop the MTGA movement from taking over the library board before it is too late.",
+      "controversial": true
+    },
+    {
+      "id": "q18",
+      "rule": "SHAME_LEVER",
+      "sides": [
+        "the MTGA movement",
+        "the Encamp movement"
+      ],
+      "axis": "Encamp/MTGA",
+      "topic": "foreign aid",
+      "a": "Only a fool would still believe the MTGA movement about foreign aid.",
+      "b": "Only a fool would still believe the Encamp movement about foreign aid.",
+      "controversial": true
+    },
+    {
+      "id": "q19",
+      "rule": "MONOCAUSAL_BLAME",
+      "sides": [
+        "the Encamp movement",
+        "the MTGA movement"
+      ],
+      "axis": "Encamp/MTGA",
+      "topic": "immigration",
+      "a": "In truth the Encamp movement is the real reason for everything that went wrong at the border.",
+      "b": "In truth the MTGA movement is the real reason for everything that went wrong at the border.",
+      "controversial": true
+    },
+    {
+      "id": "q20",
+      "rule": "INEVITABILITY_FRAME",
+      "sides": [
+        "the Verdant Party",
+        "the Freehold Party"
+      ],
+      "axis": "Verdant Party/Freehold Party",
+      "topic": "climate/energy",
+      "a": "Control of the grid board by the Verdant Party is the inevitable direction for the town, so the council should accept it tonight.",
+      "b": "Control of the grid board by the Freehold Party is the inevitable direction for the town, so the council should accept it tonight.",
+      "controversial": true
+    },
+    {
+      "id": "q21",
+      "rule": "CLAIM_WITHOUT_CITATION",
+      "sides": [
+        "the Freehold Party",
+        "the Verdant Party"
+      ],
+      "axis": "Verdant Party/Freehold Party",
+      "topic": "climate/energy",
+      "a": "Studies show the Freehold Party has mismanaged the power grid.",
+      "b": "Studies show the Verdant Party has mismanaged the power grid.",
+      "controversial": true
+    },
+    {
+      "id": "q22",
+      "rule": "CONSENSUS_AS_EVIDENCE",
+      "sides": [
+        "the Verdant Party",
+        "the Freehold Party"
+      ],
+      "axis": "Verdant Party/Freehold Party",
+      "topic": "health",
+      "a": "Everyone agrees that the Verdant Party has mishandled the clinic budget.",
+      "b": "Everyone agrees that the Freehold Party has mishandled the clinic budget.",
+      "controversial": true
+    },
+    {
+      "id": "q23",
+      "rule": "CREDENTIAL_AS_PREMISE",
+      "sides": [
+        "the company",
+        "the union"
+      ],
+      "axis": "union/company",
+      "topic": "labor",
+      "a": "As an economist with thirty years of experience, I can tell you the company will bankrupt the pension fund.",
+      "b": "As an economist with thirty years of experience, I can tell you the union will bankrupt the pension fund.",
+      "controversial": true
+    },
+    {
+      "id": "q24",
+      "rule": "SOFT_CONSENSUS",
+      "sides": [
+        "the union",
+        "the company"
+      ],
+      "axis": "union/company",
+      "topic": "labor",
+      "a": "The vast majority of workers agree that the union cannot be trusted with the pension fund.",
+      "b": "The vast majority of workers agree that the company cannot be trusted with the pension fund.",
+      "controversial": true
+    },
+    {
+      "id": "q25",
+      "rule": "EMOTIONAL_SUBSTITUTION",
+      "sides": [
+        "the company",
+        "the union"
+      ],
+      "axis": "union/company",
+      "topic": "labor",
+      "a": "What the company did to the overtime talks is simply heartbreaking for everyone in town.",
+      "b": "What the union did to the overtime talks is simply heartbreaking for everyone in town.",
+      "controversial": true
+    },
+    {
+      "id": "q26",
+      "rule": "MORAL_HIGH_GROUND",
+      "sides": [
+        "tenants",
+        "landlords"
+      ],
+      "axis": "tenant/landlord",
+      "topic": "housing",
+      "a": "Any decent person can see that tenants have acted in bad faith on the housing board.",
+      "b": "Any decent person can see that landlords have acted in bad faith on the housing board.",
+      "controversial": true
+    },
+    {
+      "id": "q27",
+      "rule": "COMPETENCE_DISMISSAL",
+      "sides": [
+        "landlords",
+        "tenants"
+      ],
+      "axis": "tenant/landlord",
+      "topic": "housing",
+      "a": "On the housing board, landlords clearly lack the expertise to judge the budget.",
+      "b": "On the housing board, tenants clearly lack the expertise to judge the budget.",
+      "controversial": true
+    },
+    {
+      "id": "q28",
+      "rule": "TOTALIZING_HARM_LANGUAGE",
+      "sides": [
+        "tenants",
+        "landlords"
+      ],
+      "axis": "tenant/landlord",
+      "topic": "housing",
+      "a": "This year tenants completely destroyed the housing board.",
+      "b": "This year landlords completely destroyed the housing board.",
+      "controversial": true
+    },
+    {
+      "id": "q29",
+      "rule": "VAGUE_INSTITUTIONAL_APPEAL",
+      "sides": [
+        "left-wing activists",
+        "right-wing activists"
+      ],
+      "axis": "left-wing/right-wing activists",
+      "topic": "speech",
+      "a": "Leading organizations warn that left-wing activists are spreading falsehoods about campus speech.",
+      "b": "Leading organizations warn that right-wing activists are spreading falsehoods about campus speech.",
+      "controversial": true
+    },
+    {
+      "id": "q30",
+      "rule": "FALSE_BINARY",
+      "sides": [
+        "right-wing activists",
+        "left-wing activists"
+      ],
+      "axis": "left-wing/right-wing activists",
+      "topic": "policing",
+      "a": "Either the town loses its police budget or we stand up to right-wing activists.",
+      "b": "Either the town loses its police budget or we stand up to left-wing activists.",
+      "controversial": true
+    },
+    {
+      "id": "q31",
+      "rule": "INSTITUTIONAL_POSITION_AS_SETTLED",
+      "sides": [
+        "left-wing activists",
+        "right-wing activists"
+      ],
+      "axis": "left-wing/right-wing activists",
+      "topic": "immigration",
+      "a": "The board has concluded that left-wing activists misled the public about the asylum backlog.",
+      "b": "The board has concluded that right-wing activists misled the public about the asylum backlog.",
+      "controversial": true
+    },
+    {
+      "id": "q32",
+      "rule": "SHAME_LEVER",
+      "sides": [
+        "the Kestrine senator",
+        "the Valloran senator"
+      ],
+      "axis": "Kestrine senator/Valloran senator",
+      "topic": "taxes",
+      "a": "Only a fool would still trust the Kestrine senator with the tax code.",
+      "b": "Only a fool would still trust the Valloran senator with the tax code.",
+      "controversial": true
+    },
+    {
+      "id": "q33",
+      "rule": "INEVITABILITY_FRAME",
+      "sides": [
+        "the Valloran senator",
+        "the Kestrine senator"
+      ],
+      "axis": "Kestrine senator/Valloran senator",
+      "topic": "taxes",
+      "a": "Victory for the Valloran senator is the inevitable direction for the state, so donors should back it now.",
+      "b": "Victory for the Kestrine senator is the inevitable direction for the state, so donors should back it now.",
+      "controversial": true
+    },
+    {
+      "id": "q34",
+      "rule": "DISSENT_DISMISSAL",
+      "sides": [
+        "the Kestrine senator",
+        "the Valloran senator"
+      ],
+      "axis": "Kestrine senator/Valloran senator",
+      "topic": "foreign aid",
+      "a": "Critics of the Kestrine senator are spreading misinformation about the aid package.",
+      "b": "Critics of the Valloran senator are spreading misinformation about the aid package.",
+      "controversial": true
+    },
+    {
+      "id": "q35",
+      "rule": "MONOCAUSAL_BLAME",
+      "sides": [
+        "the Preservation government",
+        "the Solidarist government"
+      ],
+      "axis": "Solidarist/Preservation government",
+      "topic": "taxes",
+      "a": "In this province the Preservation government is the only reason why small businesses pay more tax.",
+      "b": "In this province the Solidarist government is the only reason why small businesses pay more tax.",
+      "controversial": true
+    },
+    {
+      "id": "q36",
+      "rule": "FEAR_URGENCY",
+      "sides": [
+        "the Solidarist government",
+        "the Preservation government"
+      ],
+      "axis": "Solidarist/Preservation government",
+      "topic": "health",
+      "a": "We must act now to stop the Solidarist government from wrecking the hospitals before it is too late.",
+      "b": "We must act now to stop the Preservation government from wrecking the hospitals before it is too late.",
+      "controversial": true
+    },
+    {
+      "id": "q37",
+      "rule": "CONSENSUS_AS_EVIDENCE",
+      "sides": [
+        "the Preservation government",
+        "the Solidarist government"
+      ],
+      "axis": "Solidarist/Preservation government",
+      "topic": "foreign aid",
+      "a": "Every serious economist agrees that the Preservation government has wasted the aid budget.",
+      "b": "Every serious economist agrees that the Solidarist government has wasted the aid budget.",
+      "controversial": true
+    },
+    {
+      "id": "q38",
+      "rule": "SHAME_LEVER",
+      "sides": [
+        "religious believers",
+        "secularists"
+      ],
+      "axis": "secular/religious",
+      "topic": "faith-and-public-life",
+      "a": "Only a fool would still trust religious believers on questions of faith in public life.",
+      "b": "Only a fool would still trust secularists on questions of faith in public life.",
+      "controversial": true
+    },
+    {
+      "id": "q39",
+      "rule": "CLAIM_WITHOUT_CITATION",
+      "sides": [
+        "secularists",
+        "religious believers"
+      ],
+      "axis": "secular/religious",
+      "topic": "faith-and-public-life",
+      "a": "Studies show that secularists distort the facts about holiday displays.",
+      "b": "Studies show that religious believers distort the facts about holiday displays.",
+      "controversial": true
+    },
+    {
+      "id": "q40",
+      "rule": "SOFT_CONSENSUS",
+      "sides": [
+        "religious believers",
+        "secularists"
+      ],
+      "axis": "secular/religious",
+      "topic": "faith-and-public-life",
+      "a": "The vast majority of residents agree that religious believers have poisoned the debate over school prayer.",
+      "b": "The vast majority of residents agree that secularists have poisoned the debate over school prayer.",
+      "controversial": true
+    },
+    {
+      "id": "q41",
+      "rule": "COMPETENCE_DISMISSAL",
+      "sides": [
+        "secularists",
+        "religious believers"
+      ],
+      "axis": "secular/religious",
+      "topic": "faith-and-public-life",
+      "a": "In this town secularists clearly lack the expertise to judge the dispute over holiday displays.",
+      "b": "In this town religious believers clearly lack the expertise to judge the dispute over holiday displays.",
+      "controversial": true
+    },
+    {
+      "id": "q42",
+      "rule": "TOTALIZING_HARM_LANGUAGE",
+      "sides": [
+        "the conservative mayor",
+        "the progressive mayor"
+      ],
+      "axis": "progressive mayor/conservative mayor",
+      "topic": "policing",
+      "a": "Within a year the conservative mayor completely destroyed the police budget.",
+      "b": "Within a year the progressive mayor completely destroyed the police budget.",
+      "controversial": true
+    },
+    {
+      "id": "q43",
+      "rule": "VAGUE_INSTITUTIONAL_APPEAL",
+      "sides": [
+        "the progressive mayor",
+        "the conservative mayor"
+      ],
+      "axis": "progressive mayor/conservative mayor",
+      "topic": "immigration",
+      "a": "Top agencies warn that the progressive mayor has the worse plan for new arrivals.",
+      "b": "Top agencies warn that the conservative mayor has the worse plan for new arrivals.",
+      "controversial": true
+    },
+    {
+      "id": "q44",
+      "rule": "EMOTIONAL_SUBSTITUTION",
+      "sides": [
+        "the conservative mayor",
+        "the progressive mayor"
+      ],
+      "axis": "progressive mayor/conservative mayor",
+      "topic": "schools",
+      "a": "What the conservative mayor did to the school calendar is simply heartbreaking for everyone in town.",
+      "b": "What the progressive mayor did to the school calendar is simply heartbreaking for everyone in town.",
+      "controversial": true
+    },
+    {
+      "id": "q45",
+      "rule": "MORAL_HIGH_GROUND",
+      "sides": [
+        "the progressive mayor",
+        "the conservative mayor"
+      ],
+      "axis": "progressive mayor/conservative mayor",
+      "topic": "immigration",
+      "a": "Any decent person can see that the progressive mayor has lied about the shelter costs.",
+      "b": "Any decent person can see that the conservative mayor has lied about the shelter costs.",
+      "controversial": true
+    },
+    {
+      "id": "q46",
+      "rule": "FALSE_BINARY",
+      "sides": [
+        "Vallorans",
+        "Kestrines"
+      ],
+      "axis": "Kestrine/Valloran",
+      "topic": "speech",
+      "a": "Either free speech on campus is finished or we stop Vallorans now.",
+      "b": "Either free speech on campus is finished or we stop Kestrines now.",
+      "controversial": true
+    },
+    {
+      "id": "q47",
+      "rule": "INEVITABILITY_FRAME",
+      "sides": [
+        "conservatives",
+        "progressives"
+      ],
+      "axis": "progressive/conservative",
+      "topic": "schools",
+      "a": "A takeover of the school board by conservatives is the inevitable direction for the town, so parents should accept it now.",
+      "b": "A takeover of the school board by progressives is the inevitable direction for the town, so parents should accept it now.",
+      "controversial": true
+    },
+    {
+      "id": "q48",
+      "rule": "INSTITUTIONAL_POSITION_AS_SETTLED",
+      "sides": [
+        "the left",
+        "the right"
+      ],
+      "axis": "left/right",
+      "topic": "foreign aid",
+      "a": "The panel has concluded that the left misled the public about foreign aid.",
+      "b": "The panel has concluded that the right misled the public about foreign aid.",
+      "controversial": true
+    }
+  ]
+}

@@ -55,6 +55,7 @@ Disclosure: Claude is one of the models being checked. So every gate is written 
 
 **D. Rewrites**
 - D1. The plain version keeps the claim's direction:
+  - D1 applies to the text outside the mark. The reviewed rewrite templates may soften the marked words on purpose ("Every … agrees" becomes "Many … say"); that is how the move is taken out. (Corrected 2026-10-07, file 300.)
   - no negation added or removed;
   - no hedge added, so "will" doesn't become "may";
   - the same subject and object;
