@@ -1,7 +1,7 @@
 From 3c6cdd775340d036ab2ed6b1b4ff0fead3dd32a8 Mon Sep 17 00:00:00 2001
 From: BiasClear <noreply@biasclear.com>
 Date: Wed, 7 Oct 2026 13:56:20 -0500
-Subject: [PATCH 8/8] Explain ops: a model change can't reuse consent that
+Subject: [PATCH 08/10] Explain ops: a model change can't reuse consent that
  names another maker (306 fix e)
 
 With Explain on and the consent naming xAI, deploy MODEL=sonnet55 set

@@ -1,8 +1,8 @@
 From dd46392a5cb8e3437d7a9ef97df224e1ea9484a7 Mon Sep 17 00:00:00 2001
 From: BiasClear <noreply@biasclear.com>
 Date: Wed, 7 Oct 2026 13:35:15 -0500
-Subject: [PATCH 3/8] Explain eval: a planned call that never reached the model
- is not evidence (306 fix a)
+Subject: [PATCH 03/10] Explain eval: a planned call that never reached the
+ model is not evidence (306 fix a)
 
 report() counted a run as complete when planned rows were refused before
 the model, so the injection and claim gates could pass with no injection

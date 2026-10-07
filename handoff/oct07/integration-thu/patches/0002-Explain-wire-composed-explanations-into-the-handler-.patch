@@ -1,8 +1,8 @@
 From f9d10967f7be57cdbd4066f40ac1dd9d821b14bf Mon Sep 17 00:00:00 2001
 From: BiasClear <noreply@biasclear.com>
 Date: Wed, 7 Oct 2026 13:29:36 -0500
-Subject: [PATCH 2/8] Explain: wire composed explanations into the handler (304
- integration)
+Subject: [PATCH 02/10] Explain: wire composed explanations into the handler
+ (304 integration)
 
 Port of the 304 integration note onto 19eebb3:
 - app.ts and eval/dry-run.ts pass the engine-verified rule id to buildPrompt.

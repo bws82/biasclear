@@ -1,7 +1,7 @@
 From 04acb794afb1b05eb4db7588dff4d2d6323706b7 Mon Sep 17 00:00:00 2001
 From: BiasClear <noreply@biasclear.com>
 Date: Wed, 7 Oct 2026 13:51:06 -0500
-Subject: [PATCH 7/8] Explain infra: the billing-anomaly filter matches lines
+Subject: [PATCH 07/10] Explain infra: the billing-anomaly filter matches lines
  as Lambda stores them (306 fix d)
 
 explain.yaml sets LogFormat: JSON, and src/log.ts writes each line with
