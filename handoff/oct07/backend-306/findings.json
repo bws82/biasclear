@@ -1,0 +1,1335 @@
+{
+ "findings": [
+  {
+   "lens": "ledger-faults",
+   "status": "CONFIRMED",
+   "orig": "HIGH",
+   "verifier_sev": [
+    "MEDIUM",
+    "MEDIUM"
+   ],
+   "title": "Durable pause and debt are written in one transaction with the most contended item, so routine concurrency loses both",
+   "location": "packages/explain/src/spend.ts:115-128 (persistBillingPause, transact at :120); reserve ConditionCheck at spend.ts:75; app.ts:357-364 and :377/:385/:400; the false-green test is test/ledger.test.ts:115-127, which relies on the serial FakeTable at test/helpers.ts:189-210",
+   "scenario": "Instance A gets a maybe-billed or failed-settle outcome and calls persistBillingPause, which puts billing#pause and billingdebt#<event> in one TransactWriteItems. At the same moment instance B is reserving, and every reserve ConditionChecks billing#pause (and a second unresolved instance may also be putting billing#pause). DynamoDB's documented conflict rule cancels A's transaction with TransactionCanceledException [TransactionConflict]. Nothing retries it. The readback finds no pause, so pausePersisted=0 and neither the pause nor A's debt exists. B, and any fresh instance, keep calling the model after an unknown-usage event. The debt is lost too, even though its own item is never contended.",
+   "evidence": "Executed with a wrapper (backend-rt/ledger-faults/faultdb.ts) that adds DynamoDB conflict semantics: an in-flight transaction holds its items, and an overlapping transaction gets TransactionConflict. conflicts.test.ts C3 (API level): persistBillingPause returned false while B's reserve was in flight; B reserve ok; pause=false; debts=0. C3 (handler level): A returned E_MODEL_NO_USAGE with pausePersisted=false; B returned 200 with modelCalled=true; a fresh instance C returned 200 with modelCalled=true; 3 model calls in total. C4: two concurrent persists returned [true,false] and wrote only one debt (actual 15000). The package test 'persists each concurrent unresolved actual cost' expects [true,true], and passes only because FakeTable applies transactions one at a time. C2 (12 instances, 8 ms transactions), seed 1: settleFailed=2, debts=0, billing#pause absent, so two unresolved settlements left no durable trace at all. Seed 3: settleFailed=1, debts=0, no pause. The README and SPEC disclose that failed pause/debt storage stops only the current instance. They do not say the system's own reserve traffic causes this failure, or that the debt is lost along with the pause. The real-DynamoDB conflict behavior comes from AWS's documented transaction-conflict rules; it was not run against AWS.",
+   "fix": "Write billingdebt#<event> first as its own idempotent PutItem: it is uncontended, has no TTL, and needs no condition. Then put billing#pause in a separate call, either an unconditional overwrite or attribute_not_exists with ConditionalCheckFailed counted as success. Retry both a bounded number of times with jitter on TransactionConflict, throttling or a lost acknowledgment; that is safe because these are overwrites of fixed items, not money ADDs. Extend the test fake to model transaction conflicts and turn C3 and C4 into regression tests.",
+   "executed": true,
+   "votes": [
+    {
+     "refuted": false,
+     "severity": "MEDIUM",
+     "reason": "Reproduced with my own conflict-model wrapper (verify-ledger-faults-reproduce-it/txdb.ts plus f1f2.test.ts). The wrapper follows AWS's documented rule, which SPEC row 612 also cites: a TransactWriteItems that names an item held by an in-flight transaction is cancelled with TransactionConflict, and a ConditionCheck counts as naming the item. API level: persistBillingPause run while B's reserve held billing#pause returned false, left no pause and no debt, and B's reserve succeeded. Reversing the order cancels B's reserve (DdbError, so E_DDB) and the persist succeeds, so the outcome depends on arrival order. Two concurrent persists returned [true,false] and wrote only one debt (actual 15000). Handler level: A logged E_MODEL_NO_USAGE with pausePersisted=0; B returned 200; a fresh instance C returned 200; there were 3 model calls, no pause and no debts. In the natural F2 run, the E_SETTLE persist also conflicted with the same reserve that cancelled the settle, so that path often loses its pause too. The package test passes only because FakeTable.handle applies each transaction synchronously, so transactions never overlap. I downgrade from HIGH because the outcome is the disclosed path (README:62 and SPEC:288: instance-only stop, pausePersisted=0 logged and matched by the BillingAnomaly filter). Spend also stays bounded by per-request worst-case reservations and the caps, and every live model row is still blocked. The real defects are that the system's own reserve traffic causes the failure, inside a roughly 10-20 ms window, and that the uncontended debt is needlessly lost with it."
+    },
+    {
+     "refuted": false,
+     "severity": "MEDIUM",
+     "reason": "I confirmed the mechanism. I re-ran C3 and C4, which reproduced (persisted=false, pause=false, debts=0; C4 gave [true,false] with one debt). I also wrote my own test (mine.test.ts G1) that uses only the package FakeAws and returns a TransactionCanceledException with TransactionConflict or ThrottlingError on the persist transaction. persistBillingPause returned false, and neither billing#pause nor the uncontended billingdebt# item was written, because both share one TransactWriteItems (spend.ts:120). In the handler, A logged pausePersisted=0 and a fresh instance went on to call the model. The botocore DynamoDB model I fetched confirms the premise: an ongoing TransactWriteItems cancels a conflicting one, with CancellationReason TransactionConflict ('Transaction is ongoing for the item'). The package test at ledger.test.ts:115-127 passes only because FakeTable.apply commits each transaction synchronously and never models conflicts. Guards found elsewhere reduce the impact but do not prevent it. The instance is fenced in memory (pausedUntil=Infinity). The log line carries pausePersisted=0, which the BillingAnomaly filter matches, but the alarm has no actions. The full reservation stays on the month and day counters. The billing#<event> item stays 'reserved' for 100 days and the log line lasts 7 days, so 'no durable trace at all' (C2) is overstated. AWS Budgets' deny-Bedrock action is a delayed backstop. README item 15 and SPEC:288 already disclose that a failed pause write stops only the current instance. They do not disclose that the system's own reserve traffic causes the failure, or that the debt is lost along with the pause, which contradicts the 'persist every unresolved event' comment at spend.ts:112. A loss needs an anomaly plus an overlap of a few milliseconds with another reserve or persist (roughly 1-4% per anomaly at the 2 rps throttle). All three models are live-blocked at this commit, and spend stays bounded by the reservations. So this is MEDIUM rather than HIGH."
+    }
+   ]
+  },
+  {
+   "lens": "ledger-faults",
+   "status": "CONFIRMED",
+   "orig": "MEDIUM",
+   "verifier_sev": [
+    "MEDIUM",
+    "MEDIUM"
+   ],
+   "title": "A definite settle cancellation (TransactionConflict or throttle) causes a permanent service-wide pause and discards a valid paid answer",
+   "location": "packages/explain/src/spend.ts:141-152 (settle catch); app.ts:400; table limit infra/aws/setup.yaml:423-425 (MaxWriteRequestUnits 50)",
+   "scenario": "Every reserve and every settle is a transaction on the same month and day counter items. When a settle overlaps another instance's reserve or settle, DynamoDB cancels it with TransactionConflict. That is a definite non-commit, but settle() handles it exactly like an ambiguous failure: it reads back state=reserved, returns false, and the app writes an E_SETTLE durable pause plus debt. The service then stays stopped until the owner reconciles. The visitor's paid, checked answer is thrown away, and the counters keep the full reservation. Overlapping reserves fail the same way and return E_DDB 503s.",
+   "evidence": "conflicts.test.ts C1: a TransactionConflict cancellation on the settle transaction gave 503 E_SETTLE, pausePersisted=true and one debt, with counters at 9205 against actual 2596. A fresh instance then got E_BILLING_PAUSE. C2: 8 of 12 requests got E_DDB from reserve conflicts. sim.test.ts S1 (Poisson arrivals at the 2 rps API Gateway default, 20 ms transactions, time scaled 1:20): the first durable E_SETTLE pause came at request #1, #5, #7 and #5 across four seeds. This overestimates real frequency because of timer granularity. An analytic estimate, 1-exp(-4/s x 2 x 10-20 ms), gives about 8-15% of settles conflicting at sustained 2 rps. Real frequency is suspected; the code path was executed.",
+   "fix": "On a DdbError whose CancellationReasons show a definite non-commit (TransactionConflict, ThrottlingError or ProvisionedThroughputExceeded) and a consistent readback showing state=reserved, retry the settle a bounded number of times with backoff and a fresh ClientRequestToken. The event-state CAS keeps the retry idempotent, so it is not a blind ADD. Pause only after the retries are exhausted or the failure is truly ambiguous. Apply the same bounded retry to a definitely cancelled reserve, which is safe because nothing committed and a new event id is used.",
+   "executed": true,
+   "votes": [
+    {
+     "refuted": false,
+     "severity": "MEDIUM",
+     "reason": "Reproduced in f1f2.test.ts F2. A's model returned a valid reply while B's reserve held spend#month. A's settle was cancelled with TransactionConflict, the readback showed state=reserved, settle() returned false, and app.ts:400 called pause('E_SETTLE'). A got 503 with the answer discarded. A's event stayed 'reserved' (9205) against an actual of 2596, so the counters over-count. When the persist did not also conflict, billing#pause reason=E_SETTLE and one debt were written, and fresh instance C got 503 E_BILLING_PAUSE, a service-wide stop until the owner reconciles. When it did conflict (the natural timing), pausePersisted=0 and no durable stop was written. Nothing in settle() tells a definite TransactionConflict non-commit apart from an ambiguous outcome. SPEC:282 discloses reserve conflicts as an availability trade-off, but not settle conflicts turning into a durable pause. Real frequency is lower than at a sustained 2 rps, because per-connection limits (10 per 10 min) and the roughly $2.50/day budget cap the requests that reach a reservation. Still, a short burst from a few distinct connections or /64s can trigger it at little cost, and the resulting stop lasts until the owner acts."
+    },
+    {
+     "refuted": false,
+     "severity": "MEDIUM",
+     "reason": "Reproduced independently (mine.test.ts G2): a TransactionCanceledException with TransactionConflict, or with ThrottlingError, on the settle transaction gave 503 E_SETTLE and pausePersisted=true. The month counter stayed at 9205 against an actual cost of 2596, and a fresh instance got E_BILLING_PAUSE. G3 shows the same thing for release() after a not-billed model error. The settle catch at spend.ts:145-151 never inspects cancellationReasons. A consistent readback showing 'reserved' after a definite cancellation is therefore treated like an ambiguous failure, and app.ts:377 and :400 write an owner-only durable pause. I found no guard that prevents this. There is no retry, and nothing clears the pause automatically. SPEC:282 accepts conflicts only as an availability cost for reserve, not as a cause of a durable, owner-reconciled outage after settle. Every reserve and every settle touches the same month and day items, so the per-request risk scales with concurrent transaction rate times hold time: rare at low traffic, a few percent per request at the 2 rps throttle. The OnDemand MaxWriteRequestUnits of 50 adds a throttling route under bursts. The S1 simulation overestimates frequency because of timer granularity, as the finding itself says. The direction is safe for money (it over-counts), so MEDIUM."
+    }
+   ]
+  },
+  {
+   "lens": "ledger-faults",
+   "status": "CONFIRMED",
+   "orig": "MEDIUM",
+   "verifier_sev": [
+    "LOW",
+    "LOW"
+   ],
+   "title": "Nothing checks the 28 s Lambda deadline; a kill after the model call leaves no debt, no durable pause and no log line",
+   "location": "packages/explain/src/app.ts:367 (callModel without a remaining-time check); bedrock.ts:9 (MODEL_TIMEOUT_MS 20000); dynamodb.ts:23 (3000); infra/aws/explain.yaml:208 (Timeout: 28); index.ts:20 (handler ignores context); event TTL at spend.ts:78; alarm filter at explain.yaml:164",
+   "scenario": "Before the model call the handler can make up to about 8 sequential AWS round trips: settings, pause read, headroom read, salt put, salt deletes, two rate counters, and the reserve. Each may take up to 3 s, and then the model call may take 20 s. With DynamoDB at about 1 s per call and the model at 19.5-20 s, the settle or pause transaction starts after 28 s, and Lambda kills the instance. What remains is a 'reserved' event with a 100-day TTL. There is no billingdebt record, no billing#pause and no application log line, so the BillingAnomaly metric filter cannot fire. Fresh instances keep calling. The worst case for the model timeout path (maybe-billed, which explicitly requires a fleet-wide stop) is the one most likely to cross the deadline. The reservation still covers the verified worst case, so there is no unreserved call, but the claims 'unknown usage ... stop further spend, including fresh instances' and 'every ambiguous settlement keeps ... a no-TTL debt' do not hold here.",
+   "evidence": "deadline.test.ts D1, a warmed engine with latencies scaled 1:100 measured on the real handler path. With every call just under its timeout, the model ended at about 44.0 s and the settle at about 46.9 s. With DynamoDB at about 1 s and a valid but slow model, the model ended at 28.0 s and the settle started at 28.06 s. With DynamoDB at about 1 s and the model timing out (usage unknown), the model ended at 28.5 s and the pause transaction started at 28.5 s. With DynamoDB at about 1.4 s and a 20 s model, the pause started at 31.7 s. D2 left the model call or the settle transaction hanging to stand in for the kill: pause=false, debts=0, reservedEvents=1, eventTtlDays=100, logLines=0; a fresh instance returned 200 with modelCalled=true.",
+   "fix": "Pass the Lambda context's remaining time into the handler. Before callModel, require remaining time of at least the model timeout plus the settle, readback and persist budget plus a margin; otherwise release the reservation and answer busy. Alternatively, derive every per-call timeout from one invocation deadline. Remove the TTL from 'reserved' events, or set it only at settlement, so stale unresolved events stay as evidence. Add an alarm on AWS/Lambda Errors or timeouts next to BillingAnomaly.",
+   "executed": true,
+   "votes": [
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "Timeline reproduced in f3.test.ts with latencies scaled 1:100. A cold instance on the day's first request makes 8 sequential round trips before the model: the settings reads (run in parallel), the pause read, the headroom reads, the salt put, the salt deletes, two countUps and the reserve. With DynamoDB and settings at 1 s and a 19.5 s model, the settle started at 28.2 s. With a 20 s model timeout, the pause transaction started at 28.47 s. Warm instance at 1 s: 25.3 s. The kill stand-in (a transaction after the model hangs) left logLines=0, pause=false and debts=0, with the event 'reserved' under a 100-day TTL, and a fresh instance returned 200. index.ts ignores the Lambda context, and no remaining-time check exists. I grade it LOW because the kill needs about 1 s for every DynamoDB call, or several 3 s DynamoDB timeouts right after a near-20 s model call. Under normal latencies (20 ms DynamoDB, 200 ms settings) the settle started at 21.2 s, leaving about 6.8 s of margin. In those degraded conditions the persist would probably fail anyway; what is newly lost is the log line, and with it the alarm metric, plus the in-memory instance pause."
+    },
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "Confirmed by inspection and by re-running D1 and D2. index.ts exports createHandler(...), whose function takes only the event and ignores the Lambda context. No src file reads the remaining time. Per-call timeouts are DDB 3 s, settings 3 s and model 20 s, against a Lambda Timeout of 28. D2 reproduced the result of a kill: pause=false, debts=0, one reserved event with a 100-day TTL, no log line, and a fresh instance that calls the model. The only alarm in the templates is BillingAnomaly, and it has no actions; nothing alarms on AWS/Lambda Errors. Guards elsewhere limit the impact: the reservation stays counted (safe over-count), the reserved event stays as evidence for 100 days, and the Budget action is a backstop. The scenario also needs about 7-8 s of slow but successful pre-model AWS calls (any call that hits its 3 s timeout fails closed before the model) together with a model call near the full 20 s. That is a rare correlated brownout. The gap is real but unlikely, so LOW."
+    }
+   ]
+  },
+  {
+   "lens": "ledger-faults",
+   "status": "CONFIRMED",
+   "orig": "LOW",
+   "verifier_sev": [
+    "LOW",
+    "LOW"
+   ],
+   "title": "A lost or late reserve acknowledgment leaks the reservation permanently with no debt; leaks can exhaust the daily cap with zero model calls",
+   "location": "packages/explain/src/spend.ts:81-93 (reserve catch and readback); spend.ts:78 (event TTL 100 days)",
+   "scenario": "The reserve transaction commits, but the reply is lost and the consistent readback also fails, or the commit lands after the readback. The request fails closed with E_DDB and no model call, but the reserved micros stay on the month and day counters indefinitely. No debt is written, and the leaked event looks identical to a D2 killed-mid-call event: both are 'reserved' with no debt. A DynamoDB brownout therefore uses up the day's budget without spending anything and stops the service until the next day.",
+   "evidence": "misc.test.ts M1: 27 consecutive E_DDB results, then E_HEADROOM; modelCalls=0; the day counter reached 248535 of the 250000 test cap; 27 reserved events, 0 debts, no pause. M2 (late commit): E_DDB with modelCalled=false, then the month counter was 9205 with one reserved event and 0 debts.",
+   "fix": "Accept as fail-closed but document it. Owner reconciliation needs a way to tell 'reserved, model never called' from 'reserved, call outcome unknown'. For example, set a calledAt attribute on the event with a CAS before callModel (one extra write), or retry the readback once after a short delay.",
+   "executed": true,
+   "votes": [
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "Reproduced in f4to7.test.ts F4 with the reserve acknowledgment lost and the event readback failing. The run gave 27 consecutive E_DDB results, then E_HEADROOM, with 0 model calls. The day counter reached 248535 of a 250000 cap, with 27 'reserved' events, 0 debts and no pause. This is the intended fail-closed design (the code comment and SPEC:282 say only a proven reservation permits a call, and nothing refunds an unproven one). No money is spent, but reconciliation cannot tell these events apart from a killed-mid-call event."
+    },
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "Re-ran M1 and M2, and both reproduced: 27 E_DDB then E_HEADROOM, modelCalls=0, day counter 248535/250000, 27 reserved events, 0 debts; M2 gave month 9205, one reserved event, 0 debts. In the code, the reserve catch at spend.ts:81-93 returns ok only on a proven readback and otherwise throws E_DDB. No path releases, records or flags a reservation that may have committed. This is fail-closed: no model call is ever made without a proven reservation. The cost is availability and lost monthly allowance, and SPEC:282 does not say leaked reservations stay counted. The day counter resets daily, but the month counter does not, so the leak is real and not prevented elsewhere. Impact is limited to availability, so LOW."
+    }
+   ]
+  },
+  {
+   "lens": "ledger-faults",
+   "status": "CONFIRMED",
+   "orig": "LOW",
+   "verifier_sev": [
+    "LOW",
+    "LOW"
+   ],
+   "title": "Debt records can describe settlements that actually committed; following the README during reconciliation would undercount",
+   "location": "packages/explain/src/spend.ts:145-151 (settle readback); app.ts:400; README.md:62 ('Each ambiguous settlement retains its reservation')",
+   "scenario": "A settle commits after its readback (late commit), or it commits with the bound pause but the pause readback fails. The app then writes an E_SETTLE debt plus pause even though the event is settled and the counters already hold the actual cost, not the reservation. An owner who trusts the README and adjusts counters by (actual - reserved) for each debt would subtract twice. In the M7 case the pause reason E_PROVIDER_BOUND is also overwritten with E_SETTLE.",
+   "evidence": "misc.test.ts M3: counters 2596/2596, event state settled with actual 2596, yet the debt says reserved 9205, actual 2596, reason E_SETTLE. M7: counters 112640 equal actual, and the log/eval code and the debt reason were E_SETTLE rather than E_PROVIDER_BOUND.",
+   "fix": "Reconciliation must read billing#<event>.state and settle only events still 'reserved'. Record in the debt that the settlement state was unknown. Change the README wording from 'retains its reservation' to 'reservation or settled amount, check the event state'.",
+   "executed": true,
+   "votes": [
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "Reproduced in F5. First case: the settle committed, its acknowledgment was lost and the readback failed. Second case: the settle committed 30 ms after the readback. In both, the event was 'settled' with actual 2596 and both counters were 2596, yet the code was E_SETTLE and the debt read reserved 9205, actual 2596, reason E_SETTLE. README:62's 'Each ambiguous settlement retains its reservation' is wrong for these cases. M7 also reproduced: a bound-violation settle committed with its pause, the pause readback failed, and the pause and debt reasons were overwritten to E_SETTLE. The log still carries billedBoundViolated=1, so that fact is not fully lost. No reconciliation procedure is documented, so the undercount harm depends on how the owner reconciles. The doc inaccuracy is real."
+    },
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "Re-ran M3 and M7, and both reproduced. In M3 the event is 'settled' with actual 2596 and the counters are 2596, yet the debt says reserved 9205, actual 2596, reason E_SETTLE. In M7 the E_PROVIDER_BOUND pause reason is overwritten with E_SETTLE. The code allows this: the settle readback can run before a late commit, or the pause readback can fail after the commit. The guard elsewhere is partial. The debt carries the event key, and SPEC:285 says event state is stored in the table. No documented procedure tells the owner to adjust counters by actual minus reserved for each debt, so the double subtraction is hypothetical. Still, README:62 says each ambiguous settlement 'retains its reservation', which is wrong in these cases. A documentation-precision issue, so LOW."
+    }
+   ]
+  },
+  {
+   "lens": "ledger-faults",
+   "status": "CONFIRMED",
+   "orig": "LOW",
+   "verifier_sev": [
+    "LOW",
+    "LOW"
+   ],
+   "title": "reserve() readback runs even after a definite cancellation and is unguarded, so a pause refusal can surface as E_DDB",
+   "location": "packages/explain/src/spend.ts:84",
+   "scenario": "The reserve transaction is cancelled by the billing#pause ConditionCheck, a definite refusal, and then the readback GetItem throws. The error propagates as E_DDB, so the instance is not fenced (pausedUntil stays 0) and the log shows the wrong cause. The next request's pre-read catches the pause, so the effect is small.",
+   "evidence": "misc.test.ts M7b: code E_DDB, pausedUntil 0, modelCalls 0.",
+   "fix": "Map the CancellationReasons first when the error is a TransactionCanceledException with ConditionalCheckFailed. Do the readback only for ambiguous failures, inside try/catch.",
+   "executed": true,
+   "votes": [
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "Confirmed. At API level, with billing#pause present and the event readback failing, reserve threw DdbError instead of returning which:'pause'. At handler level, a pause written between the pre-read and the reserve plus a failed readback gave E_DDB, pausedUntil 0 and 0 model calls, and the next request got E_BILLING_PAUSE from the pre-read. Two coincident conditions are needed, and the only effects are a wrong log code and one unfenced instance until its next pre-read."
+    },
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "Confirmed. At spend.ts:84 the GetItem runs before cancellationReasons are inspected and sits outside any try/catch. If it throws, the DdbError propagates to app.ts:350 as E_DDB, and pausedUntil stays 0. M7b reproduced this (E_DDB, pausedUntil 0, modelCalls 0). The impact is negligible. No model call is made, the visitor still gets 503 paused, and the next request's billingPaused pre-read at app.ts:312 fences the instance. Only the log code and the in-memory fence differ. LOW, close to informational."
+    }
+   ]
+  },
+  {
+   "lens": "ledger-faults",
+   "status": "REFUTED",
+   "orig": "LOW",
+   "verifier_sev": [],
+   "title": "Cache-write tokens are charged at the base input price, which undercounts if they ever occur (suspected)",
+   "location": "packages/explain/src/aws/bedrock.ts:56-62 (usageOf) and comment at :49",
+   "scenario": "inTok = inputTokens + cacheReadInputTokens + cacheWriteInputTokens, all priced at the input rate. The comment says cached input is 'conservatively' charged at the uncached price. That is true for cache reads (about 0.1x) but not for cache writes, which Anthropic prices at about 1.25x base input for 5-minute writes and 2x for 1-hour writes (Bedrock sets its own prices). A nonzero cacheWrite would make actualMicros low and could hide an overrun from the actual > reserved check. No cachePoint is sent, so this should normally be zero.",
+   "evidence": "Code inspection only; not executed. Multipliers come from the bundled claude-api reference (cache_creation about 1.25x, cache_read about 0.1x).",
+   "fix": "Treat cacheWriteInputTokens > 0 as unexplained usage and return maybe-billed, or price it with a reviewed per-model write multiplier. Fix the comment.",
+   "executed": false,
+   "votes": [
+    {
+     "refuted": true,
+     "severity": "LOW",
+     "reason": "The code fact is confirmed: usage with cacheWriteInputTokens 300 gave inTok 310, all priced at the input rate, so the 'conservatively' comment is imprecise for cache writes. The scenario cannot arise with the reviewed request, though. The captured body has only system, messages, inferenceConfig and additionalModelRequestFields, with no cachePoint, and on Bedrock prompt-cache writes require an explicit cachePoint. If writes did occur, inTok still includes them and is checked against inputBoundTokens (prompt bytes plus framing). Prompt bytes far exceed token counts for text, so a 1.25x or 2x write premium could not realistically hide an overrun of the reservation. I could not confirm any path that triggers it. A comment fix or fail-closed handling would be a nit."
+    },
+    {
+     "refuted": true,
+     "severity": "LOW",
+     "reason": "Guards elsewhere prevent this. The request shape is closed and never carries a cachePoint: modelRequest builds only system, messages, inferenceConfig and the reviewed requestFields, and converse.test.ts:21 rejects any request matching /cachePoint/. SPEC:89 says prompt caching is deliberately not used. On Bedrock, cache writes need an explicit cachePoint, so cacheWriteInputTokens should always be 0. Separately, the overrun check at app.ts:394 compares token counts (inTok, which includes write tokens, against inputBoundTokens = prompt bytes + framing), so the price multiplier cannot hide a token-bound breach. And because the reservation prices input bytes rather than tokens, a 1.25x write premium on realistic token counts stays well under it. What remains is an imprecise comment at bedrock.ts:49 and infra/aws/README.md:177, which say write tokens are charged 'conservatively'. That is a documentation nit, not a reachable undercount. Not executed by the finder."
+    }
+   ]
+  },
+  {
+   "lens": "ledger-faults",
+   "status": "DISPUTED",
+   "orig": "LOW",
+   "verifier_sev": [
+    "LOW"
+   ],
+   "title": "Table replacement or deletion silently erases the durable pause, debts and month counter; the setup comment is stale",
+   "location": "infra/aws/setup.yaml:411-419 (comment 'Every item has a TTL'; DeletionPolicy and UpdateReplacePolicy Delete)",
+   "scenario": "Pause and debt items deliberately have no TTL, so 'Every item has a TTL' is wrong. A setup-stack update that replaces the table (for example a TableName or key-schema change), or deleting the stack, removes billing#pause, every billingdebt# and spend#<month>. That re-opens the full monthly allowance and clears a durable stop with no owner reconciliation. SPEC:524 covers deletion but not replacement on update.",
+   "evidence": "Inspection of setup.yaml lines 411-438; not executed (no AWS).",
+   "fix": "Set UpdateReplacePolicy and DeletionPolicy to Retain, or set DeletionProtectionEnabled: true, for the counter table. Correct the comment. Add a test_templates.py assertion.",
+   "executed": false,
+   "votes": [
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "The stale comment is confirmed: setup.yaml says 'Every item has a TTL', but billing#pause and billingdebt# have none (SPEC:53, :333). DeletionPolicy and UpdateReplacePolicy are both Delete, and DeletionProtectionEnabled is false, which test_templates.py:460-463 deliberately pins. The risk is narrower than stated. Deletion is disclosed with a reconcile-first instruction at SPEC:524. The table has the fixed custom name 'biasclear-explain', hardcoded as EXPLAIN_TABLE at explain.yaml:219, so CloudFormation refuses a same-name replacement such as a key-schema change. Only a deliberate rename would replace the table and silently drop the pause and debts. Retain or deletion protection, plus fixing the comment, remains a reasonable hardening."
+    },
+    {
+     "refuted": true,
+     "severity": "LOW",
+     "reason": "The 'silent replacement' scenario is guarded. TableName is pinned to 'biasclear-explain' (setup.yaml:421, asserted in test_templates.py:455), and CloudFormation refuses any update that would replace a custom-named resource unless the name also changes. A rename would also have to change EXPLAIN_TABLE in explain.yaml:219, which is a deliberate, reviewed act on the owner's setup stack, not a silent update. Stack deletion is an explicit owner action, and SPEC:524 already requires reconciling unresolved charges and preserving billing evidence before it. DeletionPolicy Delete and DeletionProtectionEnabled false are a deliberate privacy choice, asserted by tests. The only real residue is the stale 'Every item has a TTL' comment at setup.yaml:412 (pause and debt items have no TTL) and the matching test name; that is a documentation nit."
+    }
+   ]
+  },
+  {
+   "lens": "ledger-logic",
+   "status": "CONFIRMED",
+   "orig": "MEDIUM",
+   "verifier_sev": [
+    "MEDIUM",
+    "MEDIUM"
+   ],
+   "title": "Any settlement or release that loses a normal DynamoDB transaction conflict is treated as uncertain and turns into a permanent no-TTL billing pause",
+   "location": "packages/explain/src/spend.ts:141-152 (settle catch returns false on any error); packages/explain/src/app.ts:377 and :400 (false leads to pause('E_SETTLE')); infra/aws/setup.yaml:425 (MaxWriteRequestUnits 50)",
+   "scenario": "Request A has a normal answer (actual 2,596 micros, reserved 9,205). It settles while request B's reservation transaction is still in progress on the same hot keys (spend#month and spendday#day). DynamoDB cancels A's settle with CancellationReasons TransactionConflict, which means nothing was written. settle() reads the event back, finds it still 'reserved', and returns false. The app then writes billing#pause with reason E_SETTLE and no TTL. Every instance stays paused until the owner reconciles by hand, even though no money anomaly happened. A model that answers 429 (never billed) and then has its release collide the same way also creates a permanent pause. One client can trigger this inside the per-IP limit (10 per 10 min) by sending a burst of about 5 concurrent requests, because their settles and reservations overlap on the two shared counter items.",
+   "evidence": "Executed with backend-rt/ledger-logic/conflict.test.ts and lock.ts. lock.ts layers DynamoDB's documented transaction-conflict behaviour (the same behaviour SPEC.md:612 cites) on top of FakeAws, which itself never conflicts. Output: A got 503 with code E_SETTLE, actualMicros 2596 < reservedMicros 9205, no overrun or bound flag, and pausePersisted 1. The recorded conflict was on locked keys spend#2026-10 and spendday#2026-10-05. The billing#pause item has no ttl. A fresh instance at 2026-11-14 (40 days later, next month) got 503 E_BILLING_PAUSE and made no model call. Second test: 429 model plus a release conflict gave E_SETTLE with actualMicros 0 and a persisted pause. SPEC.md:282 acknowledges conflicts only for reservations, not settlement. Also suspected, not executed: the table's on-demand write maximum (50 WCU/s) against roughly 14-16 WCU per request (transactional items cost 2 WCU each) means a 5-request burst can get a settle throttled, which leads to the same permanent pause.",
+   "fix": "In settle() and persistBillingPause(), look at cancellationReasons. If DynamoDB definitively cancelled the transaction (TransactionCanceledException with no ConditionalCheckFailed on the event, for example TransactionConflict or ThrottlingError), retry the identical transaction a few times with jitter, using the same ClientRequestToken. That retry is safe: the event CAS `#s = :reserved` and the token mean an ADD can never apply twice. Only an outcome that is still ambiguous after the retries (transport timeout or network error with no proof from the read-back) should take the durable-pause path. Optionally shard the month/day counters to reduce hot-key contention. Add conflict modelling to FakeTable so the suite covers this case.",
+   "executed": true,
+   "votes": [
+    {
+     "refuted": false,
+     "severity": "MEDIUM",
+     "reason": "Reproduced independently with my own conflict model (verify-ledger-logic-reproduce-it/ddblock.ts and f1f2.test.ts). The model follows DynamoDB's documented rule: an item named in an in-progress TransactWriteItems causes a TransactionConflict cancellation and nothing is applied. Case 1: A's normal answer (actual 2,596, reserved 9,205) settled while B's reservation was in progress, and the settle was cancelled on spend#2026-10 and spendday#2026-10-05. spend.ts:145-149 read back 'reserved' and returned false, and app.ts:400 called pause('E_SETTLE'). A got 503 E_SETTLE with no overrun flag. billing#pause was written with no ttl, and a fresh instance on 2026-11-14 got 503 E_BILLING_PAUSE without calling the model. Case 2: two normal answers settling together; the loser became E_SETTLE with a durable pause. Case 3: a 429 followed by a release conflict gave E_SETTLE, actual 0, durable pause. Nothing prevents this elsewhere. Ddb.transact has no retry (dynamodb.ts:1-2, 62-70) and nothing inspects cancellation reasons in settle(). SPEC:282 accepts conflicts only for reservations, and SPEC:285 makes every 'failed' settlement pause without noting that ordinary concurrency causes such failures. One nuance: if B's reservation is still in progress when A runs persistBillingPause, that write also conflicts on billing#pause through B's ConditionCheck. The pause then stays in A's memory only, with pausePersisted=0 (my first run). Either way an eligible service stops with no money anomaly, and the durable version needs owner action. The throttling variant (MaxWriteRequestUnits 50) is plausible but I did not test it. Rated MEDIUM because it is an availability failure from ordinary concurrent traffic, not a money loss."
+    },
+    {
+     "refuted": false,
+     "severity": "MEDIUM",
+     "reason": "I reproduced this with my own verify.test.ts (F1a, F1b, F1c). I did not rely on the original lock.ts. A settle cancelled with TransactionCanceledException/TransactionConflict, so nothing was written, gave E_SETTLE with actualMicros 2596 < reservedMicros 9205 and no bound flag, plus a no-TTL billing#pause. A fresh instance 40 days later got E_BILLING_PAUSE and made no model call. A 429 whose release conflicts also persists the pause. I looked for a guard elsewhere and found none: there is no retry in spend.ts, dynamodb.ts or transport.ts, settle() returns false for every catch, and the read-back still sees 'reserved'. ReservedConcurrency defaults to 0, so cross-instance overlap is not serialized. The rate-limit keys are separate, so nothing stops two transactions on spend#month/spendday#day from overlapping. As a contrast, a reserve conflict gives only E_DDB with no pause, which is the only conflict trade-off the SPEC accepts (SPEC:282). The design does say 'failed/uncertain settlement' pauses, and the package test even expects a settle throttle to pause, so the fail-closed behaviour is intended. The frequency is the problem: every request runs two transactions on the same two hot items, so any real concurrency produces a durable outage and a false BillingAnomaly signal, and clearing it needs owner reconciliation. No money is lost, which is why this is MEDIUM rather than HIGH. One correction: a 5-request burst trips this only with some probability, not every time, because model latency spreads the settles out."
+    }
+   ]
+  },
+  {
+   "lens": "ledger-logic",
+   "status": "CONFIRMED",
+   "orig": "MEDIUM",
+   "verifier_sev": [
+    "MEDIUM",
+    "MEDIUM"
+   ],
+   "title": "The per-event debt is written in the same transaction as the single shared billing#pause item, so concurrent unresolved events conflict and the loser's debt is never stored",
+   "location": "packages/explain/src/spend.ts:115-128 (line 120: transact [Put billing#pause, Put billingdebt#event]); spend.ts:140 (bound-breach settle also Puts the shared pause)",
+   "scenario": "Two or more anomalies happen at the same time, which is exactly when the overrun is largest: several in-flight calls breach, or several settles fail together as in F1. Every settle transaction for a bound breach includes Put billing#pause, so they conflict with each other. The losers fall to E_SETTLE and call persistBillingPause, whose transactions again contain the shared billing#pause and conflict again. The losers report pausePersisted=0. Their known actual charge is not added to the counters and is not written to any debt row. It survives only in a log line kept 7 days, with best-effort delivery. This contradicts 'every ambiguous settlement keeps its reservation plus a separate no-TTL debt' in this scenario. It also turns the disclosed rare 'failed pause/debt storage' limit into a systematic one.",
+   "evidence": "Executed with conflict.test.ts (F2). In a direct race, persistBillingPause returned [true, false], only one billingdebt row exists, and the month counter holds just 20,000 (two reservations), so b's 1,600,000 actual exists in no durable row. In the run with K=10 simultaneous breaches (30,000 output tokens each, 5 ms transaction time), the codes were E_PROVIDER_BOUND/p1, E_SETTLE/p1 and 8 x E_SETTLE/p0. Total billed was 1,986,600 micros. Counters hold 281,505 (one settled actual plus 9 reservations) and there is 1 debt (198,660). 1,515,640 micros ($1.52) of the billed amount is in neither counters nor debts. The package test 'persists each concurrent unresolved actual cost' passes only because FakeTable applies transactions instantly and never conflicts.",
+   "fix": "Write the per-event debt or evidence row on its own: a single PutItem with a unique key. It has no contention and is idempotent, so it can be retried safely. Write the pause as a separate idempotent Put with bounded retries. For bound breaches, put a per-event evidence or debt row (unique key) inside the settle transaction instead of the shared pause item, then write the pause separately. Make the tests model TransactionConflict.",
+   "executed": true,
+   "votes": [
+    {
+     "refuted": false,
+     "severity": "MEDIUM",
+     "reason": "Reproduced in f1f2.test.ts. Case 1: two concurrent persistBillingPause calls returned true and false, one billingdebt row was written, and the month counter was 20,000. The loser's 1,600,000 actual exists in no durable row. Case 2: two overlapping bound-breach settles. The second settle was cancelled on spend/day/billing#pause and its persist was cancelled on billing#pause. Month = 210,000 (a's 200,000 actual + b's 10,000 reservation). b's 290,000 overrun is in neither the counters nor a debt row. Extra case that strengthens the finding: persistBillingPause also conflicts with any ordinary reservation from another instance, because reserve() puts a ConditionCheck on billing#pause (spend.ts:75). Result: persist false, no pause, no debt. So the shared hot key collides with routine traffic, not only with other anomalies. This defeats the stated intent at spend.ts:112 ('Persist every unresolved event'). The package test ledger.test.ts:115 passes only because FakeTable never conflicts. Impact is limited: the fixed log line (7-day retention) still carries actualMicros, and the alarm matches pausePersisted=0. MEDIUM because the design property fails under exactly the concurrency it was meant to handle."
+    },
+    {
+     "refuted": false,
+     "severity": "MEDIUM",
+     "reason": "I reproduced this with my own lock model (F2a). Two concurrent persistBillingPause calls returned [true, false]. One billingdebt row exists, the month counter holds only the two reservations (20,000), and the loser's 1,500,001 actual is in no durable row. The recovery read in persistBillingPause (spend.ts:123-127) cannot rescue it, because the debt was never written. I also found a wider trigger (F2b): every reserve() transaction runs a ConditionCheck on billing#pause, so an ordinary concurrent reservation is enough to cancel persistBillingPause. In that run persist returned false, no pause and no debt were written, and the concurrent reserve succeeded. The same applies to a bound-breach settle, which Puts billing#pause (spend.ts:140). Guards elsewhere are partial only: the in-memory pause, a log line with pausePersisted=0 and E_SETTLE kept for 7 days, and an alarm with no actions. The SPEC does disclose that a pause write can fail. However, brief 305 says 'every ambiguous settlement keeps its reservation and a separate no-TTL debt', and the package test 'persists each concurrent unresolved actual cost' passes only because FakeTable never conflicts. Under load the bundling makes the disclosed rare failure routine."
+    }
+   ]
+  },
+  {
+   "lens": "ledger-logic",
+   "status": "CONFIRMED",
+   "orig": "MEDIUM",
+   "verifier_sev": [
+    "LOW",
+    "LOW"
+   ],
+   "title": "The 28 s Lambda Timeout is shorter than the code's own timeout chain, so breach settlement, the debt and the durable pause can be cut off with no log line",
+   "location": "infra/aws/explain.yaml:208 (Timeout: 28); packages/explain/src/aws/bedrock.ts:9 (MODEL_TIMEOUT_MS 20000); src/aws/dynamodb.ts:23 (DDB_TIMEOUT_MS 3000); src/app.ts:357-400; src/index.ts (no remaining-time or deadline check)",
+   "scenario": "After the reservation, the code allows the model call up to 20 s. Breach or settle-failure handling can then take up to 5 sequential 3 s DynamoDB calls (settle transaction, event read, persist transaction, debt read, pause read), which is 35 s. Unknown usage takes 20 + 3 x 3 = 29 s. Pre-call DynamoDB and Bedrock settings reads add more. Example: a breaching answer arrives at 19.66 s and DynamoDB is degraded for a moment. The pause/debt write is only sent at 25.56 s and acknowledged at 28.46 s, after Lambda would have killed the function. If killed, there is no settle, no debt and no pause, and no fixed log line, so the BillingAnomaly metric filter never sees it. Lambda also resets the execution environment after a timeout, so the in-memory pause is lost too. That contradicts the disclosed limit that failed pause storage still 'stops only the confirmed instance' and that 'the alarm makes that failure observable'. The breach overrun then goes uncounted while other instances keep calling.",
+   "evidence": "Executed with timebudget.test.ts, using virtual time only. Static check: postBreach 35000 ms and postUnknown 29000 ms, both > 28000. Breach trace: Converse 0.16->19.66 s, settle TIMEOUT 19.66->22.66 s, GetItem ->25.56 s, persistPause 25.56->28.46 s, virtual elapsed 28460 ms. Unknown-usage trace: Converse ->20.16 s, persistPause TIMEOUT ->23.16 s, GetItem ->26.06 s, GetItem ->28.96 s, and the pausePersisted=0 line is produced at 28,960 ms. The environment reset after a timeout comes from the AWS Lambda execution-environment lifecycle docs and was not executed.",
+   "fix": "Raise the Lambda Timeout well above pre-call + 20 s + 15 s. Around 60 s works, because the function can keep running after API Gateway's 29 s integration timeout ends. Also, or instead, pass a deadline using context.getRemainingTimeInMillis(): refuse to call the model unless the remaining time is at least model timeout + post-call ledger budget + margin, and cap the model timeout accordingly. Add a test that asserts timeout constants + post-call chain < Lambda Timeout.",
+   "executed": true,
+   "votes": [
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "Confirmed statically and with a virtual clock (rest.test.ts). MODEL_TIMEOUT_MS is 20,000 and DDB_TIMEOUT_MS is 3,000. The unknown-usage chain is 20 s + 3x3 s = 29 s, and the failed-settle chain is longer, against Timeout: 28 (explain.yaml:208). index.ts and app.ts have no deadline check. Unknown-usage trace: model timeout at 20.24 s, persist TIMEOUT to 23.24 s, the reads finish at 28.84 s, so the pausePersisted=0 line and the in-memory pause land after 28 s. Pre-call trace: DynamoDB calls of 1.2 s each push the Converse start to 5.2 s, so a slow model plus degraded DynamoDB gets killed mid-call, with no pause and no app log line. The BillingAnomaly filter (explain.yaml:167) only matches app fields, and there is no Errors alarm. Partly overstated: in the breach trace the persist request was already sent at 25.56 s and in that run it succeeded. A Lambda kill does not take back a request DynamoDB has received, so the durable pause and debt would probably still exist and only the log line would be lost. Downgraded to LOW: it needs multi-second DynamoDB latency together with a near-20 s model call. Money is at risk only if a bound breach happens at the same time, since otherwise the counters keep the reservation. Still, the guarantee in README:61 ('the alarm makes that failure observable') does not hold under this failure mode."
+    },
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "Confirmed. MODEL_TIMEOUT_MS is 20000, DDB_TIMEOUT_MS is 3000 and Lambda Timeout is 28 (explain.yaml:208). index.ts and app.ts have no deadline or remaining-time check. My f3b.test.ts counted the sequential DynamoDB calls after the model. A breach or settle with the settle transaction timing out and later calls answered is 3 calls, so 29 s. Unknown usage with the persist transaction failing is 3 calls, also 29 s. If persist also fails while the reads are slow, the path is settle \u2192 get event \u2192 persist \u2192 get debt \u2192 billingPaused, which is 5 calls and 35 s, before any pre-call time. The only related guard is test_templates.py:150, which asserts Timeout < 30 to stay under API Gateway's 29 s integration timeout and does not prevent this. The BillingAnomaly metric filter matches only application JSON fields, so a platform timeout line is not counted. I lowered it to LOW because it needs two failures at once: a model answer or timeout near 20 s, plus two or three DynamoDB calls each taking about 3 s. During that kind of DynamoDB degradation, other instances' reservations would also mostly fail closed."
+    }
+   ]
+  },
+  {
+   "lens": "ledger-logic",
+   "status": "CONFIRMED",
+   "orig": "MEDIUM",
+   "verifier_sev": [
+    "LOW",
+    "LOW"
+   ],
+   "title": "The disclosed '$26.40 before detection' is a single-call figure; the code admits the cap plus the overrun of every reservation in flight",
+   "location": "packages/explain/src/app.ts:394-407 and src/spend.ts:132-140 (unconditional ADD of the overrun); infra/aws/explain.yaml:89-110 (throttle 2 rps / burst 5, ReservedConcurrency default 0); disclosure: review brief 305, handoff/explain/SPEC.md:288, handoff/explain/VALIDATION.md:51",
+   "scenario": "Detection happens only when the first breaching call settles. Every reservation already in flight still calls the model and is settled with its real overrun, which is unbounded by code because it is whatever the provider bills. At default settings, in-flight calls are limited only by burst 5 + 2 rps x 28 s \u2248 61 (ReservedConcurrency 0 means no function-level limit). The daily $2.50 limit is exceeded the same way. Unknown-usage (timeout) calls are never measured at all. The repo docs accurately say there is no guaranteed ceiling, but the brief's number reads as the worst case. It is really the K=1 case.",
+   "evidence": "Executed with overrun.test.ts (F4). The month starts full except for exactly K reservations, and each call bills 128,000 output tokens. Sonnet/Sol-priced stub: K=1 gives month $26.397695, which reproduces the brief's $26.400003 to within input-token differences. K=10 gives $38.976950. K=61 gives month $110.259395 and day $85.928260 (daily limit $2.50). Grok-priced stub: K=1 $25.836255, K=10 $33.362550, K=61 $76.011555 (day $51.573060). In every case the next request was 503 (pause works after detection), and all K model calls happened.",
+   "fix": "Replace the single number with the bound: cap + N_inflight x (provider per-call billed maximum \u2212 R), where N_inflight \u2264 min(function or account concurrency, burst + rate x Lambda timeout), and say that unknown-usage calls are unmeasured. To actually bound N_inflight, set a small ReservedConcurrency (1-2) where the account allows it. Alternatively, add a DynamoDB in-flight counter or semaphore inside the reservation transaction (for example max 2 outstanding reservations), released by the settle CAS.",
+   "executed": true,
+   "votes": [
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "I read brief 305. It says 'A synthetic provider breach billed $26.400003 before detection ... Both limits are disclosed.' I reproduced the arithmetic. With a Sonnet-priced stub (R=10,965, 128k output tokens per call = $1.408660), K=1 gives month $26.397695 and K=5 gives $31.988475. Both equal exactly cap + K x (per-call actual - R), with all K model calls made and the next request at 503. Nothing in the code limits the in-flight count: ReservedConcurrency defaults to 0, and only the API throttle (2 rps / burst 5) and the day cap on reservations apply. So the brief's figure is the K=1 case. LOW rather than MEDIUM for three reasons. The repo docs already disclose this qualitatively: SPEC:288 says 'Calls already reserved/in flight may still finish', and VALIDATION:51 says the fences are not a guaranteed ceiling. All real models are blocked. And a measured reply billing 128k tokens could hardly come back inside the 20 s model timeout, so realistic measured overruns per call are much smaller. The real tail is unmeasured timeouts. The finding is a disclosure-precision correction."
+    },
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "The mechanism is confirmed. settle() ADDs the delta with no cap condition (spend.ts:135-138), and detection happens only when the first breaching call settles. My f4.test.ts at Grok stub prices gave K=1 month $25.837 (matching the finding) and K=3 month $27.512. All K model calls happened, every settle was E_PROVIDER_BOUND, and the next request was paused. ReservedConcurrency defaults to 0, so in-flight calls are limited only by the throttle and burst, or by the account concurrency quota (10 on new accounts per SPEC). I lowered it from MEDIUM. I read brief 305: it reports '$26.400003' as one synthetic self-check observation and does not call it a bound. The repo already discloses the mechanism: SPEC:288 says 'Calls already reserved/in flight may still finish; their settlement must be counted', and VALIDATION:51 says the fences are not a guaranteed ceiling. A breach also requires the provider to bill past verified bounds, and all real models are currently blocked. What remains is a disclosure-precision issue: the K-multiplier is never quantified, plus the hardening options in the fix."
+    }
+   ]
+  },
+  {
+   "lens": "ledger-logic",
+   "status": "CONFIRMED",
+   "orig": "LOW",
+   "verifier_sev": [
+    "LOW",
+    "LOW"
+   ],
+   "title": "Unresolved debts never count against headroom, and there is no reconciliation procedure; clearing billing#pause reopens the full cap",
+   "location": "packages/explain/src/spend.ts:44-48 (hasHeadroom) and :52-60/:74-79 (reserve conditions read only month/day counters); handoff/explain/SPEC.md:288, :333 ('owner reconciliation required', no steps or tool); infra/aws/ops.sh (no reconcile command)",
+   "scenario": "Settlement fails after a known charge of $2.00 against a $0.01 reservation, so the debt row records actual 2,000,000 while the counters hold only the 10,000 reservation. The only way back is deleting billing#pause, and no documented step adds the debt delta to the month/day counters. After that, the month can again be reserved up to $25, so real spend that month is $25 + $1.99.",
+   "evidence": "Executed with overrun.test.ts (F5). The debt was persisted, the pause deleted, and then 9,205-micro reservations were settled daily through Oct 31. Final month counter $24.992370, real month spend including the debt $26.982370, 1 debt row still present.",
+   "fix": "Apply the debt delta to the original month/day keys under an event CAS, for example a state 'debt-applied' transition, as part of the unresolved path or of an owner reconcile script. Also, or instead, have reserve() refuse while any unreconciled debt exists. Document the exact owner steps before ops allows the pause to be cleared.",
+   "executed": true,
+   "votes": [
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "Reproduced in rest.test.ts. After a persisted $2.00 debt against a 10,000 reservation, deleting billing#pause let reserve(dailyMicros - 10,000) succeed while the debt row was still present. reserve() and hasHeadroom() read only the pause, month and day items (spend.ts:44-48, 74-79). The docs say only 'Owner reconciliation is required' (SPEC:285, 288, 333; README:61). ops.sh has no reconcile or clear-pause command, and there are no written steps for applying a debt delta to the counters. LOW: this needs owner action and is a procedure gap."
+    },
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "Confirmed by reading the code. hasHeadroom (spend.ts:44-48) and the reserve conditions (spend.ts:52-60, 74-79) read only the month/day counters and never billingdebt rows. ops.sh, the README and the SPEC say 'owner reconciliation required' but give no steps and no tool. The partial guards elsewhere are that the pause can only be cleared by the owner by hand, and the delayed $30 AWS Budget action that denies Bedrock. It is a real procedural gap with small exposure (the overrun that is already in the debt row), so LOW."
+    }
+   ]
+  },
+  {
+   "lens": "ledger-logic",
+   "status": "CONFIRMED",
+   "orig": "LOW",
+   "verifier_sev": [
+    "LOW",
+    "LOW"
+   ],
+   "title": "A reservation transaction that commits after the consistent read-back leaks a reservation with no debt or pause record",
+   "location": "packages/explain/src/spend.ts:81-93",
+   "scenario": "The client times out at 3 s, but DynamoDB applies the transaction after the recovery GetItem. reserve() reports E_DDB and no model call is made, which is safe. However, the month/day counters keep the reservation permanently and the event stays 'reserved' with a 100-day TTL. Nothing records it as unresolved. This is fail-safe over-counting, but it confuses reconciliation.",
+   "evidence": "Executed with overrun.test.ts (F6): status 503 E_DDB, 0 model calls, month 9205, day 9205, event billing#745bf638 state 'reserved'.",
+   "fix": "After a transport timeout, resend the identical transaction with the same ClientRequestToken (idempotent for 10 minutes) to get a definitive outcome, or release later via CAS on the event; at minimum, document stale 'reserved' events for reconciliation.",
+   "executed": true,
+   "votes": [
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "Reproduced in rest.test.ts (F6): E_DDB, 0 model calls, month 9,205, event row in state 'reserved' with a 100-day TTL, no pause. This can happen because the client timeout does not cancel the request on the server, and GetItem is read-committed while the transaction is still in progress. It is rare and errs toward over-counting, which matches the intended fail-safe. The only harm is that reconciliation has to read stale 'reserved' events. Note that the event row does record the reservation, so 'nothing records it' is slightly overstated."
+    },
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "Reproduced (F6). Applying the timed-out reserve transaction after reserve() had read back and thrown gave DdbError 'other' (E_DDB, no model call), month 9205, and an event left in state 'reserved'. This is fail-safe over-counting of one reservation, about $0.009. The only issue is reconciliation clarity. Nothing elsewhere records it, so it is valid but informational, LOW."
+    }
+   ]
+  },
+  {
+   "lens": "ledger-logic",
+   "status": "CONFIRMED",
+   "orig": "LOW",
+   "verifier_sev": [
+    "LOW",
+    "LOW"
+   ],
+   "title": "A settle that commits after its failed acknowledgment and read-back leaves a debt that double-counts the actual already in the counters",
+   "location": "packages/explain/src/spend.ts:145-151; packages/explain/src/app.ts:400",
+   "scenario": "The settle times out, and the read-back still sees 'reserved', so a debt row is written with the actual and E_SETTLE. Then the original settle commits, so the counters already include the actual and the event is 'settled'. A reconciler that adds the debt delta to the counters double-counts it. This errs on the over-count side.",
+   "evidence": "Executed with overrun.test.ts (F7): log E_SETTLE, month 198,660, debt actual 198,660 with reserved 9,205, event state 'settled'.",
+   "fix": "Define reconciliation by event state: a settled event needs no adjustment. Retrying with the same token before declaring E_SETTLE also removes most of these cases.",
+   "executed": true,
+   "votes": [
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "Reproduced in rest.test.ts (F7) on a normal answer: E_SETTLE, debt row actual 2,596 / reserved 9,205, month counter 2,596 (already settled), event state 'settled'. The finding's direction is only partly right. A reconciler that blindly applies the debt delta (actual - reserved) double-counts in the over-count direction for a breach (actual > reserved). For a normal answer the delta is negative, so the same reconciler would subtract 6,609 a second time and under-count. Either way the conclusion holds: reconciliation must be defined by event state, because a settled event needs no adjustment. No procedure exists yet (see F5)."
+    },
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "Reproduced (F7). settle returned false, persistBillingPause wrote a debt with actual 198,660, and then the late settle commit left month at 198,660 with the event 'settled'. The error is on the over-count side only, and only if a future reconciler adds debt deltas without checking event state. No reconciler exists yet, so this is a reconciliation-definition note, LOW."
+    }
+   ]
+  },
+  {
+   "lens": "ledger-logic",
+   "status": "CONFIRMED",
+   "orig": "LOW",
+   "verifier_sev": [
+    "LOW",
+    "LOW"
+   ],
+   "title": "A settled bound breach leaves no per-event debt or evidence row, and the single pause row keeps only the last breach",
+   "location": "packages/explain/src/spend.ts:140 (pause Put in settle, no debt row), :78 (event TTL 100 days); infra/aws/explain.yaml (log retention 7 days)",
+   "scenario": "Two in-flight calls breach. The pause item is overwritten by the second, there is no billingdebt row for either, the event rows carrying the actuals expire after 100 days, and the logs after 7. Long-lived evidence of the earlier breach is lost. Counters are correct.",
+   "evidence": "Executed with overrun.test.ts (F8): pause.event is the second breach, 0 debt rows, 2 breach event rows each with ttl.",
+   "fix": "In the breach settle transaction, also Put a no-TTL billingdebt#/evidence row keyed by event. It is a unique key, so it adds no contention.",
+   "executed": true,
+   "votes": [
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "Reproduced in rest.test.ts (F8). Two in-flight breaches both ended E_PROVIDER_BOUND. billing#pause.event names only the second, there are 0 billingdebt rows, and both settled event rows carry actual=198,660 and a 100-day ttl (spend.ts:78, 140). Counters are correct. This is only an evidence-retention gap: the event rows keep the details for 100 days and the logs for 7. It matters only if the no-TTL pause sits unreconciled longer than that. In real DynamoDB the two breach settles can also conflict (see F2)."
+    },
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "Confirmed by reading spend.ts:140: the breach settle adds only Put pauseItem, which is a fixed key overwritten by each later breach, and no debt row. Event rows keep state 'settled' and actual for 100 days (spend.ts:78), and logs are kept 7 days. The counters are correct, and the SPEC table limits billingdebt rows to unresolved events, so the missing debt row is largely by design. What remains is long-term audit evidence of earlier breaches: once event TTLs pass, input/output-token-only breaches with actual <= reserved cannot be told apart. LOW."
+    }
+   ]
+  },
+  {
+   "lens": "ledger-logic",
+   "status": "CONFIRMED",
+   "orig": "LOW",
+   "verifier_sev": [
+    "LOW",
+    "LOW"
+   ],
+   "title": "Cache-write input tokens are priced at 1x input although code comments and the README call this 'conservative'",
+   "location": "packages/explain/src/aws/bedrock.ts:49, :56-61; infra/aws/README.md:177",
+   "scenario": "If a provider reports cacheWriteInputTokens, the actual cost is computed at the plain input price, while Anthropic-style cache writes bill at 1.25x (5-minute cache) or 2x (1-hour cache). The ledger then undercounts without flagging a breach when inTok stays under the input bound. No cachePoint is ever sent, so exposure is low.",
+   "evidence": "Executed with cache.test.ts: 100 input + 2,000 cache-write + 50 output tokens is charged 5,170 micros, against 6,270 at 1.25x. The multiplier comes from public pricing and is suspected, not verified against AWS here.",
+   "fix": "Price cache-write tokens at the reviewed maximum multiplier, or treat any nonzero cacheWrite as a bound violation or as unknown usage.",
+   "executed": true,
+   "votes": [
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "Confirmed. usageOf (bedrock.ts:56-62) adds cacheWriteInputTokens at the plain input price. 100 input + 2,000 cache-write + 50 output tokens is charged 5,170 micros, against 6,270 at Anthropic's 1.25x write rate. README:177 and the comment at bedrock.ts:49 claim cache read and write are 'conservatively' charged at the full rate, which is true for reads and false for writes. Practical exposure is about zero today. The request carries no cachePoint (verified), Claude on Bedrock caches only at explicit checkpoints, and the other providers do not add a write surcharge as far as I know. The input-token bound check also counts write tokens. This is a documentation accuracy issue."
+    },
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "The code fact is confirmed: bedrock.ts:56-62 adds cacheWrite tokens at the plain input price. The repo's AWS price-list copy (explain/research/AmazonBedrockFoundationModels-use1.json) shows Claude Sonnet 5 Standard cache write at $2.75 (1h at $4.40) against $2.20 input, and GPT-6 Astra cache write at 1.25x. So the 'conservatively charged' wording in bedrock.ts:49 and README:177 is wrong for writes. Exposure is close to zero: modelRequest is a closed shape with no cachePoint, Anthropic caching is opt-in, and the price list has no cache dimensions for Grok 4.7 or Sol. The cost would be at most about 25% of the input portion, which usually stays inside the reservation. LOW, mainly a documentation and defense-in-depth fix."
+    }
+   ]
+  },
+  {
+   "lens": "ledger-logic",
+   "status": "CONFIRMED",
+   "orig": "LOW",
+   "verifier_sev": [
+    "LOW",
+    "LOW"
+   ],
+   "title": "The function role can delete or overwrite billing#pause and billingdebt# rows; 'only the owner clears it' is enforced by code review, not IAM",
+   "location": "infra/aws/setup.yaml:388-396 (Put/Update/DeleteItem on the whole table, no dynamodb:LeadingKeys condition)",
+   "scenario": "A future code change or a compromised function could delete the durable pause or the debts. The SPEC's claim that 'only the owner may ... clear this pause' depends only on review.",
+   "evidence": "Not executed; found by reading setup.yaml. The only DeleteItem in src is the salt cleanup in ratelimit.ts.",
+   "fix": "Limit dynamodb:DeleteItem to LeadingKeys salt#*. Also consider a Deny on Delete/Update of billing#pause and billingdebt#* for the function role (Put is still needed).",
+   "executed": false,
+   "votes": [
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "Confirmed by reading setup.yaml:388-396. The TheCounters statement allows GetItem, PutItem, UpdateItem, DeleteItem and ConditionCheckItem on the whole Table ARN, with no dynamodb:LeadingKeys condition. The only DeleteItem in the source is the salt cleanup (ratelimit.ts). The SPEC's owner-only clearing is procedural. Restricting DeleteItem to salt#* keys would be cheap defence in depth. Not executed against IAM."
+    },
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "Confirmed by reading setup.yaml:388-396: Get/Put/Update/DeleteItem and ConditionCheckItem on the whole table, with no dynamodb:LeadingKeys condition. The only DeleteItem in src is the salt cleanup. No doc claims IAM enforcement; SPEC:288 says the owner must 'authorize' clearing, which is a process statement. A compromised function already holds bedrock:InvokeModel and could bypass the ledger entirely, so the IAM restriction would mainly catch a buggy future code change. It is cheap defense-in-depth hardening (scope DeleteItem to salt#*), LOW."
+    }
+   ]
+  },
+  {
+   "lens": "privacy-gate",
+   "status": "DISPUTED",
+   "orig": "MEDIUM",
+   "verifier_sev": [
+    "LOW"
+   ],
+   "title": "A failed privacy check is cached as a pass once another request lowers pausedUntil, so Bedrock can be called while logging is known to be ON",
+   "location": "packages/explain/src/app.ts:244-250. The failed verdict is stored only in state.pausedUntil, and nextSettingsCheck is moved 15 min ahead whether the check passed or failed. pausedUntil is overwritten without a max at app.ts:317 (E_HEADROOM, nextDayStart), app.ts:345 (reserve day/month, nextDayStart) and app.ts:379 (not-billed pauseInstance, request-start now + 15 min). State is declared in state.ts:9-16.",
+   "scenario": "Needs two requests running at once in one instance. (1) Short window: request B passes step 2 on a cached pass at T+15m-10s and is waiting on Converse. Request A at T+15m+5s runs a due check, finds logging ON, and sets pausedUntil and nextSettingsCheck to about T+30m+5s. B's model then returns 403 AccessDenied (not billed, pauseInstance), which sets pausedUntil = B.start + 15m = T+30m-10s. Request C in [T+30m-10s, T+30m+5s) passes step 1, skips step 2 because now < nextSettingsCheck, and calls Bedrock with logging ON. (2) Midnight window: B starts at 23:59:59 on a cached pass and waits on DynamoDB. A's check at 00:00 fails (logging ON) and pauses until 00:15. B then hits E_HEADROOM and sets pausedUntil = nextDayStart(23:59:59) = 00:00. From 00:00 to 00:15 every request skips the privacy read and reaches Bedrock. This is latent at this head: all three models are blocked, and a standard Lambda (explain.yaml sets no capacity provider) runs one invocation per environment. It still breaks the SPEC \u00a74 promise that a changed setting pauses Explain, under exactly the concurrency the design says it handles. Requests that run one after another cannot trigger it, because after a failure pausedUntil is always >= nextSettingsCheck.",
+   "evidence": "backend-rt/privacy-gate/singleflight.test.ts, describe 'a failed verdict is stored only in pausedUntil\u2026' (vitest, both tests pass on the unmodified head). The 403 path logged codes [ok, E_SETTINGS_LOGGING_ON, E_MODEL_DENIED, ok] with windowMs=15000. The midnight E_HEADROOM path logged [ok, E_SETTINGS_LOGGING_ON, E_HEADROOM, ok] with windowMs=900000. In both, the final request made zero new settings reads, its modelCalls count went up by 1, and it returned 200 while the fake account reported logging ON.",
+   "fix": "Never let a failed verdict act as a cache hit. On failure set nextSettingsCheck = 0 (or keep a separate settingsOkUntil that only a pass sets), so the first request after any pause rechecks. Make every pausedUntil write monotonic: state.pausedUntil = Math.max(state.pausedUntil, x). Optionally clear settingsCheck only if it is still the promise this request awaited. I tested exactly this patch on a copy (backend-rt/privacy-gate/fixcopy). The exploit scenarios then answer 503 with zero model calls (fixed-*.check.ts, 7/7). The package's handler, ledger, spend, ratelimit, converse and nolog tests still pass (142/142).",
+   "executed": true,
+   "votes": [
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "I reproduced this with my own test, verify-privacy-gate-reproduce-it/race.test.ts, which uses the PR's harness and STUB_MODELS. In the 403 variant, B started 30s before the cache expired. A's due check found logging ON and set pausedUntil and nextSettingsCheck to the same time. B's not-billed pauseInstance at app.ts:379 then wrote now+15m from B's request start, which is 31s lower. C made 0 settings reads and 1 model call and got a 200 while the fake account still had logging ON. Codes: [ok, E_SETTINGS_LOGGING_ON, E_MODEL_DENIED, ok]. In the midnight variant I used a wider window than the finding: B started at 23:51:59 on the cached pass, and A's check failed at 23:52 with a pause until 00:07. B's E_HEADROOM (app.ts:317) set pausedUntil to 00:00. C at 00:03 made 0 settings reads and 1 model call and got a 200. My sequential control confirmed that pausedUntil >= nextSettingsCheck after any failure. So the defect is real against SPEC \u00a74 step 2 and against the concurrency design in app.ts:232 and state.ts:14. I downgraded it to LOW because it cannot happen at this head. explain.yaml:198-235 is a standard AWS::Lambda::Function with no capacity-provider or multi-concurrency config, so each execution environment runs one invocation at a time and InstanceState is never shared by in-flight requests. Every pausedUntil write also happens inside the awaited request. All three models also fail modelReady, so E_CONFIG stops every request at step 1. The fix is still worth making so the code keeps its own concurrency contract."
+    },
+    {
+     "refuted": true,
+     "severity": "LOW",
+     "reason": "The code does behave as described when two requests overlap: the red-team singleflight.test.ts passes on 19eebb3, and app.ts:248/317/345/379 write pausedUntil without a max. But the scenario needs two invocations running at once in one Lambda instance, and the deployed function cannot do that. The guard sits outside app.ts. (1) explain.yaml:199-243 defines a standard AWS::Lambda::Function with no CapacityProviderConfig. Each execution environment then handles one request at a time. The Node runtime fetches the next event only after the handler's promise settles, and a 28 s timeout resets the environment. (2) At this head all three MODELS fail modelReady, so readConfig returns undefined and every request stops with E_CONFIG at step 1, before step 2. I checked this in verify-privacy-gate-find-the-guard-elsewhere/sequential-guard.test.ts. (3) I ran a seeded sequential fuzz over 300 seeds x 60 requests (18,000 requests). It mixed logging on/off, unreadable settings, 403 AccessDenied (pauseInstance), throttles, timeouts, E_HEADROOM day fills and clock jumps across midnight. It recorded 2,345 failed checks and 3,055 model calls. No model call followed a failed verdict without a fresh passing read, which confirms the finding's own note that one-at-a-time requests cannot trigger it. What remains is a latent gap against SPEC \u00a74's concurrency wording, which only matters if a multi-concurrency runtime is ever enabled. The Math.max / reset-on-fail patch is a cheap hardening step, not a reachable MEDIUM."
+    }
+   ]
+  },
+  {
+   "lens": "privacy-gate",
+   "status": "DISPUTED",
+   "orig": "MEDIUM",
+   "verifier_sev": [
+    "LOW"
+   ],
+   "title": "The same overwrite lowers the in-memory Infinity billing stop, so the disclosed limit 'failed pause/debt storage stops only the confirmed instance' does not hold under concurrency",
+   "location": "packages/explain/src/app.ts:248 (settings failure sets pausedUntil = now+15m and overwrites Infinity). The same happens at app.ts:317, 345 and 379. The Infinity is set at app.ts:358 (pause()) and app.ts:403.",
+   "scenario": "Request Y passes step 2 on a cached pass and its Converse call times out (maybe billed). pause() sets pausedUntil = Infinity, but persistBillingPause fails (DynamoDB fault), so pausePersisted = 0 and the in-memory Infinity is the only stop. A concurrent request X's settings check was already in flight and fails (E_SETTINGS_READ). It assigns pausedUntil = now+15m, replacing Infinity. Fifteen minutes later, on the same instance that confirmed the unresolved billed event, request Z passes every gate and calls Bedrock again. A concurrent E_HEADROOM or pauseInstance write has the same effect. Latent for the same reasons as the finding above.",
+   "evidence": "backend-rt/privacy-gate/pause-lowering.test.ts (passes on the unmodified head). The log sequence was [[ok],[E_MODEL_TIMEOUT, pausePersisted 0],[E_SETTINGS_READ],[ok]]. pausedUntil was Infinity after Y and finite after X, and Z's call raised modelCalls by 1 with a 200 answer. With the Math.max patch on the copy, pausedUntil stays Infinity and Z gets 503 with zero model calls.",
+   "fix": "Same as the finding above: monotonic Math.max writes for pausedUntil. Also consider a separate state.billingStopped flag that no timed pause can clear.",
+   "executed": true,
+   "votes": [
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "I reproduced this independently in race.test.ts (F2). Y passed step 2 on a cached pass and its model call timed out, which is maybe-billed. pause() set pausedUntil to Infinity, and I made the DynamoDB writes fail, so the log showed pausePersisted 0. X's settings check was already in flight and then failed, and app.ts:248 set pausedUntil to a finite now+15m. Z at that time got a 200 and made 1 new model call. Logs: [[ok],[E_MODEL_TIMEOUT,0],[E_SETTINGS_READ],[ok]]. This contradicts SPEC.md:288 ('If the durable pause write fails, the current instance remains paused'). It needs the same in-instance concurrency as the first finding, which a standard Lambda cannot produce, plus a failed durable-pause write. All models are also blocked at this head. That makes it LOW, not MEDIUM. A monotonic Math.max on every pausedUntil write, or a separate billingStopped flag, would close it."
+    },
+    {
+     "refuted": true,
+     "severity": "LOW",
+     "reason": "This has the same root cause and the same guard as the first finding. pause-lowering.test.ts reproduces it only by holding X's settings read in flight while Y's pause() runs, which takes two invocations at once in one instance. The standard Lambda in explain.yaml (no capacity provider) never runs two invocations at once. One at a time, once pausedUntil is Infinity every later request stops at app.ts:230 before any code that writes pausedUntil. In my sequential fuzz of 18,000 requests, which included timeout/maybe-billed pauses, Infinity was lowered 0 times. Also, no model is ready at this head, so E_CONFIG comes first. The monotonic-write hardening still makes sense if in-instance concurrency is ever allowed."
+    }
+   ]
+  },
+  {
+   "lens": "privacy-gate",
+   "status": "REFUTED",
+   "orig": "LOW",
+   "verifier_sev": [],
+   "title": "ops.sh does not enforce model readiness itself; only the workflow step does",
+   "location": "infra/aws/ops.sh:276 (deploy), ops.sh:308 (evaluate), ops.sh:346 (switch on) all call model-table.mjs --check-key, which exits 0 for any key in the table (model-table.mjs:182-187). The real gate is readiness.mjs, which only .github/workflows/explain.yml:206-212 runs.",
+   "scenario": "An operator runs `MODEL=sonnet55 bash infra/aws/ops.sh deploy \u2026` with credentials outside the workflow. ops.sh signs in, uploads, deploys with Explain=on and starts the smoke test, even though the model is unready. The 'Stop before AWS credentials' promise holds only when the workflow is the caller. Bedrock is still not reached: the runtime refuses.",
+   "evidence": "`node infra/aws/model-table.mjs --check-key sonnet55` exits 0, while `node infra/aws/readiness.mjs --model sonnet55` exits 1. I imported the built dist/index.mjs (the zip's only file) with an otherwise valid env for each of the three models (backend-rt/privacy-gate/bundle-probe.mjs). Every run made zero fetch calls and answered E_CONFIG for HTTP and E_EVAL_KEY for evaluation events.",
+   "fix": "In ops.sh, run `node \"$HERE/readiness.mjs\" --model \"$model\"` (or a readiness-only mode) before signin for deploy, evaluate, switch on and settings, so the script fails closed whoever calls it.",
+   "executed": true,
+   "votes": [
+    {
+     "refuted": true,
+     "severity": "LOW",
+     "reason": "The literal claim is true: `model-table.mjs --check-key` exits 0 for sonnet55, sol61 and grok47, while `readiness.mjs --model` exits 1 for all three. The scenario cannot happen, though. ops.sh never uses ambient credentials. signin() (ops.sh:43-68) always fetches a GitHub OIDC token, runs assume-role-with-web-identity with AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and AWS_SESSION_TOKEN unset, and overwrites them afterwards. I ran `MODEL=sonnet55 ... AWS_ACCESS_KEY_ID=<fake-operator-key> bash ops.sh deploy` and `switch on` with a fake aws and curl. Both stopped with 'GitHub didn't give this run a sign-in token' before any aws call was logged. The deploy role trusts only `repo:...:environment:explain-aws` (setup.yaml:106-109). The only workflow that runs ops.sh with credentials is explain.yml, and it runs readiness.mjs first for deploy, resume and evaluate (explain.yml:206-212). ci.yml only shellchecks ops.sh. The runtime also refuses unready models with E_CONFIG. Putting readiness inside ops.sh would be nice redundancy, but no reachable caller skips it today."
+    },
+    {
+     "refuted": true,
+     "severity": "NONE",
+     "reason": "'An operator runs ops.sh with credentials outside the workflow' cannot happen. signin() (ops.sh:43-68) ignores ambient keys. It needs a GitHub Actions OIDC token, and the deploy role's trust policy (setup.yaml:106-109) pins sub to the explain-aws environment, which admits only main and needs owner approval. I ran ops.sh deploy with MODEL=sonnet55, an operator AWS_ACCESS_KEY_ID in the env, and stubbed aws/curl. It exited 1 with 'GitHub didn't give this run a sign-in token' and made zero aws calls. The only credentialed caller is explain.yml. It runs model-table --check and readiness.mjs before any ops.sh step for deploy, resume and evaluate (explain.yml:206-212), and test_scripts.py:810-817 asserts that ordering. If all of that were bypassed, the runtime would still refuse with E_CONFIG, as the finding says."
+    }
+   ]
+  },
+  {
+   "lens": "privacy-gate",
+   "status": "REFUTED",
+   "orig": "LOW",
+   "verifier_sev": [],
+   "title": "The deploy-time settings check reads invocation logging in $AWS_REGION instead of the reviewed model's source region",
+   "location": "infra/aws/ops.sh:188",
+   "scenario": "If ops.sh runs with AWS_REGION=us-west-2, the logging read goes to us-west-2 and passes, while the reviewed source region us-east-1 is never checked. The workflow env pins us-east-1, the deploy role allows GetModelInvocationLoggingConfiguration only when aws:RequestedRegion is us-east-1 (setup.yaml:151-157, so a real us-west-2 read would be AccessDenied and fail), the stack's OnlyUsEast1 rule applies, and the runtime check also runs. So this is defense in depth only.",
+   "evidence": "backend-rt/privacy-gate/test_ops_settings_rt.py reuses the PR's fake aws fixture. With AWS_REGION=us-west-2, `ops.sh settings none` exits 0 after a single logging call: ['aws','bedrock','get-model-invocation-logging-configuration','--region','us-west-2',\u2026].",
+   "fix": "Add a `model-table.mjs --source-region KEY` option, read logging there, and stop if AWS_REGION is different.",
+   "executed": true,
+   "votes": [
+    {
+     "refuted": true,
+     "severity": "LOW",
+     "reason": "ops.sh:188 does read logging in $AWS_REGION, but a wrong region fails closed rather than passing. ops.sh can only act as biasclear-explain-deploy (see the readiness finding above). That role allows bedrock:GetModelInvocationLoggingConfiguration only when aws:RequestedRegion is us-east-1 (setup.yaml:151-157). A us-west-2 read is therefore AccessDenied, the CLI exits non-zero, and ops.sh stops with 'could not read the account's Bedrock logging setting'. The workflow also pins AWS_REGION to us-east-1 (explain.yml:51), and ops.sh defaults to it. The 'passes in us-west-2' result needs the fake aws fixture and cannot happen with real credentials. The finding itself concedes it is defense in depth only."
+    },
+    {
+     "refuted": true,
+     "severity": "NONE",
+     "reason": "Every credentialed run sets AWS_REGION=us-east-1 (explain.yml:51), and ops.sh can only obtain credentials there (see the previous finding). modelTable() requires m.region === 'us-east-1' for every row (model-table.mjs:21), so $AWS_REGION is always the source region. In real AWS, the deploy role allows GetModelInvocationLoggingConfiguration only with aws:RequestedRegion us-east-1 (setup.yaml:151-157). A us-west-2 read would be AccessDenied and ops.sh would stop with 'could not read'. The finding's 'passes' result comes from a fake aws that does not apply IAM. The runtime check and the OnlyUsEast1 stack rule also apply."
+    }
+   ]
+  },
+  {
+   "lens": "privacy-gate",
+   "status": "REFUTED",
+   "orig": "LOW",
+   "verifier_sev": [],
+   "title": "Privacy-read parsers are lenient: a missing or miscased loggingConfig, or any unrelated 200 JSON object, reads as 'logging off'; runtime and ops.sh disagree on arrays; retention reads only .mode",
+   "location": "packages/explain/src/aws/bedrock.ts:240-241 (loggingOn), bedrock.ts:243-246 (mode only), infra/aws/ops.sh:193 (jq), ops.sh:212",
+   "scenario": "If a 200 response arrives in an unexpected shape, such as {\"LoggingConfig\":{\u2026}}, {\"message\":\"Rate exceeded\"}, or a duplicate key whose last value is null, both the runtime and ops.sh conclude that logging is off. The runtime treats {\"loggingConfig\":[]} as off, while ops.sh treats it as on. Retention ignores every field except mode, so per-model or pending overrides, if the API has them, would go unseen. That last point is suspected: the API shape cannot be checked offline. Real AWS is unlikely to send these, but the parse fails open on any unknown shape.",
+   "evidence": "backend-rt/privacy-gate/logging-parse.test.ts prints a table. {}, {\"loggingConfig\":null}, {\"loggingConfig\":{}}, {\"LoggingConfig\":{s3Config}} and {\"message\":\"Rate exceeded\"} read as runtime=off and ops.sh=off. {\"loggingConfig\":[]} reads as runtime=off and ops.sh=on. Empty CLI stdout reads as ops.sh='' and is treated as off. That last case matches the AWS CLI printing nothing for an empty {} response, which test_ops_settings_rt.py confirms.",
+   "fix": "Treat logging as off only when the body's key set is a subset of {loggingConfig} and loggingConfig is null or {}. Treat any other key, an array, or a non-object as unreadable (pause). Require an exact key set for retention responses too, and update the jq to match.",
+   "executed": true,
+   "votes": [
+    {
+     "refuted": true,
+     "severity": "LOW",
+     "reason": "I reproduced the parse table (verify-privacy-gate-reproduce-it/parse.test.ts). {}, {loggingConfig:null}, {loggingConfig:{}}, {LoggingConfig:{...}} and {message:'Rate exceeded'} read as off in both the runtime and ops.sh. {loggingConfig:[]} reads as off in the runtime and on in ops.sh. No reachable input produces these shapes, though. getJson (bedrock.ts:226-228) throws on any non-200, which covers throttling and auth errors, and on any non-object body, and readAccountSettings (bedrock.ts:244-245) throws on a non-string retention mode. Both read paths are SigV4-signed TLS requests to bedrock.<region>.amazonaws.com, whose REST-JSON member is `loggingConfig`. A non-empty config, even {textDataDeliveryEnabled:false}, reads as on. The array disagreement has no producible input. The retention-overrides point is speculative and cannot be checked offline. An exact-key-set parser would also start pausing whenever AWS adds a response field. This is hardening only."
+    },
+    {
+     "refuted": true,
+     "severity": "LOW",
+     "reason": "The shapes that break the parser cannot come from the API. The Bedrock service model (botocore 1.43.103, bedrock/2023-04-20) defines GetModelInvocationLoggingConfigurationResponse with a single member, loggingConfig, whose members are cloudWatchConfig, s3Config and the *DataDeliveryEnabled flags. GetAccountDataRetentionResponse has only mode (required) and updatedAt, so the suspected per-model or pending retention overrides do not exist. getJson (bedrock.ts:215-230) accepts only HTTP 200 with a JSON object, over SigV4/TLS to bedrock.<region>.amazonaws.com. 'Rate exceeded' comes as 429/400, which throws and gives E_SETTINGS_READ. The cases read as off ({}, null, {}) are the API's real off states. A capitalized key, an array or duplicate keys cannot come from the REST-JSON contract. On the array case the runtime and ops.sh do disagree, and ops.sh is the stricter of the two. An exact-key-set check would only be hardening."
+    }
+   ]
+  },
+  {
+   "lens": "privacy-gate",
+   "status": "REFUTED",
+   "orig": "LOW",
+   "verifier_sev": [],
+   "title": "Stale-cache TTL: logging switched on after a passing check is not noticed for up to 15 minutes per warm instance (disclosed in the SPEC; the README wording overstates it)",
+   "location": "packages/explain/src/app.ts:233-246 and state.ts:6 (SETTINGS_INTERVAL_MS); infra/aws/README.md:153",
+   "scenario": "The owner (or an attacker with console access) turns on invocation logging right after an instance's check passes. Visitor sentences keep going to Bedrock, and get logged, for up to 15 minutes on each warm instance, and each instance has its own window. SPEC \u00a74 step 2 discloses this. README:153 says only that 'Explain pauses itself if either changes'.",
+   "evidence": "In singleflight.test.ts ('TTL\u2026'), with logging ON at T+15m-1ms the call answered 200 and modelCalls went to 2. At T+15m the answer was 503 E_SETTINGS_LOGGING_ON.",
+   "fix": "State the up-to-15-minute lag in the README and the privacy drafts. Consider a much shorter interval for the single logging GET, which is cheap, or rechecking logging right before Converse.",
+   "executed": true,
+   "votes": [
+    {
+     "refuted": true,
+     "severity": "LOW",
+     "reason": "The behavior is as designed and disclosed. In the harness, at T+15m-1ms the call returns 200, and at T+15m it returns E_SETTINGS_LOGGING_ON. SPEC \u00a74 step 2 (SPEC.md:148) says 'every 15 minutes thereafter', and SPEC.md:349 and THREAT_MODEL.md:55 match. The claim that the README overstates it is wrong. The cited sentence, infra/aws/README.md:153, reads: 'checked before every deploy and every 15 minutes, and Explain pauses itself if either changes'. The interval is in the same sentence, and README:177 repeats 'refreshed every 15 minutes'. A separate window per warm instance is still at most 15 minutes. No defect or misleading wording remains."
+    },
+    {
+     "refuted": true,
+     "severity": "NONE",
+     "reason": "This is the documented design, not a defect. The 15-minute cadence is stated in SPEC \u00a74 step 2 (line 148), SPEC:349 and DECISIONS.md:162. The README line the finding quotes (infra/aws/README.md:153) says the settings 'are checked before every deploy and every 15 minutes, and Explain pauses itself if either changes'. So the README states the interval too and does not overstate it. The test's 200 at T+15m-1ms and 503 at T+15m is exactly that documented behaviour."
+    }
+   ]
+  },
+  {
+   "lens": "privacy-gate",
+   "status": "REFUTED",
+   "orig": "LOW",
+   "verifier_sev": [],
+   "title": "The runtime accepts a model row with empty destinationRegions and then checks retention only in the source region; only model-table.mjs --check enforces exactly three regions",
+   "location": "packages/explain/src/config.ts:61-63 and models.ts:283-288 (modelReady does not look at destinationRegions); app.ts:237",
+   "scenario": "A table edit that empties or shrinks destinationRegions, with model-table --check skipped, would make the Lambda verify retention in fewer regions than the profile actually routes to. In practice the CI and offline gate run model-table.mjs --check, so this is defense in depth only.",
+   "evidence": "In model-gate.test.ts, readConfig(ENV, { 'us.xai.grok-4.7': { ...readyRow, destinationRegions: [] } }) returns a Config, and modelReady stays true when route, destinationRegions and requestFields are mutated. route alone is caught by readConfig.",
+   "fix": "In readConfig or modelReady, require destinationRegions to be non-empty, to include model.region, and to equal the reviewed set. Also re-run the tools/search regex check on requestFields.",
+   "executed": true,
+   "votes": [
+    {
+     "refuted": true,
+     "severity": "LOW",
+     "reason": "It is true that readConfig (config.ts:61-63) and modelReady do not inspect destinationRegions. The scenario is still prevented. I fed modelTable() a copy of the models.ts source with destinationRegions set to [] and then to ['us-east-1'] (verify-privacy-gate-reproduce-it/table-probe.mjs). Both were rejected with 'invalid reviewed model entry' because of model-table.mjs:22-23. That check runs on every CI run (ci.yml:127, test_templates.py:117) and in the offline gate before any deploy, resume or evaluate credentials (explain.yml:211). The table is a compile-time constant in the reviewed bundle, so a shrunken table cannot reach a deploy. The IAM generated from the same table also allows foundation-model InvokeModel only in the listed destination regions. This is defense in depth only."
+    },
+    {
+     "refuted": true,
+     "severity": "NONE",
+     "reason": "A row like that cannot get past the gates. The runtime's MODELS (models.ts:174) is the same frozen JSON literal that model-table.mjs parses. modelTable() rejects any row whose destinationRegions is not exactly us-east-1,us-east-2,us-west-2 (model-table.mjs:22-23). I confirmed this with mt-probe.mjs: an emptied list gives 'invalid reviewed model entry'. modelTable() runs in the required CI test job (ci.yml:127), in the workflow's offline gate before credentials (explain.yml:211), and even in ops.sh's --check-key/--regions (model-table.mjs:93), so it cannot be skipped on any path to AWS. The Converse IAM resources are generated from the same list. readAccountSettings always includes the source region (bedrock.ts:235). The cited location models.ts:283-288 does not exist: the file has 182 lines and modelReady is at 177-182."
+    }
+   ]
+  },
+  {
+   "lens": "eval-gates",
+   "status": "CONFIRMED",
+   "orig": "HIGH",
+   "verifier_sev": [
+    "MEDIUM",
+    "MEDIUM"
+   ],
+   "title": "Preflight-rejected planned rows never make a run incomplete, so the injection and claim gates can pass with no injection or rewrite ever reaching the model, and pair parity can pass on 1 of 5 samples",
+   "location": "packages/explain/ops/ops.ts:380 (`complete` ignores the preflight outcome), :192-196, :477-486 + :524 (injection gate), :487-498 + :525 (claimMeaning gate); `expectedPreflightReject` (ops.ts:79) is read only by test/fixtures.test.ts:151 and never by report()",
+   "scenario": "The deployed stack drifts from the build: evaluate uses the existing stack and never checks its code version. Every injection and rewrite request then comes back 422 E_NOT_A_MARK or E_SENTENCE before any model call. Separately, 4 of the 5 paired samples come back the same way on both sides. The report still says complete, every gate passes, and the command exits 0.",
+   "evidence": "backend-rt/eval-gates/gates-real.ts on the checked-in corpus. R1: 63 injection rows and 18 rewrite rows, all preflight-rejected, gave ok=true allGatesPass=true complete=true preflightRejected=81 failing=[]. R3: 784 of 980 paired rows preflight-rejected gave ok=true allGatesPass=true complete=true. gates.ts S4 (small fixture) also passed, with the injection and claimMeaning gates both true. The only sign is the non-gating markdown count 'Preflight rejections: N'. Only i09 is marked expectedPreflightReject, and fixtures.test.ts proves every other planned request passes validateRequest, so any other preflight in a live run means drift.",
+   "fix": "In report(), treat a preflight outcome on a planned row as incomplete unless the row is an injection with expectedPreflightReject. Also fail when an expected-preflight injection reached the model. Add exercised-count gates: every non-expected injection, rewrite, pair sample and heldout control has calledModel=true. Print planned / exercised / accepted for each gate.",
+   "executed": true,
+   "votes": [
+    {
+     "refuted": false,
+     "severity": "MEDIUM",
+     "reason": "Reproduced with the real handler, not hand-written rows. In verify-eval-gates-reproduce-it/repro.ts (mode f1), createHandler plus the test doubles run the checked-in 1085-call corpus. Rows are shaped exactly as ops.sh writes them. Baseline: ok=true, preflightRejected=3 (i09 x3, as expected). Drift run: every injection and rewrite request was sent with a non-mark span, so the real handler returned 422 {error:invalid} with evaluation {modelCalled:false, code:E_NOT_A_MARK}. Result: ok=true, allGatesPass=true, complete=true, preflightRejected=81, injection=true, claimMeaning=true. Not one injection or rewrite was exercised. The code confirms it: complete (ops.ts:380) ignores the preflight outcome, the injection and claimMeaning gates only count accepted rows, and grep shows expectedPreflightReject is read only in test/fixtures.test.ts:151. ops.sh cmd_evaluate checks only the Model parameter, never the deployed code or build sha, so drift between the build and the deployed code is possible once main moves on after a deploy. I am downgrading it for two reasons. First, the trigger has to be content-specific drift (for example a validateRequest change). A rules-version or retired-rule drift also hits pairs and heldout controls, and those gates catch it. The markdown also shows 'Preflight rejections: 81' and per-row 'preflight' outcomes. Second, the sub-claim that pair parity passes on 1 of 5 samples cannot happen through preflight: evaluationRequests sends byte-identical requests for every sample of a side (verified), and preflight is deterministic. A pair rejected on both sides fails answerParity through zeroEligiblePairs (reproduced: zeroEligiblePairs=1, answerParity=false)."
+    },
+    {
+     "refuted": false,
+     "severity": "MEDIUM",
+     "reason": "Reproduced in verify-eval-gates-find-the-guard-elsewhere/verify.ts, using real app-shaped preflight rows from the handler harness (E_RULES_VERSION 409 and E_NOT_A_MARK 422, both modelCalled:false and classified preflight). Case F1a: all 63 injection and 18 rewrite rows preflight-rejected. The reviewed report gives ok=true, complete=true, preflight=81, no failing gates, and the markdown says 'All 1085 planned calls ran ... Written gates: pass'. Case F1c: 4 of 5 paired samples preflight-rejected also passes. I found no guard that fixes this. `complete` (ops.ts:380) ignores preflight. The injection and claim gates (:477-498) only look at accepted rows. report() never reads expectedPreflightReject. ops.sh evaluate checks only the stack's Model param, not the code or rules it runs. The guards I did find only narrow the case, so I rate it below HIGH: (1) Full rules-version drift is caught. Every row then fails E_RULES_VERSION, and answerParity, lengthParity and usefulHeldout fail (F1b). So only partial drift fails silently, e.g. an engine or request.ts change without a rules_version bump, or a retired move. (2) The CI report step (explain.yml:308) never passes --review, so humanEvidence always fails there (F1a CI: failing usefulHeldout and humanEvidence). A pass needs a local rerun bound to a human review. (3) summary.sh lists Explain files changed since the last deploy before the owner approves an evaluate. (4) The preflight count and per-row outcomes are printed. (5) readiness.mjs currently blocks every model, so no live run is possible yet."
+    }
+   ]
+  },
+  {
+   "lens": "eval-gates",
+   "status": "CONFIRMED",
+   "orig": "HIGH",
+   "verifier_sev": [
+    "MEDIUM",
+    "LOW"
+   ],
+   "title": "The refusal-parity gate misses common refusal wording, so a one-sided refusal shows up as a validator rejection and the gate passes",
+   "location": "packages/explain/ops/ops.ts:181-190 (refusalLike regexes, ASCII apostrophe only, anchored at the start), :206, :439-457, :521",
+   "scenario": "Side a of a pair gets 'I\u2019m sorry, but I can\u2019t help with content about this group.' (curly U+2019 apostrophes), which the checker rejects as E_OUT_SHAPE. Mirrored side b at the same sample is rejected for an unrelated reason (E_OUT_VERDICT). Answer parity holds because neither side answered. In that case answer parity already requires the other side to have no answer, so refusal parity is the only gate that can see a one-sided refusal, and no human review field covers rows without an answer.",
+   "evidence": "gates.ts S2a: refusalLike=false (class validator_rejected) for 'I\u2019m sorry, but I can\u2019t help with that.', 'I can\u2019t assist\u2026', 'I won\u2019t provide that.', 'Unfortunately, I can't help\u2026', 'I'm not able to help\u2026', 'I must decline\u2026', '{\"how\":\"I\u2019m sorry\u2026\"}'. refusal-more.ts: also false for 'I will not answer this.', 'I can\u2019t.', a leading quote and a ```json fence. S2b: ok=true allGatesPass=true refusalLike=0 unmatchedRefusalOutcomes=0. S2c (same rows with ASCII apostrophes) correctly fails refusalParity. gates-real.ts R2: 40 pairs where side a always refuses with curly apostrophes gave allGatesPass=true, with providerRefusals=0 on every side dimension. src/text.ts already folds U+2019 for words, but refusalLike does not.",
+   "fix": "Fold U+2018/U+2019 to an ASCII apostrophe and case before matching. Match refusal phrases anywhere in the first sentence, not only at the start, and widen the list ('not able to', 'unable to', 'will not', 'must decline', 'unfortunately'). More robust: require a bound human judgement `refusal: true|false` for every called pair row without an answer, and fail refusal parity on any unmatched judged refusal. An unjudged row should fail humanEvidence.",
+   "executed": true,
+   "votes": [
+    {
+     "refuted": false,
+     "severity": "MEDIUM",
+     "reason": "Reproduced with the real handler on the full corpus (repro.ts mode f2). At p01 sample 0, side a got a refusal and side b a prose non-answer, and the rest were clean. With the ASCII text \"I'm sorry, but I can't help...\" side a was classed provider_refusal and refusalParity failed (unmatchedRefusalOutcomes=1). Each of these was classed validator_rejected (E_OUT_SHAPE) with refusalLike=false, and gave ok=true, allGatesPass=true, refusalParity=true: the same text with U+2019 apostrophes, \"I'm not able to help...\", \"Unfortunately, I can't help...\", \"I must decline...\", \"I will not answer this.\", and {\"how\":\"I'm sorry...\"} with curly apostrophes. The regexes at ops.ts:188-189 are anchored at the start, match only an ASCII apostrophe, and have a narrow verb list. HumanReview has no refusal field for pair rows, and the per-side post-call no-answer counts are equal in this case, so the asymmetry only shows when someone reads the raw text. I am downgrading from HIGH because a miss needs the mirrored side to fail for some other reason at the same sample index (otherwise answerParity catches it), and the README frames the wording heuristic as a review aid."
+    },
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "Confirmed with real handler rows. Model text 'I\u2019m sorry, but I can\u2019t help\u2026' (curly U+2019), 'I'm not able to help\u2026' and 'I can\u2019t assist\u2026' each give 502 E_OUT_SHAPE with refusalLike=false, classified validator_rejected. The ASCII version is caught as provider_refusal. The checker (src/output.ts) has no refusal code, so nothing else catches it. In the report, one coincident sample (side a curly refusal, side b E_OUT_VERDICT) passes every gate with unmatchedRefusal=0. The ASCII version fails refusalParity. I rate it below HIGH because answerParity is a guard elsewhere. If side b answered at that sample, the run fails answerParity (verified: non-coincident curly refusal gives failing=[answerParity]). So the miss only matters when every one-sided refusal lands on a sample where the other side also failed for another reason. A run that passes answerParity, which needs zero unmatched outcomes across all 490 sample pairs, has very few such samples. The README also calls the wording heuristic a review aid. The detector defect is still real (text.ts already folds U+2019), but its impact is narrow."
+    }
+   ]
+  },
+  {
+   "lens": "eval-gates",
+   "status": "REFUTED",
+   "orig": "MEDIUM",
+   "verifier_sev": [],
+   "title": "Accepted rows with missing or contradictory call metadata pass every gate, including the clipping and billed-bound gates",
+   "location": "packages/explain/ops/ops.ts:162-164 (the legacy calledModel fallback decides whether metadata is required), :199, :379, :386-391",
+   "scenario": "The raw file has status-200 answers with no `evaluation` object, or with evaluation {modelCalled:false}, or with providerText removed while providerTextChars=9000 and providerTextTruncated=false. calledModel() returns false or skips the text-consistency check, so no stop reason, tokens, bounds or clipping flag are required. The shipped Lambda plus ops.sh cannot produce these rows (the app always sets modelCalled:true and full detail on a 200). But the report is the defensive verifier, and the README says it fails on missing call metadata and that clipped evidence cannot pass.",
+   "evidence": "gates.ts. S3a (no evaluation on any row): ok=true allGatesPass=true missingModelMetadata=0 clippedRawEvidence=0. S3c ({modelCalled:false} only): ok=true. S3d (no providerText, chars 9000, truncated false): ok=true missingModelMetadata=0. S2d: a pair row with no answer and no providerText also passes metadata, so a refusal there cannot be seen. S3b (truncated:true) is still caught.",
+   "fix": "In a live (non-dryRun) report, every status-200 row must have modelCalled===true and the full metadata. Any row with modelCalled===true must carry a providerText string with consistent providerTextChars. Treat an absent or null `evaluation` as `unknown`. Keep the legacy fallback for dry-run and diagnostics only.",
+   "executed": true,
+   "votes": [
+    {
+     "refuted": true,
+     "severity": "LOW",
+     "reason": "report() does accept such rows when they are hand-written, but the shipped pipeline cannot produce them, and the finding says so itself. On the only path to a 200 (app.ts), detail.modelCalled comes from the reply outcome, which is always true. That path also sets providerStopReason, providerText, providerTextChars and providerTextTruncated from the same fullProviderText (bedrock.ts:198-201), plus input/output bounds, inTok/outTok, actualMicros and reservedMicros. A missing stopReason or content fails checkReply (E_OUT_STOP/E_OUT_SHAPE), so it never yields a 200. ops.sh copies evaluation through jq unchanged. The explain-aws environment deploys from main only, and main has no Explain package yet, so the oldest possible deployment is this code. Even the earlier 2299fe1 build emitted raw and inTok on called rows. Those trigger the legacy calledModel fallback, and then the modelCalled !== true check counts them in missingModelMetadata. Not-billed provider errors such as E_MODEL_THROTTLED carry modelCalled:true with no stop reason, so they are counted too. The only remaining route is a tampered raw file, which the rawHash review binding does not defend against anyway. This is defence-in-depth hardening, not a reachable gate bypass."
+    },
+    {
+     "refuted": true,
+     "severity": "LOW",
+     "reason": "The guard is in the app. I ran the real handler: every 200 carries modelCalled:true, providerStopReason, inTok/outTok, both bounds, reservedMicros/actualMicros, and providerTextChars equal to providerText.length with truncated:false (app.ts:151,368-395; bedrock.ts:198-201). A 200 can only come from the post-callModel 'ok' path, so {modelCalled:false} on a 200 (S3c) and a missing evaluation (S3a) cannot occur. chars=9000 alongside missing text (S3d) cannot occur either, because bedrock.ts sets text, chars and truncated from the same fullProviderText. When provider content is not an array, all three are undefined, and missingModelMetadata already counts typeof providerTextTruncated !== 'boolean'. Error outcomes (throttled, no usage) have no stop reason or tokens and are also counted. Old Lambda rows from 2299fe1 always carried inTok/raw, so calledModel's legacy fallback is true and modelCalled !== true makes them fail billedBounds. Only a hand-edited raw file reaches this, and a forger could just as easily write consistent metadata."
+    }
+   ]
+  },
+  {
+   "lens": "eval-gates",
+   "status": "CONFIRMED",
+   "orig": "MEDIUM",
+   "verifier_sev": [
+    "LOW",
+    "LOW"
+   ],
+   "title": "Without --model, the human review is not bound to any model and the model-label gate passes vacuously (CLI exits 0)",
+   "location": "packages/explain/ops/ops.ts:399 (label check skipped when options.model is undefined), :401-402 (review.model === undefined matches), :606-611 (--model is optional)",
+   "scenario": "An operator re-runs the local report with --review but leaves out --model, and writes review.json without a \"model\" key. Every answer is labelled 'Some unreviewed model'. reviewBound is true, wrongModelLabels is 0, and the command reports 'Written gates: pass'.",
+   "evidence": "backend-rt/eval-gates/cli: bundled ops.ts as cli/ops.mjs, built requests.jsonl, raw.jsonl and a hash-bound review without a model. `node ops.mjs report \u2026 --review review.json` printed 'Exact review bound to fixture/raw-result/model: **yes**. Written gates: **pass**', exited 0, with model and modelId 'not specified'. The same files with `--model us.xai.grok-4.7` exited 1 (reviewBound=false, wrongModelLabels=3). gates.ts S6 shows the same through report().",
+   "fix": "Make --model required for `report` (throw if absent). In report(), fail reviewBound unless options.modelId is defined, is a MODELS key, and equals review.model. Always check accepted labels against MODELS[modelId].displayName.",
+   "executed": true,
+   "votes": [
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "Reproduced through the CLI. I bundled ops/ops.ts as ops.mjs, built requests.jsonl with the real `requests` command, and wrote raw.jsonl from the real handler (1085 rows). With no --model and a review that has no model key: exit 0, 'Exact review bound ... yes. Written gates: pass', and model/modelId 'not specified'. After relabelling all 1073 answers 'Some unreviewed model' and rebinding rawHash: exit 0, wrongModelLabels=0, modelLabels=true. The control cases fail as they should: with --model us.xai.grok-4.7 and a review without a model key, or with no --model and a review with one, the CLI exits 1 and reviewBound=false. The cause is review.model === (undefined ?? undefined) at ops.ts:401-402, and label checking is skipped when options.model is undefined (ops.ts:399). I rate it LOW because the workflow always passes --model, and both the README command and the review template include the model. A pass needs two departures from the documented steps, and the output visibly says 'not specified'."
+    },
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "Reproduced with report(): no model option plus a review without a 'model' key gives ok=true and reviewBound=true, even with every label set to 'Some unreviewed model'. Adding --model, or setting review.model without --model, fails. Two guards elsewhere limit the impact. explain.yml:307-308 always passes --model \"$MODEL_ID\" in CI. ops.sh evaluate (cmd_evaluate) refuses unless the stack's Model param equals the selected key, and the app labels every answer with MODELS[config.modelId].displayName, which must be modelReady. So raw files from the pipeline never carry an unreviewed label, and the review's rawHash binds those exact labelled rows. What remains is that the CLI accepts a pass with model 'not specified', contrary to the README promise of binding to 'the exact selected profile ID'. It also needs the operator to leave out both --model and review.model."
+    }
+   ]
+  },
+  {
+   "lens": "eval-gates",
+   "status": "DISPUTED",
+   "orig": "MEDIUM",
+   "verifier_sev": [
+    "LOW"
+   ],
+   "title": "No minimum denominators and no pinned approved corpus: tiny or empty fixtures, and the checked-in corpus marked 'DRAFT, not approved', all produce a quality PASS",
+   "location": "packages/explain/ops/ops.ts:357-530 (report: no lower bound on pairs, samples, injections, rewrites or heldout controls; no approved fixtureHash constant; `about` is never checked); usefulHeldout at :526 needs only heldout.length>0",
+   "scenario": "The fixture file comes from the evaluated checkout. A 3-call fixture (1 pair \u00d7 1 sample, injections \u00d7 0 samples, 1 heldout control) passes, as does a 1-call fixture with no pairs. The current DRAFT corpus, with all answers accepted and a full review, also passes. The README says to freeze gates with the exact approved corpus before a paid run, but the code does not enforce it.",
+   "evidence": "gates.ts S7a: planned=3, ok=true allGatesPass=true, heldoutPlanned=1, usefulAcceptedRate=1. S7b: planned=1 (zero pairs, zero injections), ok=true. S8: the checked-in fixtures (about starts 'DRAFT, not approved for a provider run', 1085 calls) gave ok=true allGatesPass=true. A grep finds no approved hash anywhere in ops/eval/workflow.",
+   "fix": "After Brad's approval, commit the approved fixtureHash, and have report() refuse allGatesPass (exit nonzero) when the hash differs or `about` contains DRAFT. Enforce minimums: samples.pairs\u22655, \u22651 exercised sample per injection and rewrite, and the full planned heldout count. Gate per-move holdout coverage at least \u22651 accepted per move.",
+   "executed": true,
+   "votes": [
+    {
+     "refuted": true,
+     "severity": "LOW",
+     "reason": "The behaviour is real, since report() enforces no minimums and does not check `about`, but it is not a defect at this commit. The README says the corpus and the gates are drafts awaiting Brad's approval ('Freeze these gates with the exact approved corpus before a paid run'), so there is no approved hash to pin yet. The fixture file is version-controlled and reviewed with the same trust as ops.ts itself: anyone who can shrink fixtures.json can also edit the gates. A paid run needs the owner's manual approval in the explain-aws environment. Every report carries 'Release remains blocked pending the owner and independent review', and releaseApproved is hard-coded false. Gates scoring the answers on a DRAFT corpus is expected. Pinning the hash at freeze time is a reasonable to-do. The minimum-exercised part is covered under finding 1."
+    },
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "Reproduced: a 3-call fixture (1 pair \u00d7 1 sample, 0 injection samples, 1 heldout control) gives ok=true. The checked-in corpus, whose `about` begins 'DRAFT, not approved for a provider run', fully accepted and reviewed, also gives ok=true. There is no fixture-hash constant or check on `about` in ops.ts, readiness.mjs, model-table.mjs or summary.sh. Guards elsewhere lower the severity. The aws job runs only on main, so a shrunken fixture needs a reviewed merge, and requestsMatch ties the build's requests to the checkout's fixtures. The human review binds fixtureHash, so the reviewer signs off on that exact corpus. readiness.mjs blocks every model today, so the DRAFT corpus cannot be used for a paid run. The README treats freezing the approved corpus as a later step. Passing gates never authorizes a release."
+    }
+   ]
+  },
+  {
+   "lens": "eval-gates",
+   "status": "CONFIRMED",
+   "orig": "MEDIUM",
+   "verifier_sev": [
+    "LOW",
+    "LOW"
+   ],
+   "title": "classifySample checks refusal wording before service and billing state, so a paused E_SETTLE (or unknown-usage) row becomes a 'provider_refusal' and the run reports complete",
+   "location": "packages/explain/ops/ops.ts:205-216 (refusalLike is checked at :206 before the code/error checks); producing paths at src/app.ts:400 (E_SETTLE after a reply) and :382 (maybe-billed E_MODEL_NO_USAGE with provider text)",
+   "scenario": "The last planned call (c24/c/0) gets a reply with usage and refusal-like text, then the conditional settle fails. The app returns 503 paused with code E_SETTLE and full metadata. ops.sh stops after 'paused', so only the last row can carry this without leaving rows missing. The report classifies the row as provider_refusal, not unknown or service_blocked, prints 'All N planned calls ran.', and all gates pass. The same precedence labels an E_MODEL_NO_USAGE row with refusal text as provider_refusal with modelCallFailures=0, though billedBounds still fails it.",
+   "evidence": "gates.ts S5a: E_SETTLE paused row with 'Sorry, I can't help with that.' gave classify=provider_refusal, ok=true allGatesPass=true complete=true unknown=0 serviceBlocked=false. S5b: E_MODEL_NO_USAGE gave classify=provider_refusal, modelCallFailures=0, status line 'All 11 planned calls ran.', failing only on billedBounds.",
+   "fix": "Classify by service state first. body.error==='paused', or a code in {E_SETTLE, E_PROVIDER_BOUND, E_BILLING_PAUSE, E_DDB, E_MODEL_*}, gives service_blocked or call_failure (both incomplete) before the refusal heuristic runs. Keep refusal wording as a separate flag on the row.",
+   "executed": true,
+   "votes": [
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "Reproduced with the real handler (repro.ts mode f6). The last planned call, c24/c/0, got a 'Sorry, I can't help with that.' reply with usage, and the FakeTable throttled the settlement transaction. The real app returned 503 {error:paused} with code E_SETTLE, modelCalled=true and inTok=100. classifySample gave provider_refusal, and the report gave ran=1085/1085, ok=true, allGatesPass=true, complete=true, serviceBlocked=false and 'All 1085 planned calls ran.' The same failure with a non-refusal reply was classed unknown, and observableOutcomes failed. So the precedence at ops.ts:206 is inconsistent. I rate it LOW for three reasons. ops.sh stops after any paused reply, so only the very last planned row can cause this without leaving rows missing. The row still counts as non-accepted, so the evidence is not inflated. The billing pause is visible in the AWS job log. The E_MODEL_NO_USAGE variant already fails billedBounds because no inTok is present."
+    },
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "Reproduced with a real handler row. A model reply 'Sorry, I can't help with that.' with usage, plus a faulted settle transaction, gives 503 {error:'paused'}, code E_SETTLE, pausePersisted=true, with full metadata. classifySample returns provider_refusal. Placed as the last planned row (c24/c/0), the reviewed report gives ok=true, complete=true, serviceBlocked=false, unknown=0. The same row with non-refusal text is classified unknown and fails observableOutcomes, so the refusal check's precedence is what hides it. Guards elsewhere keep it narrow. ops.sh stops on any paused reply, so on any earlier row the following rows go missing and the run is incomplete. The E_MODEL_NO_USAGE variant has no tokens and fails billedBounds, as the finding itself says. An E_PROVIDER_BOUND variant sets billedBoundViolated and fails billedBounds. ops.sh still prints 'Stopped after N of N calls: paused', and the persisted billing pause is visible. So it needs a settle failure, refusal-like text and the last row all at once."
+    }
+   ]
+  },
+  {
+   "lens": "eval-gates",
+   "status": "REFUTED",
+   "orig": "LOW",
+   "verifier_sev": [],
+   "title": "The cost leg of the billed bound is taken from the app's flag and not recomputed",
+   "location": "packages/explain/ops/ops.ts:381-385",
+   "scenario": "An accepted row has actualMicros=5000, reservedMicros=100, tokens within bounds and billedBoundViolated:false. The report counts no violation. The app's own check (app.ts) includes actual > reservation, but the report trusts the flag and does not require actualMicros on settled rows.",
+   "evidence": "gates.ts S9a: tokenBoundViolations=0, ok=true. S9b: an accepted row with no actualMicros or micros also passes; its cost shows correctly as unavailable (estimatedUsd null).",
+   "fix": "Add `(s.actualMicros !== undefined && s.reservedMicros !== undefined && s.actualMicros > s.reservedMicros)` to tokenViolations. Require actualMicros and reservedMicros on every called row whose usage is known.",
+   "executed": true,
+   "votes": [
+    {
+     "refuted": true,
+     "severity": "LOW",
+     "reason": "The app cannot produce this. It computes violated = inTok > inputBound || outTok > billedMaxTokens || actual > reservation.micros (app.ts). Any violation returns 503 paused E_PROVIDER_BOUND with billedBoundViolated=true, which the report counts in tokenViolations, and ops.sh then stops. A 200 row with actualMicros > reservedMicros and billedBoundViolated:false is impossible. Every reply-path row also carries actualMicros and reservedMicros. The finding's evidence uses hand-written rows only."
+    },
+    {
+     "refuted": true,
+     "severity": "LOW",
+     "reason": "It is prevented elsewhere and cannot happen with app rows. In spend.ts, worstCaseMicros = ceil(((promptBytes+framing)*in + billedMaxTokens*out)/1000), and the reservation is exactly that value. actualMicros = ceil((inTok*in + outTok*out)/1000) uses the same config prices. inputBoundTokens = promptBytes+framing and outputBoundTokens = billedMaxTokens. So whenever inTok \u2264 inputBound and outTok \u2264 outputBound, which report() re-checks itself at ops.ts:382-383, actual \u2264 reserved follows. The app also computes violated including actual > reservation (app.ts:394), sets the flag, persists a pause and returns 503 E_PROVIDER_BOUND (verified: over-bound reply gives flag=true, E_PROVIDER_BOUND). The app sets actualMicros on every settled reply (app.ts:393). The finding's row (actual 5000 > reserved 100 with tokens in bounds and flag false) can only be hand-written."
+    }
+   ]
+  },
+  {
+   "lens": "eval-gates",
+   "status": "REFUTED",
+   "orig": "LOW",
+   "verifier_sev": [],
+   "title": "The accepted answer's body shape is not checked; validAnswer() exists but report() never calls it",
+   "location": "packages/explain/ops/ops.ts:119-130 (unused by report), :199 (acceptedAnswer)",
+   "scenario": "Status-200 rows whose body has v:7, rule 'SOME_OTHER_RULE' and rules 'stale' are counted as accepted answers to the planned rule.",
+   "evidence": "gates.ts S3e: ok=true allGatesPass=true. The repo's own evaluation-report.test.ts rows also leave out v, rule and rules and still pass.",
+   "fix": "In report(), require validAnswer(body, planned.request.rule) and body.rules === planned.request.rules before a row counts as accepted. Otherwise classify it as unknown.",
+   "executed": true,
+   "votes": [
+    {
+     "refuted": true,
+     "severity": "LOW",
+     "reason": "The app cannot produce this. The only 200 body is {v:1, rule:req.rule, how, plainer, model:displayName, rules:req.rules} (app.ts), so v, rule and rules always echo the planned request. Rows from another deployed build would echo the same request fields. The scenario's v:7 and 'SOME_OTHER_RULE' rows exist only as hand-written test data. Calling validAnswer would be cosmetic hardening."
+    },
+    {
+     "refuted": true,
+     "severity": "LOW",
+     "reason": "The app is the guard. A 200 can only be built at app.ts:425-435 as {v:1, rule:req.rule, how, plainer, model:displayName, rules:req.rules}. The real handler's 200 passes validAnswer(body, rule) with keys how,model,plainer,rule,rules,v, and rules echoes the request. ops.sh sends each planned line's .request in order, and report() requires requestsMatch against evaluationRequests(fixtures), so rule and rules always match the planned row. v:7 or a foreign rule cannot come from the shipped or older Lambda. A raw file with those values would have to be hand-edited, and a forger could write a valid shape just as easily."
+    }
+   ]
+  },
+  {
+   "lens": "eval-gates",
+   "status": "REFUTED",
+   "orig": "LOW",
+   "verifier_sev": [],
+   "title": "Suspected: the dry-run 'Simulated cost USD' sums ledger micros, which would be the retained reservation for an unknown-usage outcome",
+   "location": "packages/explain/eval/dry-run.ts:105",
+   "scenario": "If a stub outcome ever lacked usage (the app.ts:382 maybe-billed path leaves line.micros = reservation), the rehearsal table would show the reservation as simulated cost. That contradicts 'unknown usage cost is never invented from a reservation'.",
+   "evidence": "Code reading only. The current stub always returns usage, so this cannot happen today. The live report keeps these apart correctly: estimatedUsd comes from actualMicros and ledgerMicros/reservedUsd are separate.",
+   "fix": "Sum actualMicros (count rows where it is undefined as unavailable) and report the retained reservation in its own column.",
+   "executed": false,
+   "votes": [
+    {
+     "refuted": true,
+     "severity": "LOW",
+     "reason": "The finding itself says this cannot happen today. In dry-run.ts, every stub reply goes through modelReply with explicit usage (100/40), and the FakeTable injects no settle faults. Every called row therefore settles, and line.micros becomes the actual cost. Preflight rows have no micros and add 0. The column is labelled synthetic in an offline-only table. The live report already keeps estimatedUsd (from actualMicros) and reservedUsd apart."
+    },
+    {
+     "refuted": true,
+     "severity": "LOW",
+     "reason": "This cannot happen. In dry-run.ts:79-86 the stub model always returns modelReply({..., ...STUB_USAGE}) with fixed usage 100/40. The maybe-billed path (app.ts:382), which would leave line.micros at the reservation, is never reached in the rehearsal. On the reply path line.micros is set to actual after settle (app.ts:401), so s.micros equals actualMicros for every rehearsal row. The finding itself says the stub always returns usage. It is also a synthetic, labelled offline table, and the live report keeps estimatedUsd (actualMicros) and reservedUsd apart."
+    }
+   ]
+  },
+  {
+   "lens": "iam-logs-docs",
+   "status": "CONFIRMED",
+   "orig": "HIGH",
+   "verifier_sev": [
+    "MEDIUM",
+    "MEDIUM"
+   ],
+   "title": "Billing-anomaly metric filter cannot match the log events Lambda actually stores, so the alarm can never fire and 'the alarm makes that failure observable' is false (suspected: depends on documented AWS log envelope)",
+   "location": "infra/aws/explain.yaml:167 (FilterPattern) with explain.yaml:232 (LogFormat: JSON); packages/explain/src/log.ts:83 (console.log(<JSON string>)); claim at infra/aws/README.md:61; test gap infra/aws/test_templates.py:217-222",
+   "scenario": "A provider bound breach or uncertain settlement happens and persisting billing#pause/debt fails (pausePersisted=0, the disclosed limit where fresh instances keep calling). The function writes {\"code\":\"E_SETTLE\",...,\"pausePersisted\":0} with console.log(string). Under LogFormat JSON the Node runtime stores {\"timestamp\",\"level\":\"INFO\",\"requestId\",\"message\":\"{\\\"outcome\\\":...}\"}; every selector in the filter ($.overrun, $.billedBoundViolated, $.pausePersisted, $.code) is top-level, so nothing matches, BiasClear/Explain BillingAnomaly stays 0 and the alarm stays OK. With Text format the event is 'ts\\treqId\\tINFO\\t{...}', which is not JSON, so it doesn't match either.",
+   "evidence": "Executed backend-rt/iam-logs-docs/logs.test.ts (8/8 pass). It drives the real handler for the bound-breach, E_SETTLE+failed-pause and unknown-usage paths and captures the exact app lines. It then evaluates the exact FilterPattern read from explain.yaml (top-level JSON selector semantics) and writes metric-filter-result.json. For all three lines: bareMatches=true, lambdaJsonMatches=false, envelopeMessageType=\"string\", lambdaTextMatches=false. Not executed: the AWS-side wrapping. It is taken from Lambda's documented Node.js JSON log format (a single console.log string becomes the 'message' string). test_templates.py only checks that the five condition substrings appear in the pattern. No test runs it against a stored event shape.",
+   "fix": "Make the filter match the stored shape. One option is to log an object (console.log(JSON.parse(text)) or pass the object) and filter on $.message.overrun / $.message.pausePersisted / $.message.code. The other is a term filter such as '?pausePersisted ?billedBoundViolated ?overrun ?E_SETTLE', which works in either format. Add a unit test that wraps formatLine output in the Lambda JSON envelope and evaluates the pattern. Make 'aws logs test-metric-filter' against a captured real event a required check at the setup sitting. Until then, remove 'the alarm makes that failure observable' (README:61).",
+   "executed": false,
+   "votes": [
+    {
+     "refuted": false,
+     "severity": "MEDIUM",
+     "reason": "Reproduced against the real runtime code. I downloaded aws-lambda-ric 4.0.2 from npm and ran its own formatJsonMessage, extracted verbatim, on an app line (script: verify-iam-logs-docs-reproduce-it/ric_format.mjs). With params.length===0 it sets result.message = <the string> and then JSON.stringify(result). The stored event is {timestamp, level:\"INFO\", requestId, message:\"{\\\"outcome\\\":...,\\\"pausePersisted\\\":0}\"}. message is a string, and the top-level $.pausePersisted, $.code, $.overrun and $.billedBoundViolated are all undefined. index.ts wires consoleSink, which calls console.log(string). explain.yaml:232 sets LogFormat: JSON. The FilterPattern at explain.yaml:167 uses only top-level selectors. test_templates.py:217-222 only checks substrings. Logging the object instead would give message:{...}, which $.message.* selectors could match. Not executed: a live CloudWatch test-metric-filter run. Severity is MEDIUM, not HIGH. The alarm has no actions or notification and is display-only. Spending stays bounded by the reservation ledger (a failed settle leaves the conservative reservation counted) and by the budget action. What breaks is the stated observability of the pausePersisted=0 limit, and the README:61 claim is false."
+    },
+    {
+     "refuted": false,
+     "severity": "MEDIUM",
+     "reason": "Confirmed from the runtime source and by re-deriving the stored shape. I fetched the current aws-lambda-nodejs-runtime-interface-client src/LogPatch.js. In formatJsonMessage, when messageParams.length === 1 it sets result.message = messageParams[0] and then calls JSON.stringify(result). log.ts:83 calls console.log(<JSON string>) with exactly one argument, and index.ts wires consoleSink. With explain.yaml:232 LogFormat: JSON, the stored event is {timestamp, level, requestId, message:\"{...}\"}, where message is a string. My envelope.mjs check shows that none of overrun, billedBoundViolated, pausePersisted or code is a top-level key, and the message type is string. Every selector in the FilterPattern at explain.yaml:167 is top-level, so no anomaly class can increment BillingAnomaly. That covers bound breach, E_SETTLE and failed pause, not just the pausePersisted=0 case. I found no guard elsewhere. test_templates.py:217-222 only checks substrings. No repo test wraps formatLine output in the envelope. No setup step runs `aws logs test-metric-filter`. The README IAM, SPEC and THREAT_MODEL text adds no other detection path, though the raw lines are still in the 7-day log group. Severity is MEDIUM rather than HIGH. The alarm already has ActionsEnabled false and no notification, nothing is deployed, and spend is still bounded by the per-instance pause, the ledger and the $30/$45 budget actions. The defect is a dead monitoring control plus a false README:61 claim, not a direct path to spend."
+    }
+   ]
+  },
+  {
+   "lens": "iam-logs-docs",
+   "status": "CONFIRMED",
+   "orig": "MEDIUM",
+   "verifier_sev": [
+    "MEDIUM",
+    "MEDIUM"
+   ],
+   "title": "A deploy with a different model while Explain is on silently switches live visitor traffic to a maker the consent does not name; the approval summary never shows the model",
+   "location": "infra/aws/ops.sh:275-302 (Model=${model}, Explain=on) + ops.sh:369-411 (restore PREV_SWITCH) + .github/workflows/explain.yml:257-259; infra/aws/summary.sh:134-139 (no MODEL); contradicts packages/explain/SITE_CONTRACT.md:190, docs/THREAT_MODEL.md:81, infra/aws/README.md:96",
+   "scenario": "Explain is live (on) with Grok and the consent says 'made by xAI'. To evaluate Sonnet, the documented path is a 'selector change'. evaluate refuses a mismatch, so the owner runs deploy with model=sonnet55. prepare records PREV_SWITCH=on, deploy sets Model=sonnet55 and Explain=on, and restore puts the switch back to on. Visitors' sentences now go to Anthropic while the published consent and privacy text name xAI. The docs say a model switch must pause Explain first. Nothing enforces that, and the plain-words approval summary does not say which model will be selected. Not reachable today only because readiness blocks all three models.",
+   "evidence": "Executed backend-rt/iam-logs-docs/test_model_switch_live.py. It reuses the package's fake aws/curl harness from infra/aws/test_scripts.py and runs: stack Explain=on/Model=grok47; then ops.sh prepare, ops.sh deploy with MODEL=sonnet55 and ops.sh restore on. Output: FINAL {\"Explain\": \"on\", \"Model\": \"sonnet55\"} (1 passed). summary.sh receives only ACTION/CAP/REF.",
+   "fix": "In cmd_deploy, if the current stack Model differs from MODEL and PREV_SWITCH=on, either stop or force the restore target to off with a plain-words message. Bind deploy/resume to the published site/data/explain.json model once that file exists. Pass MODEL to summary.sh and state the model change above the approve button.",
+   "executed": true,
+   "votes": [
+    {
+     "refuted": false,
+     "severity": "MEDIUM",
+     "reason": "Re-ran test_model_switch_live.py in my directory with the package's own fake aws/curl harness (infra/aws/test_scripts.py). It passed and printed FINAL {\"Explain\": \"on\", \"Model\": \"sonnet55\"}. Code read confirms each step. cmd_deploy unconditionally appends Explain=on and Model=${MODEL} (ops.sh:286). It never compares against the current stack Model, unlike evaluate (ops.sh:316) and switch on (ops.sh:351), which refuse a mismatch. set_params in restore keeps every other parameter with UsePreviousValue, so the new Model survives. The workflow restores PREV_SWITCH=on. summary.sh receives only ACTION/CAP/REF, and its deploy text never names the model. This contradicts SITE_CONTRACT \u00a711 ('pause visitor Explain ... only then resume'; 'Live model switching is not implemented'). Today it is unreachable only because readiness.mjs exits 1 for grok47, sonnet55 and sol61, and owner approval is required. Once readiness passes, the gap becomes reachable."
+    },
+    {
+     "refuted": false,
+     "severity": "MEDIUM",
+     "reason": "Reproduced. I re-ran test_model_switch_live.py from my own directory: stack on/grok47, then prepare \u2192 deploy MODEL=sonnet55 \u2192 restore on. Final state is {\"Explain\": \"on\", \"Model\": \"sonnet55\"}, 1 passed. Code reading agrees. cmd_deploy (ops.sh:275-286) sets Model=${model} with no comparison to the current stack Model. evaluate (ops.sh:318) and switch on (ops.sh:357) do refuse a mismatch, but deploy has no such check. restore puts PREV_SWITCH back to on. The workflow summary step passes only ACTION/CAP/GH_TOKEN/GH_REPO/REF (explain.yml:70-77), so summary.sh cannot state the model, and run-name shows only the action. The readiness gate (readiness.mjs) checks model evidence, not a binding to published consent. I found no guard elsewhere. SITE_CONTRACT.md:190 even says 'Live model switching is not implemented by this code-only PR', which the deploy path contradicts. Severity is MEDIUM but latent. Today it is unreachable because readiness blocks all three models and site/js/explain.js and site/data/explain.json do not exist. It also needs the owner to start the deploy with the new model against the documented pause-first discipline."
+    }
+   ]
+  },
+  {
+   "lens": "iam-logs-docs",
+   "status": "CONFIRMED",
+   "orig": "MEDIUM",
+   "verifier_sev": [
+    "LOW",
+    "LOW"
+   ],
+   "title": "The visitor-facing consent says 'Explain pauses if that setting changes', but sentences keep going to Bedrock for up to 15 minutes per warm instance after retention changes",
+   "location": "handoff/explain/PRIVACY-DRAFTS.md:15,29,43 and packages/explain/scripts/privacy-drafts.mjs:29; packages/explain/SITE_CONTRACT.md:54,141; code packages/explain/src/app.ts:233-251, src/state.ts:6",
+   "scenario": "Retention in one approved destination (us-east-2) is switched from none to default. A warm instance that checked settings within the last 15 minutes keeps forwarding visitor sentences to the model until its next check. The consent and privacy drafts state the pause without any time qualifier.",
+   "evidence": "Executed backend-rt/iam-logs-docs/claims.test.ts test 1. Request 1 returns 200. Then regionalRetention['us-east-2']='default' and the clock advances 14 minutes. Request 2 still returns 200, with model calls +1 and settings reads +0. After another 60s+1ms, request 3 returns 503. SPEC/THREAT_MODEL do say 'every 15 minutes', but the generated visitor wording does not.",
+   "fix": "Qualify the consent and privacy drafts, e.g. 'Explain checks this setting at least every 15 minutes and pauses if it changes'. Alternatively, shorten or remove the cache for the destination-retention read. Regenerate PRIVACY-DRAFTS.md.",
+   "executed": true,
+   "votes": [
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "Re-ran claims.test.ts test 1 (vitest, 2/2 pass). After us-east-2 retention flipped to 'default' and the clock advanced 14 minutes, the request still returned 200 with one more model call. The 503 came only after the 15-minute SETTINGS_INTERVAL_MS (state.ts:6, app.ts:233-251). PRIVACY-DRAFTS.md:15/29/43 and privacy-drafts.mjs:29 state the pause with no time qualifier. I rate it LOW rather than MEDIUM. This is unpublished draft copy, SPEC/THREAT_MODEL already disclose the 15-minute recheck, and changing account retention takes an account-admin action. The wording is still imprecise and should be qualified."
+    },
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "Reproduced. My re-run of claims.test.ts test 1 passes: request 2 at +14 min returns 200 and calls the model, and request 3 after the interval returns 503. In code, state.ts:6 has SETTINGS_INTERVAL_MS = 15 min, and app.ts:233-251 reads settings only when now >= nextSettingsCheck. The consent line in privacy-drafts.mjs:29, PRIVACY-DRAFTS.md:15/29/43 and SITE_CONTRACT \u00a74 (line 54), and the \u00a78 privacy text at line 141, give no time qualifier. The 15-minute cadence appears only in owner and internal docs (README:153, SPEC:148). Downgraded to LOW. The wording is unpublished draft copy that red-team review gates before switch-on. 'Pauses if it changes' is eventually true. The only party who can change the setting is the account owner, whom README:153 tells never to do so, or someone who has compromised the account."
+    }
+   ]
+  },
+  {
+   "lens": "iam-logs-docs",
+   "status": "CONFIRMED",
+   "orig": "MEDIUM",
+   "verifier_sev": [
+    "LOW",
+    "LOW"
+   ],
+   "title": "The generated 'complete' per-model privacy drafts leave out the network-address processing the service performs",
+   "location": "handoff/explain/PRIVACY-DRAFTS.md:19,33,47; packages/explain/scripts/privacy-drafts.mjs:30; claim of completeness at packages/explain/SITE_CONTRACT.md:188 and handoff/explain/SPEC.md:409",
+   "scenario": "The site PR follows SITE_CONTRACT \u00a711 and SPEC \u00a712 ('generate consent/privacy from that entry') and publishes the generated privacy draft. Visitors are never told that their IP is turned into a daily-salted HMAC stored as DynamoDB counter keys for up to about 2 days, cached in memory while over a limit, and seen by AWS as host. SITE_CONTRACT \u00a78's own hand-written section does say this.",
+   "evidence": "Executed grep -c -i 'address|connection|scrambl|15 minutes' on handoff/explain/PRIVACY-DRAFTS.md returned 0. SITE_CONTRACT.md:139 has the address paragraph. Code: src/ratelimit.ts:88-106,147-177 stores rate#<hmac>#window and rateday#<hmac>#date. Executed ttl.test.ts shows those items in the table.",
+   "fix": "Generate the network-address paragraph (salted HMAC, TTLs, AWS sees the address) and the 15-minute check wording from shared constants in privacy-drafts.mjs. Add a privacy.test assertion that every generated draft discloses connection counting.",
+   "executed": true,
+   "votes": [
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "Confirmed. grep for address, connection, HMAC, network or \\bIP\\b in handoff/explain/PRIVACY-DRAFTS.md finds nothing, and the privacy template in privacy-drafts.mjs:30 has no address or connection wording. SITE_CONTRACT.md:188 calls these 'the complete per-model consent and privacy drafts', and \u00a711's switch procedure says to 'generate consent/privacy from that entry'. Part of this is guarded elsewhere. SITE_CONTRACT \u00a78 (line 139) has the full address paragraph, and SPEC.md:437 names SITE_CONTRACT as 'the complete current publication contract'. Harm therefore requires a future site PR to use the generated text in place of \u00a78. That makes it a real but low-severity documentation inconsistency in unpublished drafts."
+    },
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "The omission is real. The generated privacy paragraph in privacy-drafts.mjs:30 and PRIVACY-DRAFTS.md:19/33/47 never mentions connection counting, the salted address hash, the TTLs or that AWS sees the address. privacy.test.ts asserts none of this. SITE_CONTRACT.md:188 calls these the 'complete per-model consent and privacy drafts'. There is a partial guard elsewhere. SITE_CONTRACT \u00a78 (lines 131-145) is the stated content contract for the Privacy page's Explain section and includes the full address paragraph (line 139), with only the model name, maker and destinations to come from the table entry. SPEC:437 names SITE_CONTRACT as 'the complete current publication contract', and the red team must verify the section before switch-on. The failure needs a site author to publish the short generated draft in place of \u00a78. This is a drafting and labeling inconsistency between two docs, so LOW."
+    }
+   ]
+  },
+  {
+   "lens": "iam-logs-docs",
+   "status": "CONFIRMED",
+   "orig": "MEDIUM",
+   "verifier_sev": [
+    "MEDIUM",
+    "MEDIUM"
+   ],
+   "title": "Docs contradict each other on whether the $30 budget stop lifts automatically at month start",
+   "location": "infra/aws/README.md:125 vs infra/aws/setup.yaml:546-550, handoff/explain/SPEC.md:296, handoff/explain/DECISIONS.md:55",
+   "scenario": "After the budget action attaches deny-Bedrock, the owner guide says 'When Amazon's budget month starts again, Amazon resets this kind of stop by itself, and Explain works again within 15 minutes.' SPEC says 'Explain stays off, even into the next month, until someone looks and reverses the action ... That is deliberate.' setup.yaml and DECISIONS D5 say the same as SPEC. At least one is false. If the README is right, the 'a person must look' safety property in SPEC/DECISIONS does not hold. If SPEC is right, the owner guide promises a recovery that won't happen.",
+   "evidence": "Text comparison of the four cited lines. No AWS behavior was executed.",
+   "fix": "Check AWS Budgets APPLY_IAM_POLICY behavior at a new budget period against current AWS docs. Make all four documents match. If auto-reset is real and a human gate is wanted, add a durable app-level pause or a separate check instead of relying on the budget action.",
+   "executed": false,
+   "votes": [
+    {
+     "refuted": false,
+     "severity": "MEDIUM",
+     "reason": "Text contradiction confirmed. README.md:125 says Amazon resets the stop itself at the start of the budget month. SPEC.md:296 says 'Explain stays off, even into the next month ... That is deliberate'. setup.yaml:546-548 says paused 'until a person reverses the action'. DECISIONS.md:55 says it 'stays off until someone checks why'. The AWS docs pages were egress-blocked here. A web search surfaced AWS's own wording: 'Budget actions that apply IAM or SCP policies will be reset at the start of each budget period'. That supports the README and means the SPEC/D5 'a person must look' property is likely not delivered by AWS. Money stays bounded by the $25 ledger each month, but a stated safety design decision rests on a false premise."
+    },
+    {
+     "refuted": false,
+     "severity": "MEDIUM",
+     "reason": "The contradiction is confirmed by text. README:125 says Amazon resets the stop by itself at the new budget month. SPEC:296 says 'Explain stays off, even into the next month, until someone looks and reverses the action... That is deliberate.' The setup.yaml:546-550 comment and DECISIONS.md:55 also say it stays off until a person reverses it. AWS docs pages were blocked by the egress proxy, so I could not read them directly. Web-search snippets of AWS's budgets-action-review page and the 'Get started with AWS Budgets actions' blog say IAM/SCP policy actions 'will be reset at the beginning of each budget period'. That suggests the owner guide is right and the SPEC, DECISIONS (an owner-approved decision record) and setup.yaml premise of a required human look is false. No code guard exists. The in-app ledger and billing pause are independent of this. MEDIUM because an owner-approved safety property rests on a false premise. Money stays bounded by the ledger, the email alerts and a re-fire at $30/$45 each month."
+    }
+   ]
+  },
+  {
+   "lens": "iam-logs-docs",
+   "status": "CONFIRMED",
+   "orig": "MEDIUM",
+   "verifier_sev": [
+    "LOW",
+    "LOW"
+   ],
+   "title": "One transient DynamoDB throttle on settlement durably pauses Explain for every caller until the owner reconciles; the table's 50 WRU/s cap makes that plausibly reachable by public bursts (reachability suspected)",
+   "location": "packages/explain/src/spend.ts:132-153, src/app.ts:400 and 357-364; infra/aws/setup.yaml:423-425 (OnDemandThroughput 50/50); packages/explain/README.md:56",
+   "scenario": "A settle TransactWriteItems gets a definite throttle, so nothing committed. The recovery read finds state=reserved, settle returns false, pause('E_SETTLE') runs and billing#pause is written with no TTL. Every instance and caller, including after month rollover, then gets E_BILLING_PAUSE until the owner clears it by hand. An answered request costs about 14-16 WRU (transactional items cost 2 WCU each: reserve 4 items, settle 3, plus 2 rate writes, plus 9 for the day's first salt). An API burst of 5 plus 2 rps can approach or exceed 50 WRU/s. README item 9 presents the cap only as 'an extra bound on cost'.",
+   "evidence": "Executed backend-rt/iam-logs-docs/claims.test.ts test 2. A fault on only the 2nd TransactWriteItems gives 503 E_SETTLE with pausePersisted 1 and billing#pause present. A fresh harness with the copied table, a different IP and +40 days gives 503 E_BILLING_PAUSE. Not executed: whether real on-demand max-throughput enforcement throttles at these rates.",
+   "fix": "Treat a definite throttle or TransactionCanceled(ThrottlingError) as not committed and retry the CAS settlement once or twice; the event-state condition makes this idempotent. Raise MaxWriteRequestUnits above the API-throttle worst case. Document that table throttling can trigger an owner-only outage.",
+   "executed": false,
+   "votes": [
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "Mechanism reproduced. Re-ran claims.test.ts test 2, which faults only the 2nd TransactWriteItems. Result: E_SETTLE with pausePersisted:1. A fresh harness with a copied table, a different IP and +40 days gets E_BILLING_PAUSE. Code read confirms there is no retry: dynamodb.ts states 'no transport retry'. settle() returns false when the recovery read shows state=reserved, even though that read proves non-commit and a CAS retry would be idempotent. Release failures on not-billed outcomes take the same path. The WRU arithmetic holds: reserve is 4 transactional items (8 WRU), settle 3 (6), plus 2 rate updates, about 16 per answered request. Against API limits of 2 rps and burst 5 that comes close to the 50 WRU/s cap. Not confirmed: whether real on-demand max-throughput enforcement throttles at these rates, and whether per-IP limits (10/10min) force a multi-IP flood. It fails closed and costs no money, so this is LOW: an availability and owner-toil issue."
+    },
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "The mechanism is reproduced. My re-run of claims.test.ts test 2 passes: a fault on the 2nd TransactWriteItems gives E_SETTLE with pausePersisted 1, and a fresh harness 40 days later on a new IP gets E_BILLING_PAUSE. Code agrees. aws/dynamodb.ts states 'Each is a single request with no retry'. Any non-200 throws DdbError. In settle (spend.ts:141-152), the recovery read finds state=reserved and returns false, and app.ts:400 then calls pause('E_SETTLE'), which writes billing#pause with no TTL. No error classification or retry exists. The CAS on '#s = :reserved' would make a retry idempotent, so the finding's fix is sound. Downgraded to LOW. The behavior is fail-closed and documented as intentional for uncertain settlement (README:61, SPEC:285/288). There is no money or privacy impact, because the held reservation over-counts. Reachability is weak: the API throttle is 2 rps with burst 5 (explain.yaml:89-100), giving about 32 WRU/s sustained against the 50 cap. The $2.50 daily reservation allows only about 270 answered requests a day. Settles are spread out by model latency, and on-demand max-throughput enforcement was not exercised."
+    }
+   ]
+  },
+  {
+   "lens": "iam-logs-docs",
+   "status": "DISPUTED",
+   "orig": "LOW",
+   "verifier_sev": [
+    "LOW"
+   ],
+   "title": "Function role grants unused bedrock:GetInferenceProfile, and the setup.yaml comment claiming exactness is stale",
+   "location": "infra/aws/setup.yaml:310-312, 331-372",
+   "scenario": "The 'IAM exact' claim. The role grants GetInferenceProfile on all three profiles, but no code path calls it. The comment says 'one model through one inference profile', while the role grants all three reviewed models regardless of the selected Model parameter.",
+   "evidence": "Executed backend-rt/iam-logs-docs/iam_diff.py (cfnlint decode plus source scan). 'FunctionRole granted but never used by code: [bedrock:GetInferenceProfile]', 'used but not granted: []', and no reference to inference-profiles or GetInferenceProfile in src. Real-transport run (ops-observed.json) shows only DynamoDB Get/Put/Update/Delete/TransactWrite, Bedrock GET /logging/modelinvocations, GET /data-retention \u00d73 and POST /model/us.xai.grok-4.7/converse.",
+   "fix": "Drop bedrock:GetInferenceProfile from Profile* statements (and test_templates.py:280). Fix the comment to 'three reviewed models via their US profiles'.",
+   "executed": true,
+   "votes": [
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "Confirmed. setup.yaml:331-363 grants [bedrock:InvokeModel, bedrock:GetInferenceProfile] on all three profiles. That list is generated by model-table.mjs:66 and asserted by test_templates.py:297. grep finds no GetInferenceProfile or inference-profiles call anywhere in packages/explain/src. The comment at setup.yaml:310 ('one model through one inference profile') is stale because the role grants all three reviewed models regardless of the Model parameter. Impact is minimal: it is a read-only describe action on three fixed ARNs."
+    },
+    {
+     "refuted": true,
+     "severity": "LOW",
+     "reason": "The grant is deliberate and documented, not an oversight. handoff/explain/MODEL-SOURCES.md:57 cites AWS's inference prerequisites page, which 'also lists bedrock:GetInferenceProfile for profile inference; scope it to those exact profiles'. infra/aws/README.md's IAM paragraph states the function has InvokeModel and GetInferenceProfile on each exact profile ARN. model-table.mjs:66 generates it, and test_templates.py:297 pins it. The app code never calls it directly, which is true, but AWS may check it during profile-routed invocation. Dropping it, as the finding proposes, risks breaking the call. It is read-only metadata on three exact ARNs. The residue is cosmetic: the setup.yaml:310-312 comment 'one model through one inference profile' is stale against the three-model table. That is worth fixing in passing but is not a permission defect."
+    }
+   ]
+  },
+  {
+   "lens": "iam-logs-docs",
+   "status": "CONFIRMED",
+   "orig": "LOW",
+   "verifier_sev": [
+    "LOW",
+    "LOW"
+   ],
+   "title": "The 'only the owner can clear the billing pause' property is enforced by code review, not IAM: the function role may delete billing#pause and billingdebt# items",
+   "location": "infra/aws/setup.yaml:388-396 (TheCounters, no dynamodb:LeadingKeys condition)",
+   "scenario": "Function code merged by mistake, or a compromised dependency in a reviewed build, could DeleteItem billing#pause or billingdebt#<event>, or reset spend#month, and lift the durable anomaly stop without the owner. The only legitimate DeleteItem use is salt#<day> (ratelimit.ts:131).",
+   "evidence": "Executed iam_diff.py: 'TheCounters condition: None'. Executed ttl.test.ts lists billing#pause and billingdebt#<uuid> in the same table.",
+   "fix": "Split DeleteItem into its own statement with Condition ForAllValues:StringLike dynamodb:LeadingKeys ['salt#*']. Optionally deny DeleteItem on billing* keys explicitly, so that clearing a pause requires an owner principal.",
+   "executed": true,
+   "votes": [
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "Confirmed. The TheCounters statement (setup.yaml:388-396) grants Get/Put/Update/Delete/ConditionCheck on the whole table with no dynamodb:LeadingKeys condition. The only code DeleteItem use is salt# (ratelimit.ts:131). SPEC.md:288 states 'Only the owner may ... authorize clearing this pause' as procedure, not as an IAM claim. The fix has limited value. Compromised function code can already call bedrock:InvokeModel without consulting the pause, and can overwrite pause/debt evidence with PutItem. A LeadingKeys restriction on DeleteItem only guards against an accidental delete bug in reviewed code. Defense-in-depth only: LOW."
+    },
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "The fact holds. setup.yaml:388-396 TheCounters grants DeleteItem (with Put/Update) on the whole table with no dynamodb:LeadingKeys condition. The only legitimate delete is salt#<day> (ratelimit.ts:131), and no lint test restricts delete keys. The docs do not claim IAM enforcement, though. SPEC:288 frames owner-only clearing as a process rule ('Only the owner may reconcile... and authorize clearing'), and infra/aws/README.md states that what function code does is 'guarded by review' through protected, owner-merged paths. The proposed fix is also only partial. Code able to delete the pause can equally skip the ConditionCheck in reserve or reset spend counters through the Put/Update rights it needs. A LeadingKeys split only keeps the pause record surviving a bad deploy. This is valid defense-in-depth hardening, LOW."
+    }
+   ]
+  },
+  {
+   "lens": "iam-logs-docs",
+   "status": "CONFIRMED",
+   "orig": "LOW",
+   "verifier_sev": [
+    "LOW",
+    "LOW"
+   ],
+   "title": "setup.yaml says 'Every item has a TTL', which is false; the owner guide describes the table as counters only and says to delete it without reconciling first",
+   "location": "infra/aws/setup.yaml:411-415; infra/aws/test_templates.py:443 (test name 'keeps_nothing_longer_than_its_ttl'); infra/aws/README.md:35,144",
+   "scenario": "The owner follows README 'Delete everything'. It says the setup deletion removes 'the counters' and omits SPEC \u00a715's 'reconcile unresolved charges ... before this deletion'. Unreconciled no-TTL debt records are destroyed.",
+   "evidence": "Executed backend-rt/iam-logs-docs/ttl.test.ts after an unknown-usage anomaly. Items without ttl: billing#pause and billingdebt#<uuid> (attrs at/event/reason/reserved only; no sentence or IP). All other items have ttl.",
+   "fix": "Update the setup.yaml comment and test name. Add the reconcile-first warning, and mention the pause/debt records, in infra/aws/README.md sections 'What it puts in your AWS account' and 'Delete everything'.",
+   "executed": true,
+   "votes": [
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "Confirmed. setup.yaml:411-412 says 'Every item has a TTL'. pauseItem() in spend.ts:103-109 writes billing#pause and billingdebt#<event> with no ttl attribute, and SPEC.md:273 itself says 'No automatic expiry'. The test name test_the_counters_table_keeps_nothing_longer_than_its_ttl (test_templates.py:453) is misleading. README.md:35 describes the table as counters only. README 'Delete everything' step 3 (line 144) deletes the setup stack with no reconcile-first warning, while SPEC.md:524 requires reconciling and preserving billing evidence before that deletion."
+    },
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "Confirmed. setup.yaml:411-415 says 'Every item has a TTL'. My re-run of ttl.test.ts passes and shows billing#pause and billingdebt#<uuid> without ttl, which SPEC:288/333 confirms is by design. The test is named test_the_counters_table_keeps_nothing_longer_than_its_ttl (test_templates.py:453). The README 'What it puts in your AWS account' bullet (line 35) describes the table as counters only. 'Delete everything' (lines 134-146) has no reconcile-first step, while SPEC:524 requires one. The only README mention of reconciliation (line 61) is about clearing an anomaly, not about deletion. This is a doc and comment accuracy issue in an owner-run teardown. The records hold no text or IP. LOW."
+    }
+   ]
+  },
+  {
+   "lens": "iam-logs-docs",
+   "status": "CONFIRMED",
+   "orig": "LOW",
+   "verifier_sev": [
+    "LOW",
+    "LOW"
+   ],
+   "title": "Emergency-stop text says 'nothing is charged', contradicting SPEC's own limit",
+   "location": "infra/aws/README.md:117 vs handoff/explain/SPEC.md:299",
+   "scenario": "The owner presses Throttle during an incident and assumes billing has stopped. In-flight model calls still bill, and HTTP API requests still incur charges (SPEC: 'cannot undo already billed or in-flight model calls, or stop separate HTTP API charges').",
+   "evidence": "Text comparison of the cited lines.",
+   "fix": "Replace with 'new function runs stop; calls already in flight and API Gateway request charges can still be billed'.",
+   "executed": false,
+   "votes": [
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "Confirmed by reading the text. README.md:117 says 'Every Explain request fails at once, and nothing is charged.' SPEC.md:299 says Throttle 'cannot undo already billed or in-flight model calls, or stop separate HTTP API charges.' Lambda throttling does not stop in-flight invocations, and HTTP API requests that reach the throttled integration are still billable. The owner guide overstates the effect of the emergency stop."
+    },
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "Confirmed by text. infra/aws/README.md:117 says 'Every Explain request fails at once, and nothing is charged.' SPEC.md:299 says Throttle 'cannot undo already billed or in-flight model calls, or stop separate HTTP API charges', and that the drill has not run. No other owner-facing text qualifies line 117. The amounts are small, since API requests are cheap and in-flight calls are already reserved, but the owner's emergency text overstates the effect. LOW."
+    }
+   ]
+  },
+  {
+   "lens": "iam-logs-docs",
+   "status": "CONFIRMED",
+   "orig": "LOW",
+   "verifier_sev": [
+    "LOW",
+    "LOW"
+   ],
+   "title": "Smaller doc contradictions: platform log lines, build-bucket expiry, nonexistent ops/EXPLAIN.md, evaluation-key storage and lifetime",
+   "location": "handoff/explain/SPEC.md:340 vs packages/explain/README.md:55 and explain.yaml:234; SPEC.md:522 vs setup.yaml:610-613 and test_templates.py:420-425; SPEC.md:393,477 (ops/EXPLAIN.md does not exist; SITE_CONTRACT.md:172 points to infra/aws/README.md); explain.yaml:118-119 and infra/aws/README.md:183 vs README.md:179 and packages/explain/README.md:61",
+   "scenario": "SPEC says START/END/REPORT lines are stored, but SystemLogLevel WARN filters them. SPEC says the build bucket expires files after 30 days; the template and its test forbid expiry. SPEC points SECURITY.md and the approval rule at a missing file. EvaluationKey is described as 'never stored anywhere else', but it is copied into the Lambda environment variable EXPLAIN_EVAL_KEY (plaintext via GetFunctionConfiguration). README:183 says the key 'exists only while a deploy or evaluation run is going', while README:179 and package README item 14 say there is no automatic expiry.",
+   "evidence": "Executed ls ops/EXPLAIN.md: no such file. The rest is text comparison and template reading (explain.yaml:229 maps EvaluationKey to EXPLAIN_EVAL_KEY).",
+   "fix": "Make SPEC match the template (platform lines filtered; build files kept). Point SPEC at infra/aws/README.md. Reword the key statements: 'stored only in the stack parameter and the function environment; cleared by restore, best effort; no automatic expiry'.",
+   "executed": true,
+   "votes": [
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "I confirmed all five sub-items. (1) SPEC.md:340 says Lambda platform start/end/duration lines are kept, but explain.yaml:234 sets SystemLogLevel: WARN and packages/explain/README.md item 8 says START/END/REPORT are not stored. (2) SPEC.md:522 says the build bucket 'expires them after 30 days', but setup.yaml's only lifecycle rule is AbortIncompleteMultipartUpload, and test_templates.py asserts that no ExpirationInDays or ExpirationDate is set. (3) ls ops/EXPLAIN.md reports no such file, yet SPEC.md:393 and :477 point to it. (4) explain.yaml:118-119 says the EvaluationKey is 'never stored anywhere else', but explain.yaml:229 copies it into the function environment as EXPLAIN_EVAL_KEY. (5) infra/aws/README.md:183 says the key 'exists only while a deploy or evaluation run is going', but README.md:179 and packages/explain/README.md item 14 say there is no automatic expiry and cleanup is best-effort."
+    },
+    {
+     "refuted": false,
+     "severity": "LOW",
+     "reason": "Every sub-item is confirmed. (1) SPEC:340 lists 'Lambda platform lines... Start/end/duration' as stored, but explain.yaml:234 has SystemLogLevel WARN and packages/explain/README.md item 8 says START/END/REPORT are not stored. (2) SPEC:522 says the build bucket 'also expires them after 30 days', but test_build_bucket_is_private_and_keeps_build_files forbids expiry and README:37 says files are kept. (3) SPEC:393 and SPEC:477 point to ops/EXPLAIN.md, which does not exist (ops/ holds BLUEPRINT/BOARD/ISSUES_TO_RECREATE/SEED_NOTES), while SITE_CONTRACT \u00a79 points SECURITY.md at infra/aws/README.md. (4) explain.yaml:118-119 says EvaluationKey is 'never stored anywhere else', yet line 229 copies it into the EXPLAIN_EVAL_KEY function environment. README:183 says the key 'exists only while a deploy or evaluation run is going', while README:179 and package README item 14 say cleanup is best-effort with no automatic expiry. All are documentation accuracy issues with no new behavior. LOW."
+    }
+   ]
+  },
+  {
+   "lens": "critic",
+   "status": "CRITIC (unverified)",
+   "orig": "MEDIUM",
+   "verifier_sev": [],
+   "title": "Live evaluation results and human-review binding are not tied to the code that produced the answers; evaluate never checks the deployed CodeKey",
+   "location": "infra/aws/ops.sh:305-340 (cmd_evaluate reads Model and Explain, never CodeKey); .github/workflows/explain.yml:221-233 (zip sha comparison runs for deploy only) and 253-255; packages/explain/ops/ops.ts:318-325 and 401-402 (HumanReview binds only fixtureHash, rawHash and model) and 562 (results.rules comes from the report's own build); infra/aws/summary.sh:142-149 (the evaluate summary omits 'changes since last deploy')",
+   "scenario": "Deploy at commit X, which has the current PR-head checker and prompt. Later the 304 checker replacement or a prompt change is merged as commit Y and not deployed. The owner runs evaluate on main@Y. Its build produces eval-requests.jsonl and ops.mjs from Y, but the Lambda that answers is still X's CodeKey. The report prints rules from Y, fixtureHash and rawHash bind, and a reviewer's judgments with --model pass. The result is a quality pass recorded for Y but measured on X. The reverse also works: evaluate on X, then deploy Y with no re-evaluation, and nothing in the workflow or report notices. The evaluate approval summary never tells the owner that main differs from the deployed build.",
+   "evidence": "I ran the dry run and listed the fields. Report results contain rules, fixtureHash, rawHash, planned, ran, complete, ... and no zip, commit, CodeKey or prompt identity. Raw rows contain only id, part, sample, status, body{v,rule,how,plainer,model,rules} and evaluation{modelCalled, promptBytes, ..., micros}. cmd_evaluate signs in, checks stack status, compares only `param_value Model` and switches on; CodeKey is read only in cmd_deploy. The workflow's 'both builds made this exact zip' step has `if: inputs.action == 'deploy'`. THREAT_MODEL requires evaluation of 'the final combined candidate', but that is only procedural.",
+   "fix": "Add a build identity to the deployed function: inject the bundle sha or commit at build time and return it in EvaluationResult.evaluation. In cmd_evaluate, require the stack's CodeKey to equal explain/<this run's build sha256>.zip, which means running rebuild for evaluate too. Otherwise stop with 'deploy first'. Add codeSha to the raw rows and to HumanReview, and require review.codeSha to match. Show the code changes since the last deploy in the evaluate summary.",
+   "executed": true,
+   "votes": []
+  },
+  {
+   "lens": "critic",
+   "status": "CRITIC (unverified)",
+   "orig": "MEDIUM",
+   "verifier_sev": [],
+   "title": "The planned 1,085-identity live evaluation probably cannot finish under the default $2.50/day; evaluate has no resume, and each rerun truncates its output, starts again at request 1 and spends again",
+   "location": "infra/aws/ops.sh:323-339 (`: >\"$out\"`; the loop always starts at line 1; it stops at the first 503 paused and prints 'Run evaluate again after the next UTC day'); infra/aws/explain.yaml DailyPercent default 10 (MonthlyCapUsd 25); .github/workflows/explain.yml:186 (aws job timeout-minutes 150); packages/explain/eval/README.md:38-43 (stub usage was cut to 100/40 tokens so the corpus fits the day fence); packages/explain/ops/ops.ts report (one --raw file; duplicates and missing identities make the run incomplete)",
+   "scenario": "A Sonnet 5.5 evaluation makes 1,082 model calls with an average prompt of 2,912 bytes (measured from the dry run's promptBytes). At 4 bytes per token, 20 framing tokens and 80 output tokens, a full run costs about $2.73, above the $2.50 daily cap. At 3.5 bytes per token, 50 framing and 150 output, it costs about $3.89 and hits the cap after about 694 calls. Grok's mid estimate is $3.17, stopping after about 851 calls. ops.sh stops at the first 'paused' and the report is incomplete. Following the printed advice the next day truncates eval-raw.jsonl, asks rows 1 to about 700 again and spends about $2.50 again. The run never completes, and about 10 attempts use up the $25 month. Two more factors: 1,085 serial CLI invokes have about 8.3 s each inside the 150-minute job timeout, and evaluate switches Explain on publicly, so public traffic draws on the same day cap. The quality gates fail closed, but the planned live H-gate evidence cannot be produced as designed.",
+   "evidence": "backend-rt/critic/evalbudget.mjs on dry.json. grok47: {optimistic $2.352 (all 1,082 fit), mid $3.171 (851 calls before the cap), reasoning $4.242 (636)}. sonnet55 and sol61: {optimistic $2.733 (986), mid $3.885 (694), reasoning $5.671 (476)}. The worst-case headroom check uses 400 billed tokens and 50 framing tokens. The eval README admits the stub's 80-output-token fixture already hit the shared day fence. The stub's 100 input tokens is about one seventh of the real average prompt.",
+   "fix": "Before a paid run, either approve a separate evaluation day budget or add a resumable evaluate: skip identities already present in a prior raw artifact, append instead of truncating, and merge raw files in report with identity and duplicate checks. Show the expected cost (sum of worst-case and an estimated actual) in the evaluate approval summary. Consider an evaluation-only switch state so evaluate does not open the public route.",
+   "executed": true,
+   "votes": []
+  },
+  {
+   "lens": "critic",
+   "status": "CRITIC (unverified)",
+   "orig": "LOW",
+   "verifier_sev": [],
+   "title": "The brief's 'reproducible zip' hash is the npm-test build (--previous none), not the zip the deploy workflow ships (--previous auto); lens bundle probes covered only the former",
+   "location": "Drive brief 305 ('Reproducible zip: 8ce98281...'); packages/explain/package.json scripts.build (no --previous); .github/workflows/explain.yml:119 and 172 (`node scripts/build.mjs --previous auto`); packages/explain/scripts/gen-engines.mjs:44-80",
+   "scenario": "A reviewer checks 8ce98281... and probes dist/index.mjs, as privacy-gate did against the worktree's dist. The deploy job instead builds and compares a different artifact that also bundles the previous rules engine, 2.0.0a4, extracted from git history. The quoted hash, and every test or probe run on the 83.4 KB bundle, therefore say nothing directly about the shipped bytes.",
+   "evidence": "In a fresh clone at 19eebb3 (backend-rt/critic/wt), --previous none built twice gave 8ce982813b42... (83.4 KB, rules 2.0.0a5), matching the brief. --previous auto built twice gave 012b8adc57696c1e7d66aa2650e6f7603fdb3a843458353d71d5de2840db6918 (136.6 KB, rules 2.0.0a5 and 2.0.0a4). This was under Node v22.22.2, while CI uses Node 24. The auto bundle, re-probed, made zero fetches and refused all three real models, so this is an evidence mismatch, not an exposure.",
+   "fix": "Quote the --previous auto hash built under Node 24, as CI does. Make build.test.ts or an npm script build and probe the deploy configuration, or default `build` to --previous auto when full history is present.",
+   "executed": true,
+   "votes": []
+  },
+  {
+   "lens": "critic",
+   "status": "CRITIC (unverified)",
+   "orig": "LOW",
+   "verifier_sev": [],
+   "title": "Any transient Bedrock failure (500/503, 424, connection reset, or a reply slower than 20 s) is treated as unknown usage and durably pauses the whole service until the owner reconciles it; the docs say only 'unknown usage'",
+   "location": "packages/explain/src/aws/bedrock.ts:153-154 and 178-184 (timeout, network and any unclassified status are maybe-billed); packages/explain/src/app.ts:382-386 (pause on maybe-billed); packages/explain/test/handler.test.ts:369-381 (intended); infra/aws/README.md:61; handoff/explain/SPEC.md:285 and 288",
+   "scenario": "One Bedrock ServiceUnavailable or InternalServer response, or a slow reasoning reply that passes the 20 s transport timeout, writes billing#pause with no TTL. Every visitor and every fresh instance then gets 503 paused (E_BILLING_PAUSE), and resume cannot clear it. The only exit is an owner reconciliation that has no written procedure; ledger-logic also noted that none exists. A live evaluate run also ends at the first such event. The README and SPEC say 'unknown usage ... attempts a persistent stop' but never say this includes routine provider 5xx errors and timeouts, so an operator would not expect one transient error to take the service down.",
+   "evidence": "handler.test.ts:370 loops over ['timeout', 'network', {status:500}, {status:424, ModelErrorException}], and each gives 503 with pausePersisted=1 and the full reservation kept. It passed in my 519/519 run. classifyError sends every status other than 429/403/404/400 and the named quota and throttle types to maybe-billed.",
+   "fix": "State in the README and SPEC that provider 5xx, 424, network and timeout outcomes each trigger the durable stop, and add a reconciliation and clear runbook. If the owner accepts a bounded over-count, consider recording a debt row with an instance-only pause for status classes AWS documents as unbilled.",
+   "executed": true,
+   "votes": []
+  },
+  {
+   "lens": "critic",
+   "status": "CRITIC (unverified)",
+   "orig": "LOW",
+   "verifier_sev": [],
+   "title": "For evaluate, the request list that drives rate-limit-exempt paid invokes comes from one build job that skips tests and the price check and has no second build to compare; the README says both always happen",
+   "location": ".github/workflows/explain.yml:107-115 (Tests and price check are `if: inputs.action == 'deploy'`), 121-126 (smoke.json and eval-requests.jsonl come from the single build), 146-149 (rebuild is deploy-only); infra/aws/README.md:175 (\"build and rebuild ... npm ci, tests, the price check, two reproducible builds\"); docs/THREAT_MODEL.md ('compares independent reproducible builds')",
+   "scenario": "On an evaluate run, dist/ops.mjs in the npm-tooling build job writes eval-requests.jsonl. The credentialed aws job then sends each line as an authenticated direct invoke that skips per-connection limits. No test, price check or rebuild cross-check covers that file. A compromised build dependency could rewrite the list, within engine-mark validation and the day cap, and the README's two-build assurance does not apply. smoke.json on deploy is likewise not cross-checked.",
+   "evidence": "Read the workflow conditions. This design predates this PR; the PR changed only the report job's MODEL env.",
+   "fix": "Run rebuild for evaluate as well and require identical sha256 for eval-requests.jsonl (and smoke.json on deploy) in the aws job. Alternatively, regenerate requests in the aws job with a dependency-free script from the checked-out fixtures. Correct README:175 and THREAT_MODEL to say what evaluate actually verifies.",
+   "executed": false,
+   "votes": []
+  }
+ ],
+ "holds": {
+  "ledger-faults": [
+   "Atomic pause+month+day+event reservation: with the package's serial fake and with my conflict-modeling fake (C2, 3 seeds of 12 concurrent instances), the day counter never exceeded the cap, and a cancelled transaction left no partial counter change (package test 'rolls back the first counter...' plus C2).",
+   "No unreserved model call in any fault run: across C1-C4, D1-D2, M1-M7 and S1, model calls never exceeded committed billing#<uuid> reservation events (INV lines 4<=4 x3, 11<=11, 18<=18, 7<=7, 9<=9). M1/M2 show that an unprovable reservation never reaches the model. callModel is only reachable with a Reservation.",
+   "Durable pause fences reservations atomically: the reserve transaction's ConditionCheck on billing#pause refuses a pause written between the pre-read and the transaction (package test). A committed pause plus fresh instance gives E_BILLING_PAUSE.",
+   "Durable pause survives instance and month changes: M5 wrote it at Oct 31 23:59:59.9, and a fresh instance on 2027-11-30 got E_BILLING_PAUSE. Pause and debt items have no ttl attribute.",
+   "Conditional settlement and no double-settle: M4 ran four concurrent settle/settle/release/settle(9000) calls on one reservation, giving [true,true,false,false] with the month and day counters at exactly 3000. M4b, with conflict semantics, also ended at 3000. The CAS on state=reserved is the fence.",
+   "Consistent recovery after a lost acknowledgment: a lost reserve acknowledgment with a successful consistent readback permits exactly one model call (package test). A lost settle acknowledgment is proven by event state plus actual, with no second ADD (package test counts 3 TransactWriteItems and 0 UpdateItem).",
+   "No blind ADD retries: transport.ts and Ddb.call never retry; settle failure never re-sends a counter ADD; M1 shows one reserve transaction per request; ops.sh invokes with AWS_MAX_ATTEMPTS=1, one invoke at a time.",
+   "Duplicate or stale event ids: event ids are server-side randomUUID values, the event Put is conditioned on attribute_not_exists(pk), no client field reaches the ledger keys, and the settle ClientRequestToken always differs from the reserve token.",
+   "Month and day rollover: keys are fixed at request start, and settle uses the reservation's keys. M5 touched only spend#2026-10 and spendday#2026-10-31; the package test covers settle after midnight.",
+   "Bound breach settles the real charge and persists the stop atomically with the settlement (package test; M7 counters 112640 equal actual), and the answer is discarded with 503 paused.",
+   "Unknown usage keeps the full reservation and is not reported as an actual cost: in the D1 maybe-billed case and the package tests, actualMicros stays unset.",
+   "Clock skew is bounded, with a caveat: keys come from the local clock, so an instance 5 s fast booked into November while October was full (M6). Exposure is limited to reservations made inside the skew window; Lambda uses Amazon Time Sync. Informational, not a finding.",
+   "Settle, release and persistBillingPause never throw into the handler (all failures become false), so a ledger failure cannot surface as an unlogged E_INTERNAL after a model call."
+  ],
+  "ledger-logic": [
+   "Note on my process: early vitest runs wrote to the git-ignored timing cache packages/explain/node_modules/.vite/vitest/da39a3ee.../results.json in the worktree, because node_modules was symlinked and cacheDir defaulted there. Other lenses' entries are in the same file. No tracked file changed: git status is clean and HEAD is 19eebb3. I then set cacheDir to my work folder. Scripts are in backend-rt/ledger-logic/ (lock.ts, conflict.test.ts, timebudget.test.ts, overrun.test.ts, holds.test.ts, cache.test.ts). All 21 of my tests pass.",
+   "No unreserved model call is possible (Q1). callModel needs a Reservation, and reserve() returns ok only on an acknowledged transaction or a consistent read of this call's own unique event in state 'reserved' with matching month/day/amount (spend.ts:80-85). In my F6 late-commit run the result was E_DDB with 0 model calls.",
+   "Reservation is atomic: the pause ConditionCheck, the month and day conditional updates and the event Put are one TransactWriteItems (spend.ts:74-79). The package rollback and pause-race tests pass, and my F1 run shows the pause fence holding for new reservations.",
+   "No off-by-one on limits: `#m <= limit - micros` is the same as m + micros <= limit, and hasHeadroom uses the same test. Executed (holds.test.ts): with the month at cap\u22121000, 1000 is accepted, 1001 is refused (which: month), and once an overrun puts the counter above cap even 1 micro is refused.",
+   "Micros rounding is safe: both sides use ceil over integer nanos. Executed: 200,000 random in-bound cases across all table price pairs, with actualMicros <= worstCaseMicros every time.",
+   "Negative deltas and duplicates are safe: settle and release are fenced by the event CAS `#s = :reserved`. Executed: a duplicate release after settlement returns false and the counter is unchanged. The package lost-ack test shows no second ADD.",
+   "No blind ADD retries: Ddb.call is a single request and the transport has no retry (dynamodb.ts:32-60, transport.ts). It holds, but it is over-conservative: with the event CAS and ClientRequestToken, retrying the whole settle transaction is safe, which is the F1 fix.",
+   "Consistent recovery after a lost acknowledgment holds for the 'response lost after commit' case for both reserve and settle (package ledger.test.ts). Only the 'commit after the read-back' variant misbehaves (F6/F7, over-count side).",
+   "The durable pause survives instance and month changes: the pause has no TTL, and a fresh instance at 2026-11-14 (40 days later, next month) got E_BILLING_PAUSE with no model call (my F1 run plus the package overrun test).",
+   "No pause-key collisions across months: billing#pause is deliberately not tied to a month, and event keys are billing#<uuid v4>. Executed: 300 events are unique, none equals billing#pause, and every ClientRequestToken (reserve and derived settle tokens) is distinct. The event Put is conditioned on attribute_not_exists(pk), so an event id cannot be reused.",
+   "A single bound breach settles the real charge and writes the pause atomically, discards the answer and returns 503. Executed in F4 with K=1: the counter includes the actual and the next request is 503. Under concurrency see F2.",
+   "Unknown usage cost is never invented: the maybe-billed path (app.ts:382-386) sets no actualMicros, and the logged `micros` is the retained reservation, as documented.",
+   "Crossing UTC midnight or month end settles to the original reservation keys (package spend.test.ts).",
+   "Lens verdict: no HIGH from the ledger-logic lens. The ledger never authorizes an unreserved call. F1-F4 should be fixed or explicitly accepted before any live enablement. All real models stay blocked by modelReady, so there is no live exposure at this checkpoint."
+  ],
+  "privacy-gate": [
+   "Per-region SigV4 holds. Each of the 4 privacy reads (logging in us-east-1; retention in us-east-1, us-east-2 and us-west-2) is signed with credential scope <day>/<host region>/bedrock, even when the transport's default region is eu-west-1. An independent HMAC recomputation matches every Signature, and a signature computed for another region does not (sigv4-region.test.ts). Converse and DynamoDB scopes match their hosts because index.ts:310 builds the transport from config.region. Caveat: those two calls carry no explicit region, so a mis-built transport would sign for the wrong region (shown in the test); this is not a live path.",
+   "Source-only logging plus retention 'none' in every approved destination holds. The runtime makes exactly 1 logging read (us-east-1) and 3 retention reads. One region answering 403, logging returning non-JSON, a missing mode, a numeric mode, or a thrown transport error each give E_SETTINGS_READ to every waiter, with zero DynamoDB operations and zero model calls (singleflight.test.ts). The function role and deploy role IAM conditions (aws:RequestedRegion us-east-1 for logging; the three regions for GetAccountDataRetention) match these reads exactly.",
+   "The single-flight claim holds. 5 concurrent callers share one check (4 reads in total), and no model or DynamoDB call happens before it settles. The check promise never rejects, an error inside it becomes a fixed code, and settingsCheck is cleared afterwards. The unconditional clear of settingsCheck cannot be exploited, because every awaiter resumes in the same microtask burst. Requests that run one after another cannot get past a failed check: pausedUntil is set after nextSettingsCheck, so it is always >= it. The bypasses above need concurrency within one instance.",
+   "All three real models are blocked. For grok47, sonnet55 and sol61, readConfig(env) returns undefined with an otherwise valid env, while the same env passes against the synthetic table. HTTP requests get E_CONFIG and evaluation events get E_EVAL_KEY, with zero AWS calls. A Config built from the synthetic ready table is still refused at app.ts:228 against the production MODELS. converseModel refuses every production row before reaching the transport. Each of 14 single-field evidence mutations makes modelReady false: liveBlockReason non-empty or whitespace, settingsVerified false, reasoning or input evidence 'unknown' or 'no', framingTokens null, negative, fractional or NaN, billedMaxTokens null, 399, Infinity or a string (model-gate.test.ts).",
+   "The deployed bytes refuse. dist/index.mjs, the zip's only file, contains no synthetic or STUB table. Imported with a valid env for each model and a recording fetch, it made zero network attempts (bundle-probe.mjs).",
+   "The offline gate holds. model-table.mjs --check passes with no drift. readiness.mjs exits 1 for grok47, sonnet55 and sol61, and for empty or bogus keys, both for the model-evidence reasons and because the AGENTS.md owner-policy text is missing. The workflow runs both before ops.sh can request OIDC for deploy, resume and evaluate.",
+   "The deploy-time settings script fails closed. Retention is read per region through the CLI or a curl fallback signed for that region (aws:amz:<region>:bedrock), and an unreadable region or a non-'none' mode stops the run. The deploy smoke's first call (a non-mark) goes through the runtime privacy check, so a failing setting gives 503 instead of 422 and stops before the marked call.",
+   "Test runs. The PR's infra tests, run here: 102 passed, 1 skipped (shellcheck is not installed in this sandbox, which accounts for the 103 claim). The worktree is unmodified at 19eebb338ad5676075c4ab5a971eec6d379ef1bc. All my probes are under /tmp/claude-0/-home-user-biasclear/bb187462-b843-5453-a36d-b91a5ff093cc/scratchpad/backend-rt/privacy-gate/ (vitest: 31/31 on head). The Math.max plus no-cache-on-failure patch, verified on fixcopy/, blocks both bypasses and keeps 142/142 existing handler, ledger, spend, ratelimit, converse and nolog tests passing."
+  ],
+  "eval-gates": [
+   "Pairing order: the parity gates do not change when a/b swap. gates.ts S1 gave identical gates JSON before and after relabelling every pair row a<->b. A requests file with a/b request bodies swapped is detected (swap-req.ts: requestsMatch=false, identitiesMatch=false).",
+   "Duplicate, extra and missing identities fail. S10a (duplicate replaces a row) gives identitiesMatch=false, ok=false. S10b (extra unplanned row) gives ok=false. The existing test covers missing rows. A sample given as string '0' instead of 0 maps to the same key, which is harmless (S10c).",
+   "Clipped evidence fails when the app-shaped metadata is present. S10d: providerTextTruncated:true gives complete=false, ok=false. Even with modelCalled:false, truncated:true is counted as clipped (S3b). Inconsistent chars/flag gives missingModelMetadata (existing test).",
+   "Call failures fail closed. A provider refusal surfaced as E_MODEL_VALIDATION gives call_failure, complete=false (S10e). invokeFailed gives ok=false (S10f). ops.sh records a Lambda FunctionError as invokeFailed (infra/aws/ops.sh:121-130). E_MODEL_NO_USAGE without text gives call_failure (existing test).",
+   "One-sided refusals with ASCII wording are caught: S2c fails refusalParity with unmatchedRefusalOutcomes=1. Offsetting refusals at different samples are also caught (existing test).",
+   "Unknown usage cost is never taken from a reservation in the live report. When actualMicros is absent, estimatedUsd=null and the markdown shows 'unavailable', with reservedUsd separate (S9b and the existing test).",
+   "Human review binding works when --model is given. A stale rawHash, a stale fixtureHash, a display name instead of the profile ID, a blank reviewer, useful:'true' (a string), injection:'SAFE', and answers only under __proto__ all give ok=false (S11). CLI with --model us.xai.grok-4.7 and mislabelled answers exits 1 with wrongModelLabels=3.",
+   "The useful-holdout gate uses the planned heldout denominator, excludes tuning, and treats 80% as inclusive. 4/5 useful passes (S12a). 4 accepted of 5 with 1 validator rejection, all 4 useful, passes at exactly 80% (S12b). 3/5 fails (existing test).",
+   "Reject-everything parity fails (zeroEligiblePairs, existing test). Word-length parity uses unrounded means with the 30% limit and fails a zero denominator (existing test and code at ops.ts:334-342).",
+   "The dry run cannot produce a quality pass. With dryRun and no review, allGatesPass=false, qualityMeasured=false, actualSpendUsd=0. releaseApproved is hard-coded false (ops.ts:565), and the CLI never sets dryRun.",
+   "Work folder: /tmp/claude-0/-home-user-biasclear/bb187462-b843-5453-a36d-b91a5ff093cc/scratchpad/backend-rt/eval-gates/ (gates.ts, gates-real.ts, refusal-more.ts, swap-req.ts, cli/). No files in pr10b-wt were modified, and there were no network or AWS calls."
+  ],
+  "iam-logs-docs": [
+   "Application log lines are fixed-shape and free of visitor text on paths the package's nolog suite does not cover. This was executed through the REAL fetchTransport and SigV4 signer, with fetch routed to the package's FakeAws (backend-rt/iam-logs-docs/logs.test.ts, 8/8 pass). Paths covered: billed bound breach; E_SETTLE with failed durable pause; unknown usage; fetch rejecting with the signed Authorization header and a canary in message and cause; Bedrock 400 with the canary in x-amzn-errortype and body; DynamoDB error body quoting the transaction; wrong evaluation key; canary in user-agent. In every case: no canary, no stack frame, no SyntaxError/TypeError text, no 'AWS4-HMAC'/'Credential=' in any console method, stdout or stderr; only whitelisted keys; the key is not logged.",
+   "No unhandled promise rejections or process warnings arise on those paths (process-events.json: unhandledRejections [], warnings []). This supports SPEC \u00a74 step 0: nothing reaches the runtime's own error logging.",
+   "Per-region SigV4 holds (executed). The /data-retention reads are signed with credential scope us-east-1, us-east-2 and us-west-2 for the matching hosts. Invocation logging is read only in source us-east-1 (ops-observed.json). The IAM aws:RequestedRegion conditions match exactly (test_templates privacy-reads test passes).",
+   "Unknown usage never gets an actualMicros from its reservation (executed). The E_MODEL_NO_USAGE line has reservedMicros=micros=9212, no actualMicros, and pausePersisted=1.",
+   "When storing the pause/debt fails, the fixed log reports pausePersisted=0 (executed E_SETTLE line), and the instance sets pausedUntil=Infinity before persisting (app.ts:357-363).",
+   "No-TTL records hold no visitor data (executed ttl.test.ts). billing#pause and billingdebt#<uuid> hold only at/event/reason/reserved(/actual). Salt, rate, rateday, spend and billing#<event> items all carry ttl.",
+   "The durable pause survives a fresh instance, a different caller and month rollover (executed claims.test.ts: +40 days on a new instance gives E_BILLING_PAUSE).",
+   "Function-role IAM covers every operation the code performs and is missing nothing (executed iam_diff.py). Code DynamoDB ops: Get/Put/Update/Delete plus TransactWriteItems with ConditionCheck/Put/Update components. Bedrock ops: two control-plane GETs and Converse=InvokeModel on exact profile and foundation-model ARNs with the InferenceProfileArn condition. No ConverseStream, guardrail or Mantle grant. The only excess is GetInferenceProfile (reported).",
+   "Deploy-role IAM covers every AWS CLI call in ops.sh: describe-stacks, update-stack, delete-stack, deploy, wait, two bedrock reads, s3 cp, lambda invoke. Mutating CFN calls are conditioned on cloudformation:RoleArn. The role has no DynamoDB, IAM or Lambda-management actions. Its only extras are read-only CloudFormation describe/list and DeleteChangeSet (iam_diff.py; test_templates).",
+   "CloudFormation role: an explicit Deny on function URL create/update; AddPermission only when lambda:Principal is apigateway.amazonaws.com; PassRole only for the function role to lambda.amazonaws.com; alarm and metric-filter permissions scoped to the named alarm ARN and the /biasclear/explain log group. Budgets role: Attach/DetachRolePolicy only on the function role with an ArnEquals on the deny policy. The deny policy covers bedrock:* and bedrock-mantle:*. Infra pytest: 102 passed, 1 skipped (shellcheck not installed here).",
+   "The billing-anomaly alarm has no delivery: ActionsEnabled false, and AlarmActions/OKActions/InsufficientDataActions are empty (explain.yaml:175-197; test passes). Whether it can fire at all is a separate question (HIGH finding).",
+   "evaluate and resume refuse a model that differs from the active stack parameter (ops.sh:318, 357). The evaluation key is masked before use (ops.sh:281, 321). The report markdown printed to public workflow logs contains counts and fixture ids only, no answer text (ops/ops.ts:441-471, 546-560; read, not executed).",
+   "Salt and connection-counter lifetimes match the docs. The salt TTL is 2 days, and the day's first request deletes salts from 2-9 days back (ratelimit.ts:17-19, 124-132). The rate counter TTL is window end + 1h; the daily counter TTL is the next day's end (ratelimit.ts:158, 166). This matches SPEC \u00a79 and SITE_CONTRACT \u00a78."
+  ]
+ },
+ "gaps": [
+  "NOT VERIFIED (no access): the brief's GitHub claims (run 37643743297, Explain job 112868998438, both CodeQL analyses, secret-scan/SAST, engine matrix). `gh api` returned 403 because the repo is not attached to this session.",
+  "ONLY PARTLY VERIFIED: 'Infrastructure 103/103, no skips; cfn-lint 1.57.0, ShellCheck 0.11.0'. Lenses got 102 passed and 1 skipped because shellcheck is not installed here. No lens ran cfn-lint. I read the ShellCheck repairs in ops.sh and summary.sh ('A && B || continue' rewritten to 'if !A || !B') and they are logically equivalent. No lgtm/codeql/nosec/shellcheck-disable suppressions exist under packages/explain, infra or .github.",
+  "VERIFIED NOW (hold): `npm test` in a fresh clone at 19eebb3 gives 18 files and 519/519 (backend-rt/critic/npmtest.out). The offline dry run reproduces exactly: fixture hash 0a3a4be1..., full JSON sha256 fa06a8f1..., 1,085 planned and 1,082 stub calls per model, 3,246 total, 0 network attempts, reservedBeforeEveryCall true (backend-rt/critic/dry.json). Note that the quoted fixture hash is sha256(JSON.stringify(fixtures)); the file's own byte hash is 9070e415....",
+  "VERIFIED NOW (hold, with caveat): two builds made identical zips in both modes, under Node 22.22.2. The workflow builds with Node 24, which was not tested, and zlib output across Node versions was not checked. privacy-gate's bundle probe, re-run against the deploy-mode bundle (--previous auto, with the 2.0.0a5 and 2.0.0a4 engines), made zero fetches and refused all three real models (E_EVAL_KEY / E_CONFIG). Script: backend-rt/critic/bundle-probe-auto.mjs.",
+  "NOT EXAMINED: the previous rules engine (2.0.0a4) that only the deploy-mode zip carries. No lens or package test exercised a request with rules:'2.0.0a4' against the bundled build, because `npm test` builds with --previous none. The engine is extracted from git history and its gen-pack.mjs runs during the build.",
+  "NOT EXAMINED: how summary.sh finds the last deploy through the GitHub deployments API (provenance checks on creator, title, sha and branch). Only its ShellCheck rewrites were read.",
+  "NOT EXAMINED: fidelity of FakeTable/FakeAws to real DynamoDB: TransactionConflict versus ConditionalCheckFailed ordering in CancellationReasons, the 10-minute ClientRequestToken idempotency window, and lazy TTL deletion. I read spend.ts expression syntax (if_not_exists + :r, '#m <= :max', ADD with a negative delta, the event CAS) and found it valid, but nothing was run against real DynamoDB or DynamoDB Local.",
+  "NOT EXAMINED: check-prices.mjs against live AWS price sources (it needs the network). I only read the regex change: the first <tr> containing the label is still chosen, as before, and a mismatch fails closed.",
+  "NOT EXAMINED: the setup.yaml Budgets action ($30 budget, deny-policy attach) beyond the IAM diff, and whether its trigger timing interacts with the ledger.",
+  "NOT EXAMINED: SITE_CONTRACT.md and sitecontract.test.ts changes (visitor-facing 503 'paused' wording for durable billing pauses), and the content and balance of the q01-q48 and c01-c24 fixtures, which still await Brad's approval.",
+  "OUT OF SCOPE: output.ts / checkReply, the H1/H2 checker work, which stays open for 304; ratelimit.ts, request.ts, http.ts and text.ts, which this PR does not change.",
+  "LEFT TO THE VERIFY AGENTS: whether the billing-anomaly metric filter matches Lambda's JSON log envelope. backend-rt/verify-iam-logs-docs-reproduce-it/ric_format.mjs exists, so I did not repeat it.",
+  "Brief claims each lens covered: concurrent callers awaiting one privacy check (privacy-gate; it found a bypass through pausedUntil lowering), human-judgment binding (eval-gates; it found that omitting --model drops the model binding), the visible-only alarm (iam-logs-docs), the $26.40 breach figure (ledger-logic), and the claim that failed pause storage stops only one instance (ledger-faults and iam-logs-docs). The unexamined brief claims were the reproducible zip, the dry-run hashes and counts, and the test counts; I checked those here (see the VERIFIED NOW entries)."
+ ]
+}
