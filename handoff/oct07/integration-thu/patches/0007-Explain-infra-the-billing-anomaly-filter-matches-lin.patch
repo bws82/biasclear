@@ -1,0 +1,212 @@
+From 04acb794afb1b05eb4db7588dff4d2d6323706b7 Mon Sep 17 00:00:00 2001
+From: BiasClear <noreply@biasclear.com>
+Date: Wed, 7 Oct 2026 13:51:06 -0500
+Subject: [PATCH 7/8] Explain infra: the billing-anomaly filter matches lines
+ as Lambda stores them (306 fix d)
+
+explain.yaml sets LogFormat: JSON, and src/log.ts writes each line with
+console.log(string), so Lambda stores it as the string value of
+"message" in {timestamp, level, requestId, message}. The filter's
+top-level selectors ($.overrun, $.pausePersisted, ...) could never match,
+the BillingAnomaly metric stayed 0, and the README's "the alarm makes
+that failure observable" was false.
+
+- FilterPattern is now the terms ?overrun ?billedBoundViolated
+  ?pausePersisted ?E_SETTLE. src/log.ts writes those flags only when set
+  and E_SETTLE is only a code, so they appear only in anomaly lines; a
+  term matches the line bare, inside the JSON envelope or after the Text
+  prefix. Log lines are unchanged: numeric, fixed shape, no visitor text.
+- infra/aws/README.md says what is checked offline and that real alarm
+  operation is unproven until the AWS sitting.
+
+Regressions: test/billing-filter.test.ts reads the template's pattern
+and runs the handler's real lines for a bound breach, an E_SETTLE whose
+pause didn't persist and unknown usage, in the JSON envelope and Text
+form (an answer and an ordinary refusal must not match); fails with the
+old pattern. infra/aws/test_templates.py pins the pattern and checks
+fixture lines in each stored form; fails with the old pattern.
+Infra: 103 passed, 1 skipped (ShellCheck); cfn-lint clean.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ infra/aws/README.md                          |  2 +-
+ infra/aws/explain.yaml                       |  6 +-
+ infra/aws/test_templates.py                  | 38 +++++++++-
+ packages/explain/test/billing-filter.test.ts | 79 ++++++++++++++++++++
+ 4 files changed, 121 insertions(+), 4 deletions(-)
+ create mode 100644 packages/explain/test/billing-filter.test.ts
+
+diff --git a/infra/aws/README.md b/infra/aws/README.md
+index 1587ae7..def543e 100644
+--- a/infra/aws/README.md
++++ b/infra/aws/README.md
+@@ -58,7 +58,7 @@ These are estimates from Amazon's published prices. The live test (the `evaluate
+ 
+ **Use this AWS account for Explain only.** The budget watches the whole account.
+ 
+-**Billing-anomaly stop.** Reservation and settlement update the month/day counters atomically with a unique event record. A cost/token-bound breach, unknown usage or uncertain settlement returns paused and attempts a persistent stop that ordinary resume cannot clear. The exact log records known actual cost separately from the reservation and reports whether the pause persisted. If persistence fails, only the current instance is guaranteed paused; the alarm makes that failure observable. The draft adds a named CloudWatch metric/alarm with no automatic actions or notification subscription. It has not been created, and no delivery is claimed. Owner reconciliation is required before clearing an anomaly; a pause cannot undo already billed charges.
++**Billing-anomaly stop.** Reservation and settlement update the month/day counters atomically with a unique event record. A cost/token-bound breach, unknown usage or uncertain settlement returns paused and attempts a persistent stop that ordinary resume cannot clear. The exact log records known actual cost separately from the reservation and reports whether the pause persisted. If persistence fails, only the current instance is guaranteed paused; the alarm is meant to make that failure observable. Its filter matches words, not JSON fields, because Lambda's JSON log format stores the app's line inside a "message" string; an offline test checks it against that envelope, but real alarm operation is unproven until the AWS sitting. The draft adds a named CloudWatch metric/alarm with no automatic actions or notification subscription. It has not been created, and no delivery is claimed. Owner reconciliation is required before clearing an anomaly; a pause cannot undo already billed charges.
+ 
+ ---
+ 
+diff --git a/infra/aws/explain.yaml b/infra/aws/explain.yaml
+index ff6cc05..1f5c8a5 100644
+--- a/infra/aws/explain.yaml
++++ b/infra/aws/explain.yaml
+@@ -164,7 +164,11 @@ Resources:
+     Properties:
+       FilterName: biasclear-explain-billing-anomaly
+       LogGroupName: !Ref LogGroup
+-      FilterPattern: '{ ($.overrun = 1) || ($.billedBoundViolated = 1) || ($.pausePersisted = 0) || ($.pausePersisted = 1) || ($.code = "E_SETTLE") }'
++      # Terms, not JSON selectors: with LogFormat JSON, Lambda stores the app's line as the string
++      # value of "message", so a top-level $.field never matches (306 d). These four words appear
++      # only in anomaly lines (src/log.ts writes the flags only when set); a term matches the line
++      # bare, inside the JSON envelope, or after the Text format's prefix.
++      FilterPattern: '?overrun ?billedBoundViolated ?pausePersisted ?E_SETTLE'
+       MetricTransformations:
+         - MetricNamespace: BiasClear/Explain
+           MetricName: BillingAnomaly
+diff --git a/infra/aws/test_templates.py b/infra/aws/test_templates.py
+index 72495d5..92cdf7e 100644
+--- a/infra/aws/test_templates.py
++++ b/infra/aws/test_templates.py
+@@ -209,6 +209,40 @@ class TestService:
+             ).stdout.strip()
+             assert got == str(SERVICE["Parameters"][name]["Default"])
+ 
++    def test_billing_filter_matches_lines_as_lambda_stores_them(self):
++        # Offline fixture of the documented envelopes; real alarm delivery is unproven until the AWS sitting.
++        terms = [t[1:] for t in one(SERVICE, "AWS::Logs::MetricFilter")["FilterPattern"].split()]
++        assert all(re.fullmatch(r"\w+", t) for t in terms)
++
++        def matches(event: str) -> bool:
++            return any(re.search(rf"(?<!\w){t}(?!\w)", event) for t in terms)
++
++        anomaly = [
++            {"outcome": "paused", "status": 503, "ms": 4, "code": "E_PROVIDER_BOUND", "billedBoundViolated": 1, "overrun": 1, "pausePersisted": 1},
++            {"outcome": "paused", "status": 503, "ms": 4, "code": "E_SETTLE", "pausePersisted": 0},
++            {"outcome": "paused", "status": 503, "ms": 4, "code": "E_MODEL_NO_USAGE", "pausePersisted": 1},
++        ]
++        ordinary = [
++            {"outcome": "ok", "status": 200, "ms": 4, "rule": "CONSENSUS_AS_EVIDENCE", "inTok": 820, "outTok": 120, "micros": 2596},
++            {"outcome": "paused", "status": 503, "ms": 1, "code": "E_HEADROOM"},
++            {"outcome": "no_answer", "status": 502, "ms": 4, "code": "E_OUT_SHAPE", "reservedMicros": 9205, "actualMicros": 2596},
++        ]
++
++        def stored(line: dict) -> list[str]:
++            text = json.dumps(line, separators=(",", ":"))
++            envelope = {"timestamp": "2026-10-07T00:00:00.000Z", "level": "INFO", "requestId": "00000000-0000-0000-0000-000000000000"}
++            return [
++                text,
++                json.dumps({**envelope, "message": text}),  # LogFormat JSON, console.log(string)
++                json.dumps({**envelope, "message": line}),  # the same if an object were logged
++                "2026-10-07T00:00:00.000Z\t00000000-0000-0000-0000-000000000000\tINFO\t" + text,  # LogFormat Text
++            ]
++
++        for line in anomaly:
++            assert all(matches(e) for e in stored(line)), line
++        for line in ordinary:
++            assert not any(matches(e) for e in stored(line)), line
++
+     def test_logs_kept_seven_days(self):
+         lg = one(SERVICE, "AWS::Logs::LogGroup")
+         assert lg["RetentionInDays"] == 7
+@@ -218,8 +252,8 @@ class TestService:
+         metric = one(SERVICE, "AWS::Logs::MetricFilter")
+         assert metric["LogGroupName"] == {"Ref": "LogGroup"}
+         assert metric["FilterName"] == "biasclear-explain-billing-anomaly"
+-        for condition in ["$.overrun = 1", "$.billedBoundViolated = 1", "$.pausePersisted = 0", "$.pausePersisted = 1", '$.code = "E_SETTLE"']:
+-            assert condition in metric["FilterPattern"]
++        assert metric["FilterPattern"] == "?overrun ?billedBoundViolated ?pausePersisted ?E_SETTLE"
++        assert "$." not in metric["FilterPattern"]  # a top-level selector can't see inside Lambda's "message" (306 d)
+         assert metric["MetricTransformations"] == [{"MetricNamespace": "BiasClear/Explain", "MetricName": "BillingAnomaly", "MetricValue": "1", "DefaultValue": 0, "Unit": "Count"}]
+         alarm = one(SERVICE, "AWS::CloudWatch::Alarm")
+         assert alarm["AlarmName"] == "biasclear-explain-billing-anomaly"
+diff --git a/packages/explain/test/billing-filter.test.ts b/packages/explain/test/billing-filter.test.ts
+new file mode 100644
+index 0000000..f9c668c
+--- /dev/null
++++ b/packages/explain/test/billing-filter.test.ts
+@@ -0,0 +1,79 @@
++// The billing-anomaly metric filter (infra/aws/explain.yaml) against the handler's real log lines,
++// stored the way Lambda stores them (306 d). With LogFormat JSON, console.log(string) becomes the
++// string value of "message" in {timestamp, level, requestId, message}; a top-level JSON selector can't
++// see inside it. Offline only: real alarm operation is unproven until the AWS sitting.
++
++import { readFileSync } from "node:fs";
++import { describe, expect, it } from "vitest";
++import { BILLING_PAUSE_KEY } from "../src/spend.js";
++import { ConflictAws } from "./conflicts.js";
++import { harness, httpEvent, modelReply, type Harness } from "./helpers.js";
++
++const yaml = readFileSync(decodeURIComponent(new URL("../../../infra/aws/explain.yaml", import.meta.url).pathname), "utf8");
++const pattern = /FilterPattern: '([^']+)'/.exec(yaml)![1]!;
++
++/** CloudWatch filter semantics for the two pattern kinds this template has used. */
++function matches(event: string): boolean {
++  if (pattern.startsWith("{")) {
++    let obj: Record<string, unknown>;
++    try { obj = JSON.parse(event) as Record<string, unknown>; } catch { return false; } // JSON selectors never match non-JSON
++    return [...pattern.matchAll(/\(\$\.(\w+) = ("[^"]*"|-?\d+)\)/g)]
++      .some(([, field, raw]) => obj[field!] === (raw!.startsWith('"') ? raw!.slice(1, -1) : Number(raw)));
++  }
++  const terms = pattern.split(" ").map((t) => t.replace(/^\?/, ""));
++  if (!terms.every((t) => /^\w+$/.test(t))) throw new Error(`unsupported filter pattern ${pattern}`);
++  return terms.some((t) => new RegExp(`(?<!\\w)${t}(?!\\w)`).test(event));
++}
++
++function stored(line: string): string[] {
++  const envelope = { timestamp: "2026-10-07T00:00:00.000Z", level: "INFO", requestId: "00000000-0000-0000-0000-000000000000" };
++  return [
++    JSON.stringify({ ...envelope, message: line }), // LogFormat JSON (explain.yaml), console.log(string) (src/log.ts)
++    `${envelope.timestamp}\t${envelope.requestId}\tINFO\t${line}`, // LogFormat Text
++  ];
++}
++
++const lastLine = (h: Harness): string => h.logs.at(-1)!;
++
++describe("the billing-anomaly filter sees anomaly lines as Lambda stores them (306 d)", () => {
++  it("is set to JSON log format, the case the filter must survive", () => {
++    expect(yaml).toMatch(/LogFormat: JSON/);
++  });
++
++  it("matches a bound breach, a failed settlement whose pause didn't persist, and unknown usage", async () => {
++    const lines: string[] = [];
++    const breach = harness();
++    breach.aws.model = () => ({ status: 200, json: modelReply({ outTok: 5_000 }) });
++    await breach.call(httpEvent());
++    lines.push(lastLine(breach));
++
++    const ca = new ConflictAws();
++    ca.forceConflict = (body) => JSON.stringify(body).includes(":settled");
++    const unsettled = harness({ transport: ca.transport });
++    ca.aws.table.fault = (op, p) => op === "PutItem" && (p.Item as { pk: { S: string } }).pk.S === BILLING_PAUSE_KEY ? "network" : undefined;
++    await unsettled.call(httpEvent());
++    lines.push(lastLine(unsettled));
++
++    const unknown = harness();
++    unknown.aws.model = () => ({ status: 200, json: modelReply({ usage: null }) });
++    await unknown.call(httpEvent());
++    lines.push(lastLine(unknown));
++
++    expect(lines.map((l) => (JSON.parse(l) as { code: string }).code)).toEqual(["E_PROVIDER_BOUND", "E_SETTLE", "E_MODEL_NO_USAGE"]);
++    expect((JSON.parse(lines[1]!) as { pausePersisted: number }).pausePersisted).toBe(0);
++    for (const line of lines) for (const event of stored(line)) expect(matches(event), event).toBe(true);
++  });
++
++  it("stays quiet for an answer and for ordinary refusals", async () => {
++    const lines: string[] = [];
++    const ok = harness();
++    await ok.call(httpEvent());
++    lines.push(lastLine(ok));
++    const shape = harness();
++    shape.aws.model = () => ({ status: 200, json: modelReply({ text: "not JSON" }) });
++    await shape.call(httpEvent());
++    lines.push(lastLine(shape));
++    expect(lines.map((l) => (JSON.parse(l) as { outcome: string }).outcome)).toEqual(["ok", "no_answer"]);
++    for (const line of lines) for (const event of stored(line)) expect(matches(event), event).toBe(false);
++  });
++});
+-- 
+2.54.0 (Apple Git-157)
+

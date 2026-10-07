@@ -1,0 +1,328 @@
+From 3c6cdd775340d036ab2ed6b1b4ff0fead3dd32a8 Mon Sep 17 00:00:00 2001
+From: BiasClear <noreply@biasclear.com>
+Date: Wed, 7 Oct 2026 13:56:20 -0500
+Subject: [PATCH 8/8] Explain ops: a model change can't reuse consent that
+ names another maker (306 fix e)
+
+With Explain on and the consent naming xAI, deploy MODEL=sonnet55 set
+Model=sonnet55 and Explain=on, and the workflow restored the switch to
+on: visitors' sentences went to Anthropic under consent naming xAI. The
+approval summary never named the model.
+
+- ops.sh deploy: if the stack exists, Explain is on and its Model differs
+  from the selected one, stop before any change ("Run pause first,
+  publish consent and privacy for the new model, then deploy").
+- ops.sh deploy, resume (switch on) and evaluate: while the site's
+  published settings (site/data/explain.json, SITE_CONTRACT section 1)
+  have "api" set, stop before signing in if the selected model isn't the
+  published "model". No file, or "api" null, means no Explain control
+  and no consent to contradict.
+- summary.sh names the selected model and its maker for deploy, resume
+  and evaluate, and says when the run will stop; it warns if no model was
+  passed. model-table.mjs --name KEY gives "Grok 4.7, made by xAI".
+- .github/workflows/explain.yml passes MODEL to the summary step. This
+  is a protected path: the owner reviews and merges it.
+- SITE_CONTRACT section 11 says what is now enforced.
+
+Regressions (infra/aws/test_scripts.py): the 306 sequence (on with
+Grok, prepare, deploy sonnet55, restore on) now stops and leaves Grok;
+deploy, resume and evaluate refuse a model the published consent doesn't
+name, with no AWS call; the summary names the model and the stop, and
+warns when the model isn't passed; the workflow passes MODEL. These fail
+on 19eebb3's scripts. Guards kept: a model change while off, and a
+published file with api null, don't block. Infra 110 passed (ShellCheck
+included); cfn-lint clean; model table check passes.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ .github/workflows/explain.yml     |  1 +
+ infra/aws/model-table.mjs         |  6 ++-
+ infra/aws/ops.sh                  | 38 +++++++++++++-
+ infra/aws/summary.sh              | 29 ++++++++++-
+ infra/aws/test_scripts.py         | 82 +++++++++++++++++++++++++++++++
+ packages/explain/SITE_CONTRACT.md |  2 +-
+ 6 files changed, 152 insertions(+), 6 deletions(-)
+
+diff --git a/.github/workflows/explain.yml b/.github/workflows/explain.yml
+index c36381d..73835b1 100644
+--- a/.github/workflows/explain.yml
++++ b/.github/workflows/explain.yml
+@@ -71,6 +71,7 @@ jobs:
+         env:
+           ACTION: ${{ inputs.action }}
+           CAP: ${{ inputs.monthly_cap }}
++          MODEL: ${{ inputs.model }}
+           GH_TOKEN: ${{ github.token }}
+           GH_REPO: ${{ github.repository }}
+           REF: ${{ github.ref }}
+diff --git a/infra/aws/model-table.mjs b/infra/aws/model-table.mjs
+index 7ab263c..d70199f 100644
+--- a/infra/aws/model-table.mjs
++++ b/infra/aws/model-table.mjs
+@@ -89,14 +89,16 @@ export function generatedTemplates(service, setup, table = modelTable()) {
+ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+   try {
+     const args = process.argv.slice(2);
+-    if (args.length === 2 && ["--id", "--check-key", "--regions"].includes(args[0])) {
++    if (args.length === 2 && ["--id", "--check-key", "--regions", "--name"].includes(args[0])) {
+       const entry = Object.entries(modelTable().models).find(([, model]) => model.key === args[1]);
+       if (!entry) throw new Error("unknown model key");
+       if (args[0] === "--id") process.stdout.write(`${entry[0]}\n`);
+       if (args[0] === "--regions") process.stdout.write(`${entry[1].destinationRegions.join("\n")}\n`);
++      // The maker visitors are told about, for the approval summary and refusals (306 e).
++      if (args[0] === "--name") process.stdout.write(`${entry[1].displayName}, made by ${entry[1].provider}\n`);
+       process.exit(0);
+     }
+-    if (args.length !== 1 || !["--check", "--write"].includes(args[0])) throw new Error("Usage: node infra/aws/model-table.mjs --check|--write|--id KEY|--check-key KEY|--regions KEY");
++    if (args.length !== 1 || !["--check", "--write"].includes(args[0])) throw new Error("Usage: node infra/aws/model-table.mjs --check|--write|--id KEY|--check-key KEY|--regions KEY|--name KEY");
+     const service = readFileSync(SERVICE, "utf8");
+     const setup = readFileSync(SETUP, "utf8");
+     const generated = generatedTemplates(service, setup);
+diff --git a/infra/aws/ops.sh b/infra/aws/ops.sh
+index 0916f9b..e003b55 100644
+--- a/infra/aws/ops.sh
++++ b/infra/aws/ops.sh
+@@ -29,6 +29,9 @@ export AWS_REGION AWS_DEFAULT_REGION="$AWS_REGION" AWS_PAGER=""
+ STACK="${STACK:-biasclear-explain}"
+ FUNCTION="biasclear-explain"
+ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
++# The site's published Explain settings (packages/explain/SITE_CONTRACT.md section 1). Its "model"
++# is the entry the visitor's consent and privacy text name. The variable exists for the tests.
++SITE_CONFIG="${EXPLAIN_SITE_CONFIG:-$HERE/../../site/data/explain.json}"
+ TMP="$(mktemp -d)"
+ trap 'rm -rf "$TMP"' EXIT
+ SIGNED_IN_UNTIL=0
+@@ -84,6 +87,24 @@ stack_status() {
+ 
+ # Writes the switch's current value to GITHUB_ENV as PREV_SWITCH, so the
+ # workflow's last step can put it back whatever happens in between.
++model_name() {
++  node "$HERE/model-table.mjs" --name "$1" 2>/dev/null || echo "an unreviewed model ($1)"
++}
++
++# Deploy, resume and evaluate each switch Explain on. While the site offers Explain (its "api" is
++# set), they may only run the model its published consent names: a different maker would get
++# visitors' sentences under consent that names someone else (306 e). With no published settings,
++# or "api" null, the site shows no Explain control and there is no consent to contradict.
++require_published_model() {
++  local model="$1" api published
++  [ -f "$SITE_CONFIG" ] || return 0
++  api="$(jq -r '.api // ""' "$SITE_CONFIG" 2>/dev/null)" || fail "Stop: could not read the site's Explain settings. Nothing was changed."
++  [ -n "$api" ] || return 0
++  published="$(jq -r '.model // ""' "$SITE_CONFIG")"
++  [ "$published" = "$model" ] && return 0
++  fail "Stop: the site's consent and privacy text name $(model_name "$published"), but this run selects $(model_name "$model"). Visitors would send their sentences to a maker they weren't told about. Take Explain off the site, evaluate, publish consent for the new model, then run this. Nothing was changed."
++}
++
+ record_prev_switch() {
+   local prev="$1"
+   [ "$prev" = on ] || prev=off
+@@ -272,9 +293,22 @@ cmd_deploy() {
+     fail "Usage: ops.sh deploy ZIP SMOKE_JSON [CAP]"
+   fi
+   if [ -n "$cap" ] && ! [[ "$cap" =~ ^([1-9]|1[0-9]|2[0-5])$ ]]; then fail "Stop: the monthly cap must be a whole number from 1 to 25, or blank."; fi
+-  local model="${MODEL:-grok47}"
++  local model="${MODEL:-grok47}" current
+   node "$HERE/model-table.mjs" --check-key "$model" >/dev/null || fail "Stop: unknown model key; no AWS sign-in."
++  require_published_model "$model"
+   signin
++  # A deploy switches Explain on and the workflow restores the switch it found. If visitors can use
++  # Explain now, another model must not take over under consent naming the running one (306 e).
++  case "$(stack_status || echo UNREADABLE)" in
++    NONE | ROLLBACK_COMPLETE | REVIEW_IN_PROGRESS) ;;
++    UNREADABLE) fail "Stop: could not read Explain's stack in AWS. Nothing was changed." ;;
++    *)
++      current="$(param_value Model)"
++      if [ "$current" != "$model" ] && [ "$(param_value Explain)" = on ]; then
++        fail "Stop: Explain is on with $(model_name "$current"), and this deploy selects $(model_name "$model"). Visitors' consent names the running model's maker. Run pause first, publish consent and privacy for the new model, then deploy. Nothing was changed."
++      fi
++      ;;
++  esac
+   sha="$(sha256sum "$zip" | cut -d' ' -f1)"
+   aws s3 cp "$zip" "s3://biasclear-explain-build-${ACCOUNT}/explain/${sha}.zip" --only-show-errors
+   key="$(new_key)"
+@@ -306,6 +340,7 @@ cmd_evaluate() {
+   local requests="$1" out="$2" key planned n=0 line
+   [ -f "$requests" ] || fail "Usage: ops.sh evaluate REQUESTS_JSONL OUT"
+   node "$HERE/model-table.mjs" --check-key "${MODEL:-grok47}" >/dev/null || fail "Stop: unknown model key; no AWS sign-in."
++  require_published_model "${MODEL:-grok47}"
+   signin
+   case "$(stack_status || echo UNREADABLE)" in
+     NONE | ROLLBACK_COMPLETE | REVIEW_IN_PROGRESS) fail "Stop: there is no Explain service to evaluate. Run deploy first." ;;
+@@ -344,6 +379,7 @@ cmd_switch() {
+   [ "$value" = on ] || [ "$value" = off ] || fail "Usage: ops.sh switch on|off"
+   if [ "$value" = on ]; then
+     node "$HERE/model-table.mjs" --check-key "${MODEL:-grok47}" >/dev/null || fail "Stop: unknown model key; no AWS sign-in."
++    require_published_model "${MODEL:-grok47}"
+   fi
+   signin
+   local status
+diff --git a/infra/aws/summary.sh b/infra/aws/summary.sh
+index 752ba27..a23a0f2 100644
+--- a/infra/aws/summary.sh
++++ b/infra/aws/summary.sh
+@@ -120,6 +120,20 @@ changes_since_last_deploy() {
+   out '```'
+ }
+ 
++# The model this run selects, as visitors' consent must name it (306 e).
++model_line() {
++  local name
++  if [ -z "${MODEL:-}" ]; then
++    out "**The model isn't named here:** the workflow didn't pass it to this summary. Don't approve until you know which model this run selects."
++    return
++  fi
++  if ! name="$(node "$(dirname "${BASH_SOURCE[0]}")/model-table.mjs" --name "$MODEL" 2>/dev/null)"; then
++    out "**Unknown model key.** The run stops before any AWS step."
++    return
++  fi
++  out "Model: **${name}**."
++}
++
+ main() {
+   if [ -n "${CAP:-}" ] && ! [[ "$CAP" =~ ^([1-9]|1[0-9]|2[0-5])$ ]]; then
+     echo "::error::The monthly cap must be a whole number from 1 to 25, or blank."
+@@ -136,10 +150,21 @@ main() {
+       out "This run will build Explain from main and run its tests, check the model's price against AWS's price list, check that Bedrock logging is off and the data-retention setting is as expected, then update the service with every setting from the reviewed files. Readiness and zero-retention checks must pass before any paid call. It switches Explain on for two distinct test calls, each once, and back to its previous state: off on a first deploy."
+       out
+       if [ -n "${CAP:-}" ]; then out "It will set the monthly cap to **\$${CAP}**."; else out "The monthly cap stays as it is."; fi
++      out
++      model_line
++      out "If Explain is on with a different model, or the site's published consent names a different model, this run stops before changing anything: changing makers needs a pause and consent that names the new one first."
+       ;;
+     pause) out "This run will switch Explain **off**. Visitors who press Explain will see \"Explain is paused\". Nothing else changes, and nothing new is shipped." ;;
+-    resume) out "This run will switch Explain back **on**. Nothing else changes, and nothing new is shipped." ;;
+-    evaluate) out "This run will evaluate the reviewed synthetic set on the one explicitly selected model, through the authenticated cap-backed function, save every answer for the red team, then restore the previous switch. Real costs and time come from each reply; no model is switched automatically." ;;
++    resume)
++      out "This run will switch Explain back **on**. Nothing else changes, and nothing new is shipped. It stops if the running model isn't the one named below, or isn't the one the site's consent names."
++      out
++      model_line
++      ;;
++    evaluate)
++      out "This run will evaluate the reviewed synthetic set on the one explicitly selected model, through the authenticated cap-backed function, save every answer for the red team, then restore the previous switch. Real costs and time come from each reply; no model is switched automatically."
++      out
++      model_line
++      ;;
+     remove) out "This run will **delete** the Explain service: the function, the web address and every log line. The month's spending count stays in the setup, so the \$25 stop still holds if you deploy again this month (see infra/aws/README.md to remove the setup too)." ;;
+     *) out "Unknown action." ;;
+   esac
+diff --git a/infra/aws/test_scripts.py b/infra/aws/test_scripts.py
+index 693ef52..1598ae3 100644
+--- a/infra/aws/test_scripts.py
++++ b/infra/aws/test_scripts.py
+@@ -469,6 +469,67 @@ def test_evaluate_refuses_mismatched_model_without_switching_or_calling(fake):
+     assert not fake.read_state().get("invokes")
+ 
+ 
++# ---- 306 e: a model change can't reuse consent naming another maker ------
++
++
++def stack_with(model, switch):
++    s = stack(switch=switch)
++    s["params"]["Model"] = model
++    return s
++
++
++def site_config(tmp_path, api, model="grok47"):
++    p = tmp_path / "explain.json"
++    p.write_text(json.dumps({"api": api, "rules": [], "retention": "none", "model": model}))
++    return {"EXPLAIN_SITE_CONFIG": str(p)}
++
++
++def test_deploy_refuses_another_model_while_explain_is_on(fake):
++    # The 306 case: on with Grok, then prepare, deploy MODEL=sonnet55 and restore on left visitors on Sonnet.
++    z, s = smoke_file(fake.path)
++    fake.state(stack=stack_with("grok47", "on"), posts=[[422, {}, None], [200, GOOD, "https://biasclear.com"]], replies=[{"status": 200, "body": GOOD}])
++    assert fake.run("ops.sh", "prepare").returncode == 0
++    r = fake.run("ops.sh", "deploy", str(z), str(s), extra_env={"MODEL": "sonnet55"})
++    assert r.returncode == 1
++    assert "Explain is on with Grok 4.7, made by xAI, and this deploy selects Claude Sonnet 5.5, made by Anthropic" in fake.summary()
++    assert "Run pause first" in fake.summary()
++    assert not fake.read_state().get("deploys")
++    assert not fake.calls(["aws", "s3"])
++    assert fake.run("ops.sh", "restore", "on").returncode == 0
++    assert fake.read_state()["stack"]["params"]["Model"] == "grok47"
++
++
++def test_deploy_may_change_the_model_while_explain_is_off(fake):
++    z, s = smoke_file(fake.path)
++    fake.state(stack=stack_with("grok47", "off"), posts=[[422, {}, None], [200, GOOD, "https://biasclear.com"]], replies=[{"status": 200, "body": GOOD}])
++    r = fake.run("ops.sh", "deploy", str(z), str(s), extra_env={"MODEL": "sonnet55"})
++    assert r.returncode == 0, r.stdout + r.stderr
++    assert "Model=sonnet55" in fake.read_state()["deploys"][0]
++
++
++def test_deploy_resume_and_evaluate_refuse_a_model_the_published_consent_does_not_name(fake):
++    z, s = smoke_file(fake.path)
++    site = site_config(fake.path, "https://abc123.execute-api.us-east-1.amazonaws.com", model="grok47")
++    req = requests_file(fake.path, 1)
++    fake.state(stack=stack_with("sonnet55", "off"))
++    for args in (("deploy", str(z), str(s)), ("switch", "on"), ("evaluate", str(req), str(fake.path / "raw.jsonl"))):
++        r = fake.run("ops.sh", *args, extra_env={"MODEL": "sonnet55", **site})
++        assert r.returncode == 1, args
++        assert "the site's consent and privacy text name Grok 4.7, made by xAI, but this run selects Claude Sonnet 5.5, made by Anthropic" in fake.summary()
++    assert not fake.calls(["aws"])  # refused before signing in
++    assert not fake.read_state().get("updates") and not fake.read_state().get("deploys")
++
++
++def test_published_consent_binds_only_while_the_site_offers_explain(fake):
++    z, s = smoke_file(fake.path)
++    fake.state(stack=stack_with("grok47", "off"), posts=[[422, {}, None], [200, GOOD, "https://biasclear.com"]], replies=[{"status": 200, "body": GOOD}])
++    r = fake.run("ops.sh", "deploy", str(z), str(s), extra_env={"MODEL": "sonnet55", **site_config(fake.path, None, model="grok47")})
++    assert r.returncode == 0, r.stdout + r.stderr
++    fake.state(stack=stack_with("grok47", "off"))
++    r = fake.run("ops.sh", "switch", "on", extra_env={"MODEL": "grok47", **site_config(fake.path, "https://abc123.execute-api.us-east-1.amazonaws.com")})
++    assert r.returncode == 0, r.stdout + r.stderr
++
++
+ def test_resume_and_evaluate_reject_unknown_model_before_sign_in(fake):
+     req = requests_file(fake.path, 1)
+     fake.state(stack=stack(switch="off"))
+@@ -759,6 +820,24 @@ def test_summary_says_so_when_it_cannot_find_the_last_deploy(fake, repo):
+     assert "This is the first deploy." not in s
+ 
+ 
++def test_summary_names_the_selected_model_and_the_consent_stop(fake, repo):
++    d, *_ = repo
++    fake.state(gh=gh_state([]))
++    for action in ("deploy", "resume", "evaluate"):
++        r = fake.run("summary.sh", cwd=d, extra_env={"ACTION": action, "CAP": "", "MODEL": "sonnet55", "REF": "refs/heads/main", "GH_REPO": "o/r", "GH_TOKEN": "x"})
++        assert r.returncode == 0, r.stdout + r.stderr
++        assert "Model: **Claude Sonnet 5.5, made by Anthropic**." in fake.summary()
++    assert "changing makers needs a pause and consent that names the new one first" in fake.summary()
++
++
++def test_summary_warns_when_the_model_is_not_passed(fake, repo):
++    d, *_ = repo
++    fake.state(gh=gh_state([]))
++    r = run_summary(fake, d)
++    assert r.returncode == 0
++    assert "The model isn't named here" in fake.summary()
++
++
+ def test_summary_refuses_a_cap_out_of_range(fake, repo):
+     d, *_ = repo
+     fake.state(gh=gh_state([]))
+@@ -774,6 +853,9 @@ def test_shellcheck():
+ def test_scripts_are_what_the_workflow_runs():
+     wf = (ROOT / ".github/workflows/explain.yml").read_text()
+     assert "bash infra/aws/ops.sh" in wf and "bash infra/aws/summary.sh" in wf
++    # The approval summary names the model the run selects (306 e).
++    summary_step = wf.split("- name: Say what this run will do", 1)[1].split("run: bash infra/aws/summary.sh", 1)[0]
++    assert "MODEL: ${{ inputs.model }}" in summary_step
+     # The credentialed job installs nothing from npm.
+     aws_job = wf.split("\n  aws:\n", 1)[1].split("\n  report:\n", 1)[0]
+     code = "\n".join(line for line in aws_job.splitlines() if not line.lstrip().startswith("#"))
+diff --git a/packages/explain/SITE_CONTRACT.md b/packages/explain/SITE_CONTRACT.md
+index 30ebdf6..b033214 100644
+--- a/packages/explain/SITE_CONTRACT.md
++++ b/packages/explain/SITE_CONTRACT.md
+@@ -187,4 +187,4 @@ In both modes (`api: null` and set): the policy on each page (only the checker p
+ 
+ These placeholders are draft copy, not text published on the site. The complete per-model consent and privacy drafts are generated from the code table in [`PRIVACY-DRAFTS.md`](../../handoff/explain/PRIVACY-DRAFTS.md). Regenerate with `node packages/explain/scripts/privacy-drafts.mjs --write`; `--check` and the package test refuse stale wording. Unknown regions or routes fail instead of acquiring guessed privacy wording. Account-console confirmation of the exact profile and all processing destinations remains required.
+ 
+-The switch-on site build must bind its privacy and consent to the selected stack entry, never infer the maker from free-form model output. To switch models later: pause visitor Explain; verify and evaluate the chosen entry under the shared cap; generate consent/privacy from that entry; publish the approved matching site configuration; only then resume. Selecting one stack parameter does not authorize running a model the visitor was not told about. Live model switching is not implemented by this code-only PR, and no new field is added to the one-sentence request here.
++The switch-on site build must bind its privacy and consent to the selected stack entry, never infer the maker from free-form model output. To switch models later: pause visitor Explain; verify and evaluate the chosen entry under the shared cap; generate consent/privacy from that entry; publish the approved matching site configuration; only then resume. Selecting one stack parameter does not authorize running a model the visitor was not told about. Live model switching is not implemented by this code-only PR, and no new field is added to the one-sentence request here. `infra/aws/ops.sh` enforces two parts of this: a deploy stops before any change if Explain is on with a different model, and while `api` is set, deploy, resume and evaluate stop before signing in if the selected model isn't the published `model`. The approval summary names the selected model and its maker.
+-- 
+2.54.0 (Apple Git-157)
+

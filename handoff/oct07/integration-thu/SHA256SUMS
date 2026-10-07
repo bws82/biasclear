@@ -1,0 +1,8 @@
+5f16b5798c9e0f7b3cff4584e2f0ab01fd939f01f9d551e27b1c653beccefae7  0001-Explain-composed-explanations-from-reviewed-phrases-.patch
+48252d1ca12347cefc362051face3627df1f1d8f6c693038e0dfb833669d0b29  0002-Explain-wire-composed-explanations-into-the-handler-.patch
+5977ea943d31fe8351bd684f774f27556511d9fbe62ff4d0c26a1a887102c723  0003-Explain-eval-a-planned-call-that-never-reached-the-m.patch
+988277f17b14fc3ff9477d35ed2a9fa8c006c24ca551b8ed70a28e2d6c0e5c35  0004-Explain-eval-record-the-phrase-bank-hash-with-each-r.patch
+0756637a42f8b2613629c5350b6b91502d11d764e705ea575f28b6b1f4659718  0005-Explain-spend-pause-and-debt-never-share-a-transacti.patch
+517abe6e62d5b7972b52a4eb7c9b33d615d67f0b7ac33ebf86fcebd7e8c777dc  0006-Explain-spend-retry-a-definite-settle-or-reserve-can.patch
+edbfa89da5d47fc91dd0622d94b9bccbff9115547306d724b0d060f600eaa322  0007-Explain-infra-the-billing-anomaly-filter-matches-lin.patch
+53894349a91985f147705fb75cc0e9d79ca8b0b198eab38cc7c00ccb536372bf  0008-Explain-ops-a-model-change-can-t-reuse-consent-that-.patch
