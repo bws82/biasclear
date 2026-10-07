@@ -66,3 +66,35 @@ How: use Claude in Chrome in the owner's own Chrome, where he is signed in to Gi
 5. Open the organization's Settings, then Moderation, then "Code review limits". Press "Limit review on all repositories" if offered.
 
 Done when: each of the five steps is done or clearly reported.
+
+## 3. Protect main (the "protect-main" ruleset) — ready, once the seed's checks have passed on main
+
+What it does, in one line: makes main changeable only through a pull request whose four checks (test, security, secret-scan, sast) have passed, with no force pushes, no deletion and nobody able to bypass it; then reads every field back from GitHub.
+
+It checks first that the four checks passed on the newest commit on main. If they haven't yet, it says "not yet" and changes nothing; press it again later. It's safe to press twice (the second time it just confirms). Its output is also saved on the Desktop as biasclear-protect-main.txt.
+
+Where to run: it needs the owner's real GitHub sign-in, so it runs in his Mac's own Terminal, never in a sandbox. Show the command in a code box so he can press its ▷ run button, then wait for him to say "pressed".
+
+Command:
+
+```
+curl -fsSL https://raw.githubusercontent.com/bws82/biasclear/0b78222b12a6a383a18d993548b19e8bf629fe68/ops/easy/protect-main.sh -o /tmp/bc-protect-main.sh && echo "9b4d4a12dc0558a4c7cc452e0b955beae506e0bcf30e9df7cdb87223e9dfe085  /tmp/bc-protect-main.sh" | shasum -a 256 -c && bash /tmp/bc-protect-main.sh
+```
+
+Done when: the report says "12 checks passed, 0 failed". Show the owner the "Report for your PM" lines; the PM confirms the read-back.
+
+## 4. HTTPS for biasclear.com, and the Pages checks — ready, after biasclear.com points at GitHub Pages
+
+What it does, in one line: turns on "Enforce HTTPS" once GitHub has issued the certificate for biasclear.com, checks that only main can publish the site (adding that rule if there is none), and, once https://biasclear.com/ serves the site, sets the repository's Website link to it.
+
+Anything not ready yet is reported as "not yet" and left unchanged; press it again in an hour. It never removes a setting. Its output is also saved on the Desktop as biasclear-pages-https.txt.
+
+Where to run: same as item 3 (his Mac's own Terminal, ▷ then "pressed").
+
+Command:
+
+```
+curl -fsSL https://raw.githubusercontent.com/bws82/biasclear/0b78222b12a6a383a18d993548b19e8bf629fe68/ops/easy/pages-https.sh -o /tmp/bc-pages-https.sh && echo "64934e512f85876e2437b9bbd3767cc6bb0aea69a99d1c1aafb25280ab52c91a  /tmp/bc-pages-https.sh" | shasum -a 256 -c && bash /tmp/bc-pages-https.sh
+```
+
+Done when: the report says "3 done, 0 not yet, 0 need your PM". Show the owner the "Report for your PM" lines.
