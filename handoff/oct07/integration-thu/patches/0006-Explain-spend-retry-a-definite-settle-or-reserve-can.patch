@@ -1,0 +1,260 @@
+From a2a46a08a39fe22af3d3f286b9077e369e8bddd3 Mon Sep 17 00:00:00 2001
+From: BiasClear <noreply@biasclear.com>
+Date: Wed, 7 Oct 2026 13:47:50 -0500
+Subject: [PATCH 6/8] Explain spend: retry a definite settle or reserve
+ cancellation (306 fix c)
+
+settle() treated a TransactionConflict or throttle, which DynamoDB
+reports when it wrote nothing, like an ambiguous failure: the app wrote
+a permanent service-wide E_SETTLE pause and debt and discarded a valid,
+paid answer. Overlapping reserves failed the same way with E_DDB.
+
+- DdbError carries DynamoDB's error type ("" when no reply arrived).
+- definitelyNotWritten(): a conflict or throttling type, or a cancelled
+  transaction whose reasons are only None/conflict/throttling. A missing
+  reply, timeout or server error is never definite.
+- settle(): on a definite rejection with the event still "reserved",
+  try again (SETTLE_ATTEMPTS = 3, jittered backoff, fresh token); the
+  event's "#s = :reserved" condition keeps a retry from charging twice.
+  Anything uncertain returns false as before, so the caller still pauses.
+- reserve(): a definite rejection whose event reads back absent is tried
+  again with a new event; failed cap or pause conditions are unchanged.
+
+Regressions: one conflict, and one throttle, on settlement each return
+the checked answer with counters at actual and no pause (both failed
+before); a conflict on every attempt still pauses after exactly 3 tries;
+a reserve conflict no longer answers E_DDB. Guard cases kept passing: an
+ambiguous failure is sent once and pauses; a settlement that committed
+before a lost reply isn't applied twice. Mutations (retrying ambiguous
+errors, no retries, throttling not recognised) each fail a test.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ packages/explain/src/aws/dynamodb.ts     |  7 +-
+ packages/explain/src/spend.ts            | 60 +++++++++++++++---
+ packages/explain/test/contention.test.ts | 81 +++++++++++++++++++++++-
+ 3 files changed, 135 insertions(+), 13 deletions(-)
+
+diff --git a/packages/explain/src/aws/dynamodb.ts b/packages/explain/src/aws/dynamodb.ts
+index 7d76d82..6ed0fd2 100644
+--- a/packages/explain/src/aws/dynamodb.ts
++++ b/packages/explain/src/aws/dynamodb.ts
+@@ -12,10 +12,13 @@ export type Item = Record<string, Attr>;
+ export class DdbError extends Error {
+   readonly kind: "condition" | "other";
+   readonly cancellationReasons: readonly string[];
+-  constructor(kind: "condition" | "other", cancellationReasons: readonly string[] = []) {
++  /** DynamoDB's error type ("TransactionCanceledException"), or "" when no reply arrived. */
++  readonly type: string;
++  constructor(kind: "condition" | "other", cancellationReasons: readonly string[] = [], type = "") {
+     super(kind);
+     this.kind = kind;
+     this.cancellationReasons = cancellationReasons;
++    this.type = type;
+     this.name = "DdbError";
+   }
+ }
+@@ -54,7 +57,7 @@ export class Ddb {
+       const reasons = Array.isArray(obj.CancellationReasons) ? obj.CancellationReasons.map((r: unknown) =>
+         r !== null && typeof r === "object" && typeof (r as { Code?: unknown }).Code === "string"
+           ? (r as { Code: string }).Code : "Unknown") : [];
+-      throw new DdbError(type.endsWith("#ConditionalCheckFailedException") ? "condition" : "other", reasons);
++      throw new DdbError(type.endsWith("#ConditionalCheckFailedException") ? "condition" : "other", reasons, type.split("#").pop() ?? "");
+     }
+     return obj;
+   }
+diff --git a/packages/explain/src/spend.ts b/packages/explain/src/spend.ts
+index 25d3105..d233172 100644
+--- a/packages/explain/src/spend.ts
++++ b/packages/explain/src/spend.ts
+@@ -47,6 +47,24 @@ export async function hasHeadroom(ddb: Ddb, cfg: Config, nowMs: number, micros:
+   return (numberAttr(month, "m") ?? 0) + micros <= cfg.capMicros && (numberAttr(day, "m") ?? 0) + micros <= cfg.dailyMicros;
+ }
+ 
++/** Attempts for a reserve or settlement that DynamoDB definitely rejected (306 c). */
++export const SETTLE_ATTEMPTS = 3;
++const BUSY_REASONS = new Set(["TransactionConflict", "ThrottlingError", "ProvisionedThroughputExceeded", "RequestLimitExceeded"]);
++const BUSY_TYPES = new Set(["ThrottlingException", "ProvisionedThroughputExceededException", "RequestLimitExceeded", "TransactionConflictException"]);
++
++/** DynamoDB answered, and nothing in the transaction was written: a conflict or throttling, with no
++ * failed condition. A missing reply, a timeout or a server error is never definite. */
++export function definitelyNotWritten(err: unknown): boolean {
++  if (!(err instanceof DdbError)) return false;
++  if (BUSY_TYPES.has(err.type)) return true;
++  return err.type === "TransactionCanceledException" && err.cancellationReasons.some((r) => BUSY_REASONS.has(r)) &&
++    err.cancellationReasons.every((r) => r === "None" || BUSY_REASONS.has(r));
++}
++
++function backoff(attempt: number): Promise<void> {
++  return new Promise((r) => setTimeout(r, 20 * attempt + Math.floor(Math.random() * 20)));
++}
++
+ export type ReserveResult = { ok: true; reservation: Reservation } | { ok: false; which: "month" | "day" | "pause" };
+ 
+ function reserveUpdate(pk: string, micros: number, limit: number, ttl: number): Record<string, unknown> {
+@@ -63,8 +81,23 @@ function matches(item: Item | undefined, r: Reservation): boolean {
+   return stringAttr(item, "month") === r.month && stringAttr(item, "day") === r.day && numberAttr(item, "reserved") === r.micros;
+ }
+ 
+-/** The pause condition and both cap checks are in the same atomic transaction. */
++/** The pause condition and both cap checks are in the same atomic transaction. A transaction
++ * DynamoDB definitely rejected (conflict or throttling) is tried again with a new event. */
+ export async function reserve(ddb: Ddb, cfg: Config, nowMs: number, micros: number): Promise<ReserveResult> {
++  for (let attempt = 1; ; attempt++) {
++    try {
++      return await reserveOnce(ddb, cfg, nowMs, micros);
++    } catch (err) {
++      if (!(err instanceof BusyError) || attempt >= SETTLE_ATTEMPTS) throw err instanceof BusyError ? new DdbError("other") : err;
++      await backoff(attempt);
++    }
++  }
++}
++
++/** A definite rejection whose event read back as absent: nothing was written. */
++class BusyError extends DdbError {}
++
++async function reserveOnce(ddb: Ddb, cfg: Config, nowMs: number, micros: number): Promise<ReserveResult> {
+   if (!Number.isSafeInteger(micros) || micros <= 0) throw new DdbError("other");
+   if (micros > cfg.capMicros || micros > cfg.dailyMicros) return { ok: false, which: "day" };
+   const token = randomUUID();
+@@ -89,6 +122,7 @@ export async function reserve(ddb: Ddb, cfg: Config, nowMs: number, micros: numb
+       if (reasons[1] === "ConditionalCheckFailed") return { ok: false, which: "month" };
+       if (reasons[2] === "ConditionalCheckFailed") return { ok: false, which: "day" };
+     }
++    if (item === undefined && definitelyNotWritten(err)) throw new BusyError("other");
+     throw new DdbError("other");
+   }
+ }
+@@ -163,16 +197,24 @@ export async function settle(ddb: Ddb, r: Reservation, actual: number, breach?:
+     { Update: add(r.month) }, { Update: add(r.day) },
+   ];
+   if (breach !== undefined) writes.push({ Put: { Item: debtItem(breach) } });
+-  try {
+-    // Distinct token from reservation; the CAS is the durable idempotence fence.
+-    await ddb.transact(writes, r.token.replace(/.$/, r.token.endsWith("0") ? "1" : "0"));
+-    return true;
+-  } catch {
++  for (let attempt = 1; ; attempt++) {
+     try {
+-      const item = await ddb.get(r.event, 0, true);
++      // Distinct token from the reservation, fresh on each retry; the CAS is the durable idempotence fence.
++      await ddb.transact(writes, attempt === 1 ? r.token.replace(/.$/, r.token.endsWith("0") ? "1" : "0") : randomUUID());
++      return true;
++    } catch (err) {
++      let item: Item | undefined;
++      try {
++        item = await ddb.get(r.event, 0, true);
++      } catch { return false; }
+       // The debt row commits atomically with the event, so a settled event proves it.
+-      return matches(item, r) && stringAttr(item, "state") === "settled" && numberAttr(item, "actual") === actual;
+-    } catch { return false; }
++      if (matches(item, r) && stringAttr(item, "state") === "settled" && numberAttr(item, "actual") === actual) return true;
++      // Only a definite rejection of a still-reserved event is tried again; anything uncertain stays
++      // unresolved for the caller's durable pause (306 c).
++      const reserved = matches(item, r) && stringAttr(item, "state") === "reserved";
++      if (!reserved || !definitelyNotWritten(err) || attempt >= SETTLE_ATTEMPTS) return false;
++      await backoff(attempt);
++    }
+   }
+ }
+ 
+diff --git a/packages/explain/test/contention.test.ts b/packages/explain/test/contention.test.ts
+index 401f60b..d6e8573 100644
+--- a/packages/explain/test/contention.test.ts
++++ b/packages/explain/test/contention.test.ts
+@@ -5,9 +5,9 @@
+ import { describe, expect, it } from "vitest";
+ import type { EvaluationResult } from "../src/app.js";
+ import { Ddb } from "../src/aws/dynamodb.js";
+-import { BILLING_PAUSE_KEY, persistBillingPause, reserve, settle } from "../src/spend.js";
++import { BILLING_PAUSE_KEY, SETTLE_ATTEMPTS, persistBillingPause, reserve, settle, spendKeys } from "../src/spend.js";
+ import { ConflictAws, sleep } from "./conflicts.js";
+-import { config, evalEvent, harness, modelReply } from "./helpers.js";
++import { FakeAws, config, evalEvent, harness, modelReply } from "./helpers.js";
+ 
+ const cfg = config();
+ const now = Date.UTC(2026, 9, 7, 14);
+@@ -111,3 +111,80 @@ describe("a bound breach whose fence can't be written (306 b)", () => {
+     expect(h.deps.state.pausedUntil).toBe(Number.POSITIVE_INFINITY); // this instance still stops
+   });
+ });
++
++describe("a definite settle cancellation is retried, not treated as an unknown charge (306 c)", () => {
++  const settleTx = (body: Record<string, unknown>) => JSON.stringify(body).includes(":settled");
++  const settleAttempts = (ca: ConflictAws) => ca.txLog.filter((keys) => keys.length >= 3 && keys[0]!.startsWith("billing#") && keys[0] !== BILLING_PAUSE_KEY && keys.length === 3).length;
++
++  it("a TransactionConflict on settlement: the paid, checked answer is returned and nothing pauses", async () => {
++    const ca = new ConflictAws();
++    let forced = 0;
++    ca.forceConflict = (body) => settleTx(body) && forced++ === 0;
++    const h = harness({ transport: ca.transport });
++    const r = await h.handler(evalEvent()) as EvaluationResult;
++    expect(forced).toBeGreaterThan(1); // the first settlement was cancelled, a later one ran
++    expect(r.status).toBe(200);
++    expect(r.evaluation.pausePersisted).toBeUndefined();
++    expect(ca.aws.table.items.has(BILLING_PAUSE_KEY)).toBe(false);
++    expect(ca.items("billingdebt#")).toHaveLength(0);
++    for (const key of Object.values(spendKeys(h.clock.ms))) expect(ca.aws.table.num(key, "m")).toBe(r.evaluation.actualMicros);
++    expect(h.deps.state.pausedUntil).not.toBe(Number.POSITIVE_INFINITY);
++  });
++
++  it("a throttled settlement is retried the same way", async () => {
++    const h = harness();
++    let throttled = 0;
++    h.aws.model = () => {
++      h.aws.table.fault = (op, p) => op === "TransactWriteItems" && settleTx(p) && throttled++ === 0 ? "throttle" : undefined;
++      return { status: 200, json: modelReply() };
++    };
++    const r = await h.handler(evalEvent()) as EvaluationResult;
++    expect(throttled).toBeGreaterThan(1);
++    expect(r.status).toBe(200);
++    expect(h.aws.table.items.has(BILLING_PAUSE_KEY)).toBe(false);
++  });
++
++  it("a conflict on every attempt still ends in the durable E_SETTLE pause, after a bounded number of tries", async () => {
++    const ca = new ConflictAws();
++    ca.forceConflict = settleTx;
++    const h = harness({ transport: ca.transport });
++    const r = await h.handler(evalEvent()) as EvaluationResult;
++    expect(r.evaluation.code).toBe("E_SETTLE");
++    expect(r.evaluation.pausePersisted).toBe(true);
++    expect(settleAttempts(ca)).toBe(SETTLE_ATTEMPTS);
++  });
++
++  it("an ambiguous failure (no reply) is not retried: the reservation stays and the service pauses", async () => {
++    const h = harness();
++    let sent = 0;
++    h.aws.model = () => {
++      h.aws.table.fault = (op, p) => op === "TransactWriteItems" && settleTx(p) && ++sent > 0 ? "network" : undefined;
++      return { status: 200, json: modelReply() };
++    };
++    const r = await h.handler(evalEvent()) as EvaluationResult;
++    expect(sent).toBe(1);
++    expect(r.evaluation.code).toBe("E_SETTLE");
++    expect(r.evaluation.pausePersisted).toBe(true);
++  });
++
++  it("a settlement that committed before a lost reply is never applied twice", async () => {
++    const aws = new FakeAws();
++    const ddb = new Ddb(aws.transport, cfg.region, cfg.table);
++    const r = await reserve(ddb, cfg, now, 10_000);
++    if (!r.ok) throw new Error("no reservation");
++    aws.table.fault = (op) => op === "TransactWriteItems" ? "response-lost" : undefined;
++    expect(await settle(ddb, r.reservation, 3_000)).toBe(true);
++    for (const key of Object.values(spendKeys(now))) expect(aws.table.num(key, "m")).toBe(3_000);
++  });
++
++  it("a reserve cancelled by a conflict is retried instead of answering E_DDB", async () => {
++    const ca = new ConflictAws();
++    let forced = 0;
++    ca.forceConflict = (body) => JSON.stringify(body).includes(":reserved") === false && JSON.stringify(body).includes("if_not_exists") && forced++ === 0;
++    const h = harness({ transport: ca.transport });
++    const r = await h.handler(evalEvent()) as EvaluationResult;
++    expect(forced).toBeGreaterThan(1);
++    expect(r.status).toBe(200);
++    expect(ca.aws.modelCalls).toHaveLength(1);
++  });
++});
+-- 
+2.54.0 (Apple Git-157)
+
