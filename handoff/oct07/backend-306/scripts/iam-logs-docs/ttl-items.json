@@ -1,0 +1,81 @@
+[
+ {
+  "pk": "salt#2026-10-05",
+  "attrs": [
+   "pk",
+   "s",
+   "ttl"
+  ],
+  "ttl": true
+ },
+ {
+  "pk": "rate#<hash>#2985348",
+  "attrs": [
+   "n",
+   "pk",
+   "ttl"
+  ],
+  "ttl": true
+ },
+ {
+  "pk": "rateday#<hash>#2026-10-05",
+  "attrs": [
+   "n",
+   "pk",
+   "ttl"
+  ],
+  "ttl": true
+ },
+ {
+  "pk": "spend#2026-10",
+  "attrs": [
+   "m",
+   "pk",
+   "ttl"
+  ],
+  "ttl": true
+ },
+ {
+  "pk": "spendday#2026-10-05",
+  "attrs": [
+   "m",
+   "pk",
+   "ttl"
+  ],
+  "ttl": true
+ },
+ {
+  "pk": "billing#<uuid>",
+  "attrs": [
+   "day",
+   "month",
+   "pk",
+   "reserved",
+   "state",
+   "ttl"
+  ],
+  "ttl": true
+ },
+ {
+  "pk": "billing#pause",
+  "attrs": [
+   "at",
+   "event",
+   "pk",
+   "reason",
+   "reserved"
+  ],
+  "ttl": false
+ },
+ {
+  "pk": "billingdebt#<uuid>",
+  "attrs": [
+   "at",
+   "event",
+   "pk",
+   "reason",
+   "reserved"
+  ],
+  "ttl": false
+ }
+]
