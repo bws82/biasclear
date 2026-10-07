@@ -1,7 +1,7 @@
 From d93f76d7c5e8f575cd066bacb96e89751828d612 Mon Sep 17 00:00:00 2001
 From: BiasClear <noreply@biasclear.com>
 Date: Wed, 7 Oct 2026 13:41:45 -0500
-Subject: [PATCH 4/8] Explain eval: record the phrase-bank hash with each raw
+Subject: [PATCH 04/10] Explain eval: record the phrase-bank hash with each raw
  selection (304)
 
 The evaluation's direct invoke returns `bankHash`, the SHA-256 of the

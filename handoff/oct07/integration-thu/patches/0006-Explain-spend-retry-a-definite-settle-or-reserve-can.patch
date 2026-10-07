@@ -1,7 +1,7 @@
 From a2a46a08a39fe22af3d3f286b9077e369e8bddd3 Mon Sep 17 00:00:00 2001
 From: BiasClear <noreply@biasclear.com>
 Date: Wed, 7 Oct 2026 13:47:50 -0500
-Subject: [PATCH 6/8] Explain spend: retry a definite settle or reserve
+Subject: [PATCH 06/10] Explain spend: retry a definite settle or reserve
  cancellation (306 fix c)
 
 settle() treated a TransactionConflict or throttle, which DynamoDB

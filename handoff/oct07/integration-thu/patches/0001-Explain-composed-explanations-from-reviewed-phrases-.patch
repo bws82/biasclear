@@ -1,8 +1,8 @@
 From c0de9d625e0eb6864f9b0c353936cec6a1f596ff Mon Sep 17 00:00:00 2001
 From: BiasClear <noreply@biasclear.com>
 Date: Wed, 7 Oct 2026 17:24:19 +0000
-Subject: [PATCH 1/8] Explain: composed explanations from reviewed phrases (304
- prototype)
+Subject: [PATCH 01/10] Explain: composed explanations from reviewed phrases
+ (304 prototype)
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit

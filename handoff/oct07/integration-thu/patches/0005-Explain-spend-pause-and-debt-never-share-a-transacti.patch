@@ -1,7 +1,7 @@
 From da777eb31ca368796e05b7c1c17633e82ac470cf Mon Sep 17 00:00:00 2001
 From: BiasClear <noreply@biasclear.com>
 Date: Wed, 7 Oct 2026 13:45:45 -0500
-Subject: [PATCH 5/8] Explain spend: pause and debt never share a transaction
+Subject: [PATCH 05/10] Explain spend: pause and debt never share a transaction
  with a contended item (306 fix b)
 
 persistBillingPause wrote billing#pause and the event's debt in one
