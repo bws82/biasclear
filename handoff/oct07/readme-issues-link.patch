@@ -1,0 +1,26 @@
+From 9deecb064d7df3434c7fac8ff23a564c38e4e932 Mon Sep 17 00:00:00 2001
+From: BiasClear <noreply@biasclear.com>
+Date: Wed, 7 Oct 2026 11:10:16 +0000
+Subject: [PATCH] README: point the help link at Issues (Discussions is off)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01Fy4TaEjEhBEtL3VktBVdzi
+---
+ README.md | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/README.md b/README.md
+index 39ca7f0..fa1ff54 100644
+--- a/README.md
++++ b/README.md
+@@ -179,6 +179,6 @@ The tiers come from Persistent Influence Theory. To cite the preprint:
+ BiasClear is free and open source, and it stays that way.
+ 
+ - **Follow along:** star or watch this repository to see new rules, the first measured numbers and the first release.
+-- **Questions and ideas:** start a thread in [Discussions](https://github.com/biasclear/biasclear/discussions), or [open an issue](https://github.com/biasclear/biasclear/issues).
++- **Questions and ideas:** [open an issue](https://github.com/biasclear/biasclear/issues).
+ - **Support the work:** [sponsor it on GitHub](https://github.com/sponsors/bws82). Sponsorship pays for the time to write and test new rules and to measure every rule on data someone else labeled.
+ - **Email:** hello@biasclear.com
+-- 
+2.43.0
+

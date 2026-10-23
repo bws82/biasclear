@@ -1,0 +1,383 @@
+From da777eb31ca368796e05b7c1c17633e82ac470cf Mon Sep 17 00:00:00 2001
+From: BiasClear <noreply@biasclear.com>
+Date: Wed, 7 Oct 2026 13:45:45 -0500
+Subject: [PATCH 05/10] Explain spend: pause and debt never share a transaction
+ with a contended item (306 fix b)
+
+persistBillingPause wrote billing#pause and the event's debt in one
+transaction. Every reserve ConditionChecks billing#pause, so under
+DynamoDB's conflict rule an ordinary concurrent reserve cancelled it and
+both records were lost; two unresolved events lost the second debt.
+
+- The event's debt row (a key nothing else writes) is written first, then
+  the shared pause, each as its own PutItem overwrite, retried up to 4
+  times with jitter and read back before each retry. No counter is
+  touched, so a retry can't double-count.
+- A bound breach's settlement commits its own debt row with the event and
+  counters instead of the shared pause; the pause is then written alone
+  and pausePersisted reports whether it landed (it was claimed before).
+- New Ddb.put for overwrite-safe records.
+
+Regressions (test/contention.test.ts, with test/conflicts.ts modelling
+the conflict rule, adapted from the 306 harness): pause and debt while a
+reserve holds the pause; an unknown-usage call during another reserve
+still fences a fresh instance; two unresolved events keep both debts; a
+breach settlement never touches billing#pause; a breach whose pause
+can't be written reports pausePersisted=false and keeps its debt. The
+first four fail on 19eebb3's spend code; dropping the retries or
+claiming the pause fails them too.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ packages/explain/src/app.ts              |   8 +-
+ packages/explain/src/aws/dynamodb.ts     |   5 +
+ packages/explain/src/spend.ts            |  66 ++++++++-----
+ packages/explain/test/conflicts.ts       |  77 +++++++++++++++
+ packages/explain/test/contention.test.ts | 113 +++++++++++++++++++++++
+ 5 files changed, 245 insertions(+), 24 deletions(-)
+ create mode 100644 packages/explain/test/conflicts.ts
+ create mode 100644 packages/explain/test/contention.test.ts
+
+diff --git a/packages/explain/src/app.ts b/packages/explain/src/app.ts
+index 532425f..d022e26 100644
+--- a/packages/explain/src/app.ts
++++ b/packages/explain/src/app.ts
+@@ -23,7 +23,7 @@ import { checkReply } from "./output.js";
+ import { buildPrompt, type PromptMode } from "./prompt.js";
+ import { checkRate, connectionHash, connectionKey, todaysSalt } from "./ratelimit.js";
+ import { bodyText, parseJson, validateRequest, type ExplainRequest } from "./request.js";
+-import { actualMicros, billingPaused, persistBillingPause, hasHeadroom, release, reserve, settle, worstCaseMicros, type Reservation } from "./spend.js";
++import { actualMicros, billingPaused, persistBillingPause, persistPause, hasHeadroom, release, reserve, settle, worstCaseMicros, type Reservation } from "./spend.js";
+ import { SETTINGS_INTERVAL_MS, type InstanceState } from "./state.js";
+ import { nextDayStart } from "./time.js";
+ 
+@@ -408,9 +408,11 @@ async function explain(
+   if (!(await settle(ddb, reservation, actual, pauseDetail))) return pause("E_SETTLE", actual);
+   line.micros = actual;
+   if (violated) {
++    // The settlement committed this event's debt row; the shared fence is written on its own.
+     state.pausedUntil = Number.POSITIVE_INFINITY;
+-    line.pausePersisted = 1;
+-    detail.pausePersisted = true;
++    const persisted = await persistPause(ddb, pauseDetail!);
++    line.pausePersisted = persisted ? 1 : 0;
++    detail.pausePersisted = persisted;
+     return stop("paused", "E_PROVIDER_BOUND");
+   }
+ 
+diff --git a/packages/explain/src/aws/dynamodb.ts b/packages/explain/src/aws/dynamodb.ts
+index f8e1ef8..7d76d82 100644
+--- a/packages/explain/src/aws/dynamodb.ts
++++ b/packages/explain/src/aws/dynamodb.ts
+@@ -106,6 +106,11 @@ export class Ddb {
+     });
+   }
+ 
++  /** Writes (or overwrites) an item. Only for records whose rewrite is harmless: no counter. */
++  async put(item: Item): Promise<void> {
++    await this.call("PutItem", { Item: item });
++  }
++
+   /** Writes an item only if none has this key. Returns false if one already exists. */
+   async putIfAbsent(item: Item): Promise<boolean> {
+     try {
+diff --git a/packages/explain/src/spend.ts b/packages/explain/src/spend.ts
+index 9287e2a..25d3105 100644
+--- a/packages/explain/src/spend.ts
++++ b/packages/explain/src/spend.ts
+@@ -109,27 +109,52 @@ function pauseItem(p: PauseDetail): Item {
+   };
+ }
+ 
+-/** Persist every unresolved event, not just the first pause, without text or keys.
+- * Atomic overwrite of fixed items is idempotent; no money ADD is retried. A debt
+- * survives log expiry/month rollover until an owner reconciles and removes it. */
+-export async function persistBillingPause(ddb: Ddb, p: PauseDetail): Promise<boolean> {
+-  const item = pauseItem(p);
+-  const debtKey = `billingdebt#${p.event.slice("billing#".length)}`;
+-  const debt: Item = { ...item, pk: { S: debtKey } };
+-  try {
+-    await ddb.transact([{ Put: { Item: item } }, { Put: { Item: debt } }], randomUUID());
+-    return true;
+-  } catch {
++function debtItem(p: PauseDetail): Item {
++  return { ...pauseItem(p), pk: { S: `billingdebt#${p.event.slice("billing#".length)}` } };
++}
++
++/** Attempts per durable record write (306 b). */
++export const PERSIST_ATTEMPTS = 4;
++
++/** Writes one record that is safe to overwrite (no counter), retrying a conflict, a throttle or a
++ * lost acknowledgment a bounded number of times, and reading back before each retry. */
++async function putDurably(ddb: Ddb, item: Item, landed: (found: Item | undefined) => boolean): Promise<boolean> {
++  const pk = stringAttr(item, "pk")!;
++  for (let attempt = 0; attempt < PERSIST_ATTEMPTS; attempt++) {
++    if (attempt > 0) await new Promise((r) => setTimeout(r, 25 * attempt + Math.floor(Math.random() * 25)));
+     try {
+-      const known = await ddb.get(debtKey, 0, true);
+-      return await billingPaused(ddb, p.nowMs) && stringAttr(known, "event") === p.event &&
+-        numberAttr(known, "reserved") === p.reservedMicros && numberAttr(known, "actual") === p.actualMicros;
+-    } catch { return false; }
++      await ddb.put(item);
++      return true;
++    } catch { /* checked below, then written again */ }
++    try {
++      if (landed(await ddb.get(pk, 0, true))) return true;
++    } catch { /* unreadable: write again */ }
+   }
++  return false;
++}
++
++/** The shared fence. Every reserve checks it, so it is written alone, never in a transaction
++ * with another item (306 b); a later pause may overwrite an earlier one, as before. */
++export async function persistPause(ddb: Ddb, p: PauseDetail): Promise<boolean> {
++  return putDurably(ddb, pauseItem(p), (found) => found !== undefined);
++}
++
++/** Persist every unresolved event, not just the first pause, without text or keys. The event's
++ * own debt row (a key nothing else writes) goes first, then the shared pause, each on its own and
++ * retried: both are overwrites, and no money ADD is retried. A debt survives log expiry and month
++ * rollover until an owner reconciles and removes it. */
++export async function persistBillingPause(ddb: Ddb, p: PauseDetail): Promise<boolean> {
++  const debt = debtItem(p);
++  const debtKept = await putDurably(ddb, debt, (known) => stringAttr(known, "event") === p.event &&
++    numberAttr(known, "reserved") === p.reservedMicros && numberAttr(known, "actual") === p.actualMicros);
++  const paused = await persistPause(ddb, p);
++  return debtKept && paused;
+ }
+ 
+-/** Atomic CAS event + month + day; an optional anomaly pause commits with them. */
+-export async function settle(ddb: Ddb, r: Reservation, actual: number, pause?: PauseDetail): Promise<boolean> {
++/** Atomic CAS event + month + day. A bound breach commits its own debt row with them (a key
++ * nothing else writes); the caller then writes the shared pause on its own (persistPause), so the
++ * settlement never contends on the item every reserve checks (306 b). */
++export async function settle(ddb: Ddb, r: Reservation, actual: number, breach?: PauseDetail): Promise<boolean> {
+   if (!Number.isSafeInteger(actual) || actual < 0) return false;
+   const delta = actual - r.micros;
+   const add = (pk: string) => ({ Key: { pk: { S: pk } }, UpdateExpression: "ADD #m :d", ExpressionAttributeNames: { "#m": "m" }, ExpressionAttributeValues: { ":d": { N: String(delta) } } });
+@@ -137,7 +162,7 @@ export async function settle(ddb: Ddb, r: Reservation, actual: number, pause?: P
+     { Update: { Key: { pk: { S: r.event } }, UpdateExpression: "SET #s = :settled, #a = :actual", ConditionExpression: "#s = :reserved", ExpressionAttributeNames: { "#s": "state", "#a": "actual" }, ExpressionAttributeValues: { ":reserved": { S: "reserved" }, ":settled": { S: "settled" }, ":actual": { N: String(actual) } } } },
+     { Update: add(r.month) }, { Update: add(r.day) },
+   ];
+-  if (pause !== undefined) writes.push({ Put: { Item: pauseItem(pause) } });
++  if (breach !== undefined) writes.push({ Put: { Item: debtItem(breach) } });
+   try {
+     // Distinct token from reservation; the CAS is the durable idempotence fence.
+     await ddb.transact(writes, r.token.replace(/.$/, r.token.endsWith("0") ? "1" : "0"));
+@@ -145,9 +170,8 @@ export async function settle(ddb: Ddb, r: Reservation, actual: number, pause?: P
+   } catch {
+     try {
+       const item = await ddb.get(r.event, 0, true);
+-      const committed = matches(item, r) && stringAttr(item, "state") === "settled" && numberAttr(item, "actual") === actual;
+-      if (!committed) return false;
+-      return pause === undefined || await billingPaused(ddb, pause.nowMs);
++      // The debt row commits atomically with the event, so a settled event proves it.
++      return matches(item, r) && stringAttr(item, "state") === "settled" && numberAttr(item, "actual") === actual;
+     } catch { return false; }
+   }
+ }
+diff --git a/packages/explain/test/conflicts.ts b/packages/explain/test/conflicts.ts
+new file mode 100644
+index 0000000..87d2215
+--- /dev/null
++++ b/packages/explain/test/conflicts.ts
+@@ -0,0 +1,77 @@
++// DynamoDB's transaction-conflict rule, which FakeTable does not model (it applies
++// transactions one at a time and never conflicts). Adapted from the 306 review's
++// fault harness. An in-flight TransactWriteItems holds every item it touches for
++// `txMs`: another transaction touching one of them is cancelled with reason
++// TransactionConflict, and a single-item write to a held item gets
++// TransactionConflictException. Nothing here is AWS evidence; it follows the
++// documented rule the ledger code must survive.
++
++import type { AwsCall, AwsReply, Transport } from "../src/aws/transport.js";
++import { FakeAws } from "./helpers.js";
++
++export const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
++
++function opOf(call: AwsCall): string {
++  return (call.headers["x-amz-target"] ?? "").replace("DynamoDB_20120810.", "");
++}
++
++/** The item key each transaction component touches, in order. */
++export function txKeys(body: Record<string, unknown>): string[] {
++  return (body.TransactItems as Record<string, Record<string, unknown>>[]).map((item) => {
++    const [component, b] = Object.entries(item)[0]!;
++    return component === "Put" ? (b.Item as Record<string, { S: string }>).pk!.S : (b.Key as { pk: { S: string } }).pk.S;
++  });
++}
++
++export class ConflictAws {
++  readonly aws = new FakeAws();
++  readonly locks = new Set<string>();
++  /** How long an in-flight transaction holds its items (real ms). */
++  txMs = 0;
++  conflicts = 0;
++  /** The keys of every transaction sent, in order. */
++  readonly txLog: string[][] = [];
++  /** Force a conflict on the next matching transaction, whatever is held. */
++  forceConflict: ((body: Record<string, unknown>) => boolean) | undefined;
++
++  readonly transport: Transport = async (call) => {
++    if (call.service !== "dynamodb") return this.aws.transport(call);
++    const op = opOf(call);
++    const body = JSON.parse(call.body) as Record<string, unknown>;
++    if (op === "TransactWriteItems") {
++      const keys = txKeys(body);
++      this.txLog.push(keys);
++      const forced = this.forceConflict?.(body) === true;
++      const idx = forced ? 0 : keys.findIndex((k) => this.locks.has(k));
++      if (idx >= 0) {
++        this.conflicts++;
++        return {
++          status: 400, headers: {},
++          body: JSON.stringify({
++            __type: "com.amazonaws.dynamodb.v20120810#TransactionCanceledException",
++            CancellationReasons: keys.map((_, i) => ({ Code: i === idx ? "TransactionConflict" : "None" })),
++          }),
++        } satisfies AwsReply;
++      }
++      for (const k of keys) this.locks.add(k);
++      try {
++        if (this.txMs) await sleep(this.txMs);
++        return await this.aws.transport(call);
++      } finally {
++        for (const k of keys) this.locks.delete(k);
++      }
++    }
++    if (op === "PutItem" || op === "UpdateItem" || op === "DeleteItem") {
++      const key = op === "PutItem" ? (body.Item as Record<string, { S: string }>).pk!.S : (body.Key as { pk: { S: string } }).pk.S;
++      if (this.locks.has(key)) {
++        this.conflicts++;
++        return { status: 400, headers: {}, body: JSON.stringify({ __type: "com.amazonaws.dynamodb.v20120810#TransactionConflictException" }) };
++      }
++    }
++    return this.aws.transport(call);
++  };
++
++  items(prefix: string): Array<[string, Record<string, { S: string } | { N: string }>]> {
++    return [...this.aws.table.items.entries()].filter(([k]) => k.startsWith(prefix));
++  }
++}
+diff --git a/packages/explain/test/contention.test.ts b/packages/explain/test/contention.test.ts
+new file mode 100644
+index 0000000..401f60b
+--- /dev/null
++++ b/packages/explain/test/contention.test.ts
+@@ -0,0 +1,113 @@
++// Ledger writes under DynamoDB's transaction-conflict rule (test/conflicts.ts).
++// The 306 review showed routine concurrency losing the durable pause and debt
++// (fix b); these cases fail on that code.
++
++import { describe, expect, it } from "vitest";
++import type { EvaluationResult } from "../src/app.js";
++import { Ddb } from "../src/aws/dynamodb.js";
++import { BILLING_PAUSE_KEY, persistBillingPause, reserve, settle } from "../src/spend.js";
++import { ConflictAws, sleep } from "./conflicts.js";
++import { config, evalEvent, harness, modelReply } from "./helpers.js";
++
++const cfg = config();
++const now = Date.UTC(2026, 9, 7, 14);
++const actualOf = (item: Record<string, { S: string } | { N: string }>): number => Number((item.actual as { N: string }).N);
++
++describe("durable pause and debt under contention (306 b)", () => {
++  it("persists the pause and this event's debt while another instance's reserve holds billing#pause", async () => {
++    const ca = new ConflictAws();
++    const ddb = new Ddb(ca.transport, cfg.region, cfg.table);
++    const a = await reserve(ddb, cfg, now, 10_000);
++    if (!a.ok) throw new Error("no reservation");
++    ca.txMs = 50;
++    const b = reserve(ddb, cfg, now, 10_000); // in flight: its ConditionCheck holds billing#pause
++    await sleep(5);
++    const persisted = await persistBillingPause(ddb, { reason: "E_MODEL_TIMEOUT", nowMs: now, reservedMicros: 10_000, event: a.reservation.event });
++    expect((await b).ok).toBe(true);
++    expect(ca.conflicts).toBeGreaterThan(0); // the case really met a held item
++    expect(persisted).toBe(true);
++    expect(ca.aws.table.items.has(BILLING_PAUSE_KEY)).toBe(true);
++    expect(ca.items("billingdebt#")).toHaveLength(1);
++    expect(ca.aws.table.items.get(BILLING_PAUSE_KEY)?.ttl).toBeUndefined();
++  });
++
++  it("an unknown-usage call during another instance's reserve still fences every instance", async () => {
++    const ca = new ConflictAws();
++    ca.txMs = 40;
++    const hA = harness({ transport: ca.transport });
++    const hB = harness({ transport: ca.transport });
++    let b: Promise<unknown> | undefined;
++    let n = 0;
++    ca.aws.model = async () => {
++      n++;
++      if (n === 1) {
++        b = hB.handler(evalEvent());
++        for (let i = 0; i < 400 && !ca.locks.has(BILLING_PAUSE_KEY); i++) await sleep(1);
++        return { status: 200, json: modelReply({ usage: null }) }; // A can't show what it was billed
++      }
++      return { status: 200, json: modelReply() };
++    };
++    const ra = await hA.handler(evalEvent()) as EvaluationResult;
++    await b;
++    expect(ra.evaluation.code).toBe("E_MODEL_NO_USAGE");
++    expect(ra.evaluation.pausePersisted).toBe(true);
++    expect(ca.aws.table.items.has(BILLING_PAUSE_KEY)).toBe(true);
++    expect(ca.items("billingdebt#")).toHaveLength(1);
++    const hC = harness({ transport: ca.transport });
++    const rc = await hC.handler(evalEvent()) as EvaluationResult;
++    expect(rc.evaluation.code).toBe("E_BILLING_PAUSE");
++    expect(rc.evaluation.modelCalled).toBe(false);
++    expect(ca.aws.modelCalls).toHaveLength(2); // A, and B, which reserved before the pause existed
++  });
++
++  it("two unresolved events at once both keep their debts", async () => {
++    const ca = new ConflictAws();
++    const ddb = new Ddb(ca.transport, cfg.region, cfg.table);
++    const a = await reserve(ddb, cfg, now, 10_000);
++    const b = await reserve(ddb, cfg, now, 10_000);
++    if (!a.ok || !b.ok) throw new Error("no reservation");
++    ca.txMs = 20;
++    const results = await Promise.all([a.reservation, b.reservation].map((r, i) => persistBillingPause(ddb, {
++      reason: "E_SETTLE", nowMs: now, reservedMicros: r.micros, actualMicros: 15_000 + i, event: r.event })));
++    expect(results).toEqual([true, true]);
++    expect(ca.items("billingdebt#").map(([, item]) => actualOf(item)).sort()).toEqual([15_000, 15_001]);
++    expect(ca.aws.table.items.has(BILLING_PAUSE_KEY)).toBe(true);
++  });
++
++  it("a bound breach settles with its own debt row, never the shared pause item, and both breaches keep their evidence", async () => {
++    const ca = new ConflictAws();
++    const ddb = new Ddb(ca.transport, cfg.region, cfg.table);
++    const a = await reserve(ddb, cfg, now, 10_000);
++    const b = await reserve(ddb, cfg, now, 10_000);
++    if (!a.ok || !b.ok) throw new Error("no reservation");
++    ca.txMs = 20;
++    const before = ca.txLog.length; // the reserves above check billing#pause, as they must
++    const breach = (r: typeof a.reservation, actual: number) =>
++      settle(ddb, r, actual, { reason: "E_PROVIDER_BOUND", nowMs: now, reservedMicros: r.micros, actualMicros: actual, event: r.event });
++    const settled = await Promise.all([breach(a.reservation, 1_600_000), breach(b.reservation, 1_700_000)]);
++    expect(ca.txLog.length).toBeGreaterThan(before);
++    for (const keys of ca.txLog.slice(before)) expect(keys).not.toContain(BILLING_PAUSE_KEY);
++    // Each breach that settled has a debt row written with its counters; the rest are retried by fix c or end as E_SETTLE.
++    const debts = ca.items("billingdebt#").map(([, item]) => actualOf(item)).sort();
++    expect(debts).toEqual([1_600_000, 1_700_000].filter((_, i) => settled[i]));
++  });
++});
++
++describe("a bound breach whose fence can't be written (306 b)", () => {
++  it("keeps the breach's debt with its settlement and reports the missing pause honestly", async () => {
++    const h = harness();
++    h.aws.model = () => {
++      h.aws.table.fault = (op, p) => op === "PutItem" && (p.Item as { pk: { S: string } }).pk.S === BILLING_PAUSE_KEY ? "network" : undefined;
++      return { status: 200, json: modelReply({ outTok: 5_000 }) }; // over the 400-token billed bound
++    };
++    const r = await h.handler(evalEvent()) as EvaluationResult;
++    expect(r.evaluation.code).toBe("E_PROVIDER_BOUND");
++    expect(r.evaluation.billedBoundViolated).toBe(true);
++    expect(r.evaluation.pausePersisted).toBe(false);
++    expect(h.aws.table.items.has(BILLING_PAUSE_KEY)).toBe(false);
++    const debts = [...h.aws.table.items.entries()].filter(([k]) => k.startsWith("billingdebt#"));
++    expect(debts).toHaveLength(1);
++    expect(actualOf(debts[0]![1])).toBe(r.evaluation.actualMicros);
++    expect(h.deps.state.pausedUntil).toBe(Number.POSITIVE_INFINITY); // this instance still stops
++  });
++});
+-- 
+2.54.0 (Apple Git-157)
+

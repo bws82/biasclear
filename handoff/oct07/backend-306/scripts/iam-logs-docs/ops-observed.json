@@ -1,0 +1,149 @@
+[
+ {
+  "host": "bedrock.us-east-1.amazonaws.com",
+  "path": "/logging/modelinvocations",
+  "region": "us-east-1",
+  "service": "bedrock",
+  "target": ""
+ },
+ {
+  "host": "bedrock.us-east-1.amazonaws.com",
+  "path": "/data-retention",
+  "region": "us-east-1",
+  "service": "bedrock",
+  "target": ""
+ },
+ {
+  "host": "bedrock.us-east-2.amazonaws.com",
+  "path": "/data-retention",
+  "region": "us-east-2",
+  "service": "bedrock",
+  "target": ""
+ },
+ {
+  "host": "bedrock.us-west-2.amazonaws.com",
+  "path": "/data-retention",
+  "region": "us-west-2",
+  "service": "bedrock",
+  "target": ""
+ },
+ {
+  "host": "dynamodb.us-east-1.amazonaws.com",
+  "path": "/",
+  "region": "us-east-1",
+  "service": "dynamodb",
+  "target": "DynamoDB_20120810.GetItem"
+ },
+ {
+  "host": "dynamodb.us-east-1.amazonaws.com",
+  "path": "/",
+  "region": "us-east-1",
+  "service": "dynamodb",
+  "target": "DynamoDB_20120810.GetItem"
+ },
+ {
+  "host": "dynamodb.us-east-1.amazonaws.com",
+  "path": "/",
+  "region": "us-east-1",
+  "service": "dynamodb",
+  "target": "DynamoDB_20120810.GetItem"
+ },
+ {
+  "host": "dynamodb.us-east-1.amazonaws.com",
+  "path": "/",
+  "region": "us-east-1",
+  "service": "dynamodb",
+  "target": "DynamoDB_20120810.PutItem"
+ },
+ {
+  "host": "dynamodb.us-east-1.amazonaws.com",
+  "path": "/",
+  "region": "us-east-1",
+  "service": "dynamodb",
+  "target": "DynamoDB_20120810.DeleteItem"
+ },
+ {
+  "host": "dynamodb.us-east-1.amazonaws.com",
+  "path": "/",
+  "region": "us-east-1",
+  "service": "dynamodb",
+  "target": "DynamoDB_20120810.DeleteItem"
+ },
+ {
+  "host": "dynamodb.us-east-1.amazonaws.com",
+  "path": "/",
+  "region": "us-east-1",
+  "service": "dynamodb",
+  "target": "DynamoDB_20120810.DeleteItem"
+ },
+ {
+  "host": "dynamodb.us-east-1.amazonaws.com",
+  "path": "/",
+  "region": "us-east-1",
+  "service": "dynamodb",
+  "target": "DynamoDB_20120810.DeleteItem"
+ },
+ {
+  "host": "dynamodb.us-east-1.amazonaws.com",
+  "path": "/",
+  "region": "us-east-1",
+  "service": "dynamodb",
+  "target": "DynamoDB_20120810.DeleteItem"
+ },
+ {
+  "host": "dynamodb.us-east-1.amazonaws.com",
+  "path": "/",
+  "region": "us-east-1",
+  "service": "dynamodb",
+  "target": "DynamoDB_20120810.DeleteItem"
+ },
+ {
+  "host": "dynamodb.us-east-1.amazonaws.com",
+  "path": "/",
+  "region": "us-east-1",
+  "service": "dynamodb",
+  "target": "DynamoDB_20120810.DeleteItem"
+ },
+ {
+  "host": "dynamodb.us-east-1.amazonaws.com",
+  "path": "/",
+  "region": "us-east-1",
+  "service": "dynamodb",
+  "target": "DynamoDB_20120810.DeleteItem"
+ },
+ {
+  "host": "dynamodb.us-east-1.amazonaws.com",
+  "path": "/",
+  "region": "us-east-1",
+  "service": "dynamodb",
+  "target": "DynamoDB_20120810.UpdateItem"
+ },
+ {
+  "host": "dynamodb.us-east-1.amazonaws.com",
+  "path": "/",
+  "region": "us-east-1",
+  "service": "dynamodb",
+  "target": "DynamoDB_20120810.UpdateItem"
+ },
+ {
+  "host": "dynamodb.us-east-1.amazonaws.com",
+  "path": "/",
+  "region": "us-east-1",
+  "service": "dynamodb",
+  "target": "DynamoDB_20120810.TransactWriteItems"
+ },
+ {
+  "host": "bedrock-runtime.us-east-1.amazonaws.com",
+  "path": "/model/us.xai.grok-4.7/converse",
+  "region": "us-east-1",
+  "service": "bedrock",
+  "target": ""
+ },
+ {
+  "host": "dynamodb.us-east-1.amazonaws.com",
+  "path": "/",
+  "region": "us-east-1",
+  "service": "dynamodb",
+  "target": "DynamoDB_20120810.TransactWriteItems"
+ }
+]

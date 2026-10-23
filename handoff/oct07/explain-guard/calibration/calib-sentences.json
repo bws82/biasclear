@@ -1,0 +1,518 @@
+[
+ {
+  "rule": "CONSENSUS_AS_EVIDENCE",
+  "domain": "general",
+  "sentence": "Everyone knows the new phone is worth the upgrade, so there is no reason to wait for reviews.",
+  "mark": "Everyone knows"
+ },
+ {
+  "rule": "CONSENSUS_AS_EVIDENCE",
+  "domain": "general",
+  "sentence": "Among home builders it is widely accepted that a basement dehumidifier prevents mold, so every house on the street needs one.",
+  "mark": "it is widely accepted"
+ },
+ {
+  "rule": "CLAIM_WITHOUT_CITATION",
+  "domain": "general",
+  "sentence": "Studies show that tomatoes grow better when you water them at dawn, so the garden club is moving its watering hour.",
+  "mark": "Studies show"
+ },
+ {
+  "rule": "CLAIM_WITHOUT_CITATION",
+  "domain": "general",
+  "sentence": "Data shows the new bus schedule has cut wait times, so riders on the east line should be happier this fall.",
+  "mark": "Data shows"
+ },
+ {
+  "rule": "DISSENT_DISMISSAL",
+  "domain": "general",
+  "sentence": "Riders who say the new Route 9 timetable makes them late are spreading misinformation.",
+  "mark": "misinformation"
+ },
+ {
+  "rule": "DISSENT_DISMISSAL",
+  "domain": "general",
+  "sentence": "Some members think the new compost is making the tomatoes wilt, but that idea has been thoroughly debunked.",
+  "mark": "has been thoroughly debunked"
+ },
+ {
+  "rule": "INEVITABILITY_FRAME",
+  "domain": "general",
+  "sentence": "Fifteen-minute service on every route is the inevitable direction for the city, so the bus board should approve the new schedule tonight.",
+  "mark": "the inevitable direction"
+ },
+ {
+  "rule": "INEVITABILITY_FRAME",
+  "domain": "general",
+  "sentence": "Online sign-ups are replacing paper sheets for the school bake sale, and there is no stopping this, so the committee should drop the paper list.",
+  "mark": "there is no stopping this"
+ },
+ {
+  "rule": "APPEAL_TO_TRADITION",
+  "domain": "general",
+  "sentence": "The garden club should hold the plant sale in May again, because we've always done it this way.",
+  "mark": "we've always done it this way"
+ },
+ {
+  "rule": "APPEAL_TO_TRADITION",
+  "domain": "general",
+  "sentence": "The bake sale has always been in the school lobby, and departing from tradition would be unwise.",
+  "mark": "departing from tradition would be unwise"
+ },
+ {
+  "rule": "FALSE_EQUIVALENCE",
+  "domain": "general",
+  "sentence": "One roofer climbed into the attic and found rot in twelve rafters, and the other looked from the driveway, but both sides make good points about whether the roof needs work.",
+  "mark": "both sides make good points"
+ },
+ {
+  "rule": "FALSE_EQUIVALENCE",
+  "domain": "general",
+  "sentence": "Riders logged the Route 9 bus arriving late on 40 of 45 mornings, and one driver says it usually runs on time, so the truth lies somewhere in the middle.",
+  "mark": "the truth lies somewhere in the middle"
+ },
+ {
+  "rule": "SOFT_CONSENSUS",
+  "domain": "general",
+  "sentence": "The vast majority of our garden club members agree that the new compost mix works better than the old one.",
+  "mark": "The vast majority of our garden club members agree"
+ },
+ {
+  "rule": "SOFT_CONSENSUS",
+  "domain": "general",
+  "sentence": "A growing consensus suggests that sealing the attic saves more on heating than replacing the windows.",
+  "mark": "growing consensus suggests"
+ },
+ {
+  "rule": "ASPIRATIONAL_DEFLECTION",
+  "domain": "general",
+  "sentence": "Our goal is to keep every bus on the new city schedule running on time, and we are committed to reliable service for every rider.",
+  "mark": "Our goal is to"
+ },
+ {
+  "rule": "ASPIRATIONAL_DEFLECTION",
+  "domain": "general",
+  "sentence": "With the new phone upgrade, we strive to deliver the longest battery life in its class, and we are fully committed to quality.",
+  "mark": "we strive to deliver"
+ },
+ {
+  "rule": "MEDIA_EDITORIAL_AS_NEWS",
+  "domain": "media",
+  "sentence": "The transit office announced the misguided schedule plan on Monday: weekday buses on Route 9 will run every 20 minutes instead of every 15.",
+  "mark": "the misguided schedule"
+ },
+ {
+  "rule": "MEDIA_EDITORIAL_AS_NEWS",
+  "domain": "media",
+  "sentence": "The so-called upgrade program lets customers trade in a two-year-old phone for $150 off a new model.",
+  "mark": "The so-called upgrade"
+ },
+ {
+  "rule": "MEDIA_FALSE_BALANCE",
+  "domain": "media",
+  "sentence": "A few insist that caterpillar stripes predict a hard winter, yet scientists who study weather point out the stripes show no link to snowfall.",
+  "mark": "A few insist that caterpillar stripes predict a hard winter, yet scientists who study weather point out"
+ },
+ {
+  "rule": "MEDIA_FALSE_BALANCE",
+  "domain": "media",
+  "sentence": "Some claim that overnight charging ruins a phone battery in a month, while researchers who test batteries disagree.",
+  "mark": "Some claim that overnight charging ruins a phone battery in a month, while researchers who test batteries disagree"
+ },
+ {
+  "rule": "MEDIA_SELECTIVE_QUOTATION",
+  "domain": "media",
+  "sentence": "Monday brings an \"improved\" bus schedule with \"shorter\" waits between stops.",
+  "mark": "\"improved\""
+ },
+ {
+  "rule": "MEDIA_SELECTIVE_QUOTATION",
+  "domain": "media",
+  "sentence": "The bake sale committee promised \"homemade\" treats, but the \"fresh\" cookies came in store boxes.",
+  "mark": "\"homemade\""
+ },
+ {
+  "rule": "MEDIA_ASYMMETRIC_ATTRIBUTION",
+  "domain": "media",
+  "sentence": "The parent volunteers said the bake sale raised $400, but the treasurer claimed the total was lower and insisted on a recount.",
+  "mark": "claimed"
+ },
+ {
+  "rule": "MEDIA_ASYMMETRIC_ATTRIBUTION",
+  "domain": "media",
+  "sentence": "The contractor said the roof repair was finished on schedule, while the homeowner alleged the gutters still leak and insisted the crew come back.",
+  "mark": "alleged"
+ },
+ {
+  "rule": "FIN_SURVIVORSHIP_BIAS",
+  "domain": "financial",
+  "sentence": "Of the home repair shops on Main Street, the top firms all use same-day callbacks, so same-day callbacks must be what keeps a repair shop in business.",
+  "mark": "top firms all use"
+ },
+ {
+  "rule": "FIN_SURVIVORSHIP_BIAS",
+  "domain": "financial",
+  "sentence": "A $40 investment in a backyard rain barrel would now be worth $300 in saved water, based on the garden club members who still use theirs.",
+  "mark": "A $40 investment in a backyard rain barrel would now be worth"
+ },
+ {
+  "rule": "FIN_CHERRY_PICKED_TIMEFRAME",
+  "domain": "financial",
+  "sentence": "Since March, the school bake sale fund has gained 40%, so the new cookie table is paying off.",
+  "mark": "Since March, the school bake sale fund has gained 40%"
+ },
+ {
+  "rule": "FIN_CHERRY_PICKED_TIMEFRAME",
+  "domain": "financial",
+  "sentence": "In the last two months, the Route 9 bus beat every other line for on-time arrivals.",
+  "mark": "In the last two months, the Route 9 bus beat"
+ },
+ {
+  "rule": "FALSE_BINARY",
+  "domain": "general",
+  "sentence": "Either we raise the bake sale prices this year or the class trip gets cancelled.",
+  "mark": "Either we raise the bake sale prices this year or"
+ },
+ {
+  "rule": "FALSE_BINARY",
+  "domain": "general",
+  "sentence": "When your old phone slows down, there are only two options: buy the new model or live with the lag.",
+  "mark": "only two options"
+ },
+ {
+  "rule": "FEAR_URGENCY",
+  "domain": "general",
+  "sentence": "Act now, or you'll be stuck with a slow, outdated phone for years.",
+  "mark": "Act now"
+ },
+ {
+  "rule": "FEAR_URGENCY",
+  "domain": "general",
+  "sentence": "Leave that small roof leak alone and the damage to your attic will be irreversible.",
+  "mark": "irreversible"
+ },
+ {
+  "rule": "SHAME_LEVER",
+  "domain": "general",
+  "sentence": "Any reasonable person would upgrade to the new phone this fall.",
+  "mark": "Any reasonable person"
+ },
+ {
+  "rule": "SHAME_LEVER",
+  "domain": "general",
+  "sentence": "How could anyone possibly skip the school bake sale after all the work the parents put into planning it?",
+  "mark": "How could anyone possibly"
+ },
+ {
+  "rule": "EMOTIONAL_SUBSTITUTION",
+  "domain": "general",
+  "sentence": "The new bus schedule is simply heartbreaking for everyone who rides Route 4.",
+  "mark": "simply heartbreaking"
+ },
+ {
+  "rule": "EMOTIONAL_SUBSTITUTION",
+  "domain": "general",
+  "sentence": "The garden club wants members to chip in for new raised beds after the storm. The devastation speaks for itself.",
+  "mark": "The devastation speaks for itself"
+ },
+ {
+  "rule": "MORAL_HIGH_GROUND",
+  "domain": "general",
+  "sentence": "Any caring person would agree that the bake sale belongs on Saturday, not Friday.",
+  "mark": "Any caring person would agree"
+ },
+ {
+  "rule": "MORAL_HIGH_GROUND",
+  "domain": "general",
+  "sentence": "Keeping the late bus on the schedule is not a budget question; it is simply a matter of basic decency.",
+  "mark": "it is simply a matter of basic decency"
+ },
+ {
+  "rule": "COMPETENCE_DISMISSAL",
+  "domain": "general",
+  "sentence": "Those who object to the new bus schedule fail to grasp how the routes actually work.",
+  "mark": "Those who object to the new bus schedule fail to grasp"
+ },
+ {
+  "rule": "COMPETENCE_DISMISSAL",
+  "domain": "general",
+  "sentence": "Customers who question the phone upgrade simply don't understand the technical requirements of the new chip.",
+  "mark": "simply don't understand the technical requirements"
+ },
+ {
+  "rule": "DISMISSAL_BY_REFRAMING",
+  "domain": "general",
+  "sentence": "Riders asked for one more evening bus on Route 4, but what they're really asking for is a private taxi that everyone else pays for.",
+  "mark": "what they're really asking"
+ },
+ {
+  "rule": "DISMISSAL_BY_REFRAMING",
+  "domain": "general",
+  "sentence": "Parents asked that each item at the bake sale carry an ingredient label, but that is really just a way to push out the home bakers.",
+  "mark": "that is really just"
+ },
+ {
+  "rule": "CAUSAL_TOTALIZATION",
+  "domain": "general",
+  "sentence": "The city's new bus schedule is ruining my life.",
+  "mark": "is ruining my life"
+ },
+ {
+  "rule": "CAUSAL_TOTALIZATION",
+  "domain": "general",
+  "sentence": "The garden club's new president ruined everything this spring.",
+  "mark": "ruined everything"
+ },
+ {
+  "rule": "MONOCAUSAL_BLAME",
+  "domain": "general",
+  "sentence": "Because of the new coach everything has gone downhill this season.",
+  "mark": "Because of the new coach everything has gone downhill"
+ },
+ {
+  "rule": "MONOCAUSAL_BLAME",
+  "domain": "general",
+  "sentence": "The rain was the sole reason why the school bake sale came up short this year.",
+  "mark": "the sole reason why"
+ },
+ {
+  "rule": "LEGAL_SANCTIONS_THREAT",
+  "domain": "legal",
+  "sentence": "The roofer's claim that the second coat was never paid for is baseless, and sanctions will be sought unless it is withdrawn by Friday.",
+  "mark": "sanctions will be sought"
+ },
+ {
+  "rule": "LEGAL_SANCTIONS_THREAT",
+  "domain": "legal",
+  "sentence": "If the garden club keeps pressing its fence-line argument, we will be seeking sanctions against it before the spring hearing.",
+  "mark": "seeking sanctions against"
+ },
+ {
+  "rule": "LEGAL_STRAW_MAN",
+  "domain": "legal",
+  "sentence": "Plaintiff claims that every shingle on the roof was installed wrong, which is hard to square with a roof that has not leaked in two years.",
+  "mark": "Plaintiff claims that every"
+ },
+ {
+  "rule": "LEGAL_STRAW_MAN",
+  "domain": "legal",
+  "sentence": "The garden club is essentially arguing that we should never be allowed to use the shared water line again.",
+  "mark": "is essentially arguing that we should"
+ },
+ {
+  "rule": "MEDIA_WEASEL_QUANTIFIERS",
+  "domain": "media",
+  "sentence": "Many people say the garden club's spring plant sale was the best in years, and some experts think sales will double next year.",
+  "mark": "Many people"
+ },
+ {
+  "rule": "MEDIA_WEASEL_QUANTIFIERS",
+  "domain": "media",
+  "sentence": "It is widely believed that the new city bus schedule saves riders time, and there is growing support for adding a Sunday route.",
+  "mark": "It is widely believed"
+ },
+ {
+  "rule": "MEDIA_EMOTIONAL_LEAD",
+  "domain": "media",
+  "sentence": "Shocking changes are coming to the Route 9 bus: starting Monday, buses will run every 20 minutes instead of every 15.",
+  "mark": "Shocking"
+ },
+ {
+  "rule": "MEDIA_EMOTIONAL_LEAD",
+  "domain": "media",
+  "sentence": "Heartbreaking news from the school bake sale: this year's sale raised $450, down from $600 last year.",
+  "mark": "Heartbreaking"
+ },
+ {
+  "rule": "MEDIA_BURIED_QUALIFIER",
+  "domain": "media",
+  "sentence": "Last night's storm left fallen branches on nearly every street in town, flooded a dozen basements and sent a long line of neighbors to the hardware store, and by breakfast most of them were blaming the old storm drains on Elm Street. However, the town engineer found no evidence that the drains failed.",
+  "mark": "However, the town engineer found no evidence"
+ },
+ {
+  "rule": "MEDIA_BURIED_QUALIFIER",
+  "domain": "media",
+  "sentence": "Owners who installed this week's phone update flooded the help forums with posts saying their batteries now die before lunch, and the most shared thread, titled \"This update ruined my phone,\" drew thousands of angry replies within a day. In the phone maker's lab tests, though, the drain was not confirmed on any model.",
+  "mark": "though, the drain was not confirmed"
+ },
+ {
+  "rule": "MEDIA_SPECULATIVE_FRAMING",
+  "domain": "media",
+  "sentence": "The new city bus schedule is expected to cut wait times, and it could well lead to fuller buses by spring.",
+  "mark": "is expected to"
+ },
+ {
+  "rule": "MEDIA_SPECULATIVE_FRAMING",
+  "domain": "media",
+  "sentence": "The home team is poised to win the title this season, and signs point to a sold-out final.",
+  "mark": "is poised to"
+ },
+ {
+  "rule": "FIN_ANCHORING",
+  "domain": "financial",
+  "sentence": "Season tickets are down 45% from the record high, so this is the year to finally buy them.",
+  "mark": "down 45% from the record high"
+ },
+ {
+  "rule": "FIN_ANCHORING",
+  "domain": "financial",
+  "sentence": "Last year's phone is now selling at just 40% of its peak price, which makes it a steal for anyone ready to upgrade.",
+  "mark": "selling at just 40% of its peak price"
+ },
+ {
+  "rule": "FIN_PROJECTION_AS_FACT",
+  "domain": "financial",
+  "sentence": "The school bake sale opens at nine on Saturday, and sales will reach $600.",
+  "mark": "sales will reach $600"
+ },
+ {
+  "rule": "FIN_PROJECTION_AS_FACT",
+  "domain": "financial",
+  "sentence": "The new phone goes on sale in March, and the price will fall by half before summer.",
+  "mark": "the price will fall"
+ },
+ {
+  "rule": "FIN_RECENCY_EXTRAPOLATION",
+  "domain": "financial",
+  "sentence": "The school bake sale has raised more than the year before for three springs in a row, and there's no reason to think this will stop.",
+  "mark": "there's no reason to think this will stop"
+ },
+ {
+  "rule": "FIN_RECENCY_EXTRAPOLATION",
+  "domain": "financial",
+  "sentence": "After six straight wins, the home team continues its winning ways, so fans are already planning the championship parade.",
+  "mark": "continues its winning ways"
+ },
+ {
+  "rule": "BUREAUCRATIC_OBSCURITY",
+  "domain": "general",
+  "sentence": "Pursuant to the implementation of the revised service plan, Route 9 buses will arrive every 20 minutes instead of every 15.",
+  "mark": "Pursuant to the implementation"
+ },
+ {
+  "rule": "BUREAUCRATIC_OBSCURITY",
+  "domain": "general",
+  "sentence": "Notwithstanding the foregoing, the contractor says the leak under the sink falls outside the scope of the warranty.",
+  "mark": "Notwithstanding the foregoing"
+ },
+ {
+  "rule": "CREDENTIAL_AS_PREMISE",
+  "domain": "general",
+  "sentence": "A Wellsmere-educated nutritionist says the new school lunch menu is healthier, so the board should approve it.",
+  "mark": "Wellsmere-educated nutritionist says"
+ },
+ {
+  "rule": "CREDENTIAL_AS_PREMISE",
+  "domain": "general",
+  "sentence": "As a baker with thirty years of experience, I can tell you the bake sale should only sell bread.",
+  "mark": "As a baker with thirty years of experience, I can tell you"
+ },
+ {
+  "rule": "INSTITUTIONAL_POSITION_AS_SETTLED",
+  "domain": "general",
+  "sentence": "The transit board has concluded that the new timetable is working.",
+  "mark": "The transit board has concluded that"
+ },
+ {
+  "rule": "INSTITUTIONAL_POSITION_AS_SETTLED",
+  "domain": "general",
+  "sentence": "The garden club has found that the new compost works.",
+  "mark": "The garden club has found that"
+ },
+ {
+  "rule": "NEUTRALITY_CLAIM",
+  "domain": "general",
+  "sentence": "As a neutral third party, the phone store finds the upgrade fair.",
+  "mark": "As a neutral third party"
+ },
+ {
+  "rule": "NEUTRALITY_CLAIM",
+  "domain": "general",
+  "sentence": "Our review of the kettle reflects the evidence objectively.",
+  "mark": "reflects the evidence objectively"
+ },
+ {
+  "rule": "VAGUE_INSTITUTIONAL_APPEAL",
+  "domain": "general",
+  "sentence": "Leading organizations recommend watering tomatoes at dawn, so the garden club is moving its watering hour.",
+  "mark": "Leading organizations recommend"
+ },
+ {
+  "rule": "VAGUE_INSTITUTIONAL_APPEAL",
+  "domain": "general",
+  "sentence": "Industry leaders have long recognized that a roof should be replaced every twenty years, so we booked a crew for spring.",
+  "mark": "Industry leaders have long recognized"
+ },
+ {
+  "rule": "TOTALIZING_HARM_LANGUAGE",
+  "domain": "general",
+  "sentence": "Last night's hailstorm completely destroyed the vegetable garden.",
+  "mark": "completely destroyed"
+ },
+ {
+  "rule": "TOTALIZING_HARM_LANGUAGE",
+  "domain": "general",
+  "sentence": "The basement flooded over the weekend, and everything is ruined.",
+  "mark": "everything is ruined"
+ },
+ {
+  "rule": "LEGAL_SETTLED_DISMISSAL",
+  "domain": "legal",
+  "sentence": "The garden club's plot rules are settled law, so the new member's question about the waiting list needs no answer.",
+  "mark": "settled law"
+ },
+ {
+  "rule": "LEGAL_SETTLED_DISMISSAL",
+  "domain": "legal",
+  "sentence": "It is well settled that a rained-out game counts as a tie, so the coach's request for a makeup game fails.",
+  "mark": "well settled that"
+ },
+ {
+  "rule": "LEGAL_MERIT_DISMISSAL",
+  "domain": "legal",
+  "sentence": "The homeowner's claim that the contractor skipped the second coat of sealant on the deck is plainly meritless, and the court should dismiss it.",
+  "mark": "plainly meritless"
+ },
+ {
+  "rule": "LEGAL_MERIT_DISMISSAL",
+  "domain": "legal",
+  "sentence": "The garden club's challenge to the new plot fees is wholly without merit and should be rejected.",
+  "mark": "wholly without merit"
+ },
+ {
+  "rule": "LEGAL_WEIGHT_STACKING",
+  "domain": "legal",
+  "sentence": "The weight of authority is against moving the bake sale outside, so it stays in the gym.",
+  "mark": "The weight of authority"
+ },
+ {
+  "rule": "LEGAL_WEIGHT_STACKING",
+  "domain": "legal",
+  "sentence": "Every court that has addressed a leaky-gutter dispute sided with the homeowner, so the roofer must redo the job for free.",
+  "mark": "Every court that has addressed"
+ },
+ {
+  "rule": "LEGAL_PROCEDURAL_GATEKEEPING",
+  "domain": "legal",
+  "sentence": "The bake sale committee said the parent failed to raise her concern about the prices before the sign-up deadline, so it will not look at whether the cookies cost too much.",
+  "mark": "failed to raise"
+ },
+ {
+  "rule": "LEGAL_PROCEDURAL_GATEKEEPING",
+  "domain": "legal",
+  "sentence": "Riders who missed the comment period have waived any objection to the new bus schedule, so the transit board will not discuss the longer waits on Route 9.",
+  "mark": "waived any objection"
+ },
+ {
+  "rule": "MEDIA_ANONYMOUS_ATTRIBUTION",
+  "domain": "media",
+  "sentence": "People familiar with the discussions say the city will drop the late-night bus route next month.",
+  "mark": "People familiar with the discussions"
+ },
+ {
+  "rule": "MEDIA_ANONYMOUS_ATTRIBUTION",
+  "domain": "media",
+  "sentence": "Unnamed sources say the new phone upgrade will cost more than last year's model.",
+  "mark": "Unnamed sources"
+ }
+]

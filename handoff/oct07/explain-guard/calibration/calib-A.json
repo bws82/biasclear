@@ -1,0 +1,862 @@
+[
+ {
+  "i": 0,
+  "style": "terse",
+  "how": "\"Everyone knows\" offers shared belief as the reason to accept the point, and it never says who agrees or what they based it on."
+ },
+ {
+  "i": 0,
+  "style": "warm",
+  "how": "Opening with \"Everyone knows\" asks the reader to go along because others supposedly already do. The sentence leans on that agreement in place of a reason, and it leaves out who these people are and how they reached their view."
+ },
+ {
+  "i": 1,
+  "style": "terse",
+  "how": "\"it is widely accepted\" points to broad agreement as if agreement settled the matter, without naming who accepts it or why."
+ },
+ {
+  "i": 1,
+  "style": "warm",
+  "how": "The phrase \"it is widely accepted\" rests the point on how many people hold it rather than on any reason. It also stays vague about who those people are, so the reader has nothing to check before moving on to \"every house on the street needs one.\""
+ },
+ {
+  "i": 2,
+  "style": "terse",
+  "how": "\"Studies show\" borrows the weight of research but names no study, so the reader cannot see what was actually found."
+ },
+ {
+  "i": 2,
+  "style": "warm",
+  "how": "Starting with \"Studies show\" lends the point the feel of research. Yet no study, researcher or result is named, so the reader is asked to trust findings they have no way to look up or weigh."
+ },
+ {
+  "i": 3,
+  "style": "terse",
+  "how": "\"Data shows\" signals hard evidence while leaving out what data it is, where it came from, or how it was measured."
+ },
+ {
+  "i": 3,
+  "style": "warm",
+  "how": "With \"Data shows,\" the sentence presents its point as backed by numbers. It never says which data, who gathered it, or how, so the reader is asked to accept the backing without seeing any of it."
+ },
+ {
+  "i": 4,
+  "style": "terse",
+  "how": "Calling the riders' view \"misinformation\" puts a label on it instead of answering it, and the sentence gives no reason the view is mistaken."
+ },
+ {
+  "i": 4,
+  "style": "warm",
+  "how": "The word \"misinformation\" sorts the riders' complaint into a category to be dismissed. Nothing in the sentence speaks to the complaint itself, so the reader gets a label where an answer or a reason would usually go."
+ },
+ {
+  "i": 5,
+  "style": "terse",
+  "how": "\"has been thoroughly debunked\" closes off the members' concern by declaring it answered, but says nothing about who checked it or how."
+ },
+ {
+  "i": 5,
+  "style": "warm",
+  "how": "The phrase \"has been thoroughly debunked\" tells the reader the question is already closed. It does not say who looked into it, what they found, or when, so the concern about \"the tomatoes\" is set aside without any of that being shown."
+ },
+ {
+  "i": 6,
+  "style": "terse",
+  "how": "\"the inevitable direction\" presents the outcome as already decided, which makes weighing the choice seem pointless."
+ },
+ {
+  "i": 6,
+  "style": "warm",
+  "how": "Describing the change as \"the inevitable direction\" treats it as something that will happen no matter what. That framing nudges the board toward approving \"tonight\" while skipping any discussion of whether the choice is a good one."
+ },
+ {
+  "i": 7,
+  "style": "terse",
+  "how": "\"there is no stopping this\" frames the change as unstoppable, so dropping the paper list reads as a formality rather than a decision to weigh."
+ },
+ {
+  "i": 7,
+  "style": "warm",
+  "how": "The words \"there is no stopping this\" cast the shift as already settled. Once the reader accepts that, the push to \"drop the paper list\" feels like the only sensible step, even though the sentence offers no reason beyond the momentum it describes."
+ },
+ {
+  "i": 8,
+  "style": "terse",
+  "how": "\"we've always done it this way\" gives past habit as the reason to repeat it, without saying why May works."
+ },
+ {
+  "i": 8,
+  "style": "warm",
+  "how": "Here the reason offered is simply \"we've always done it this way.\" That points to habit rather than to anything about May itself, so the reader learns that the plan is familiar but not why it suits the sale."
+ },
+ {
+  "i": 9,
+  "style": "terse",
+  "how": "\"departing from tradition would be unwise\" treats the long-standing habit as reason enough, and it never says what would go wrong elsewhere."
+ },
+ {
+  "i": 9,
+  "style": "warm",
+  "how": "The phrase \"departing from tradition would be unwise\" warns against change without naming any cost. The sentence leans on the fact that the sale \"has always been in the school lobby\" and leaves the reader to assume that history is itself the argument."
+ },
+ {
+  "i": 10,
+  "style": "terse",
+  "how": "\"both sides make good points\" sets the two views side by side as equal, though the sentence itself describes one roofer checking inside and one looking \"from the driveway.\""
+ },
+ {
+  "i": 10,
+  "style": "warm",
+  "how": "After describing two very different inspections, the sentence closes with \"both sides make good points.\" That puts the views on equal footing without comparing what each one is based on, which leaves the reader with a balance the earlier details don't explain."
+ },
+ {
+  "i": 11,
+  "style": "terse",
+  "how": "\"the truth lies somewhere in the middle\" splits the difference between the riders' log and one driver's view without weighing what each rests on."
+ },
+ {
+  "i": 11,
+  "style": "warm",
+  "how": "The closing phrase \"the truth lies somewhere in the middle\" treats a count of \"40 of 45 mornings\" and a single driver's impression as equal weights. It asks the reader to settle on a midpoint rather than look at how each account was formed."
+ },
+ {
+  "i": 12,
+  "style": "terse",
+  "how": "\"The vast majority of our garden club members agree\" offers agreement as support, without saying how that majority was counted or why they agree."
+ },
+ {
+  "i": 12,
+  "style": "warm",
+  "how": "Leading with \"The vast majority of our garden club members agree\" puts the weight on how many people hold the view. The sentence doesn't say how anyone checked that majority, or what reasons members have, so the reader gets a headcount in place of a reason."
+ },
+ {
+  "i": 13,
+  "style": "terse",
+  "how": "\"growing consensus suggests\" hints at gathering agreement but never says whose, or what it is built on."
+ },
+ {
+  "i": 13,
+  "style": "warm",
+  "how": "The phrase \"growing consensus suggests\" gives the sense that more and more people are coming around. It leaves out who they are and why, so the reader is asked to follow a trend without seeing what drives it."
+ },
+ {
+  "i": 14,
+  "style": "terse",
+  "how": "\"Our goal is to\" states an intention, which can stand in for saying whether buses are actually running on time."
+ },
+ {
+  "i": 14,
+  "style": "warm",
+  "how": "Opening with \"Our goal is to\" frames the point as an aim rather than a result. Paired with \"we are committed,\" the sentence tells the reader what is hoped for, and leaves unsaid how the buses are doing now."
+ },
+ {
+  "i": 15,
+  "style": "terse",
+  "how": "\"we strive to deliver\" speaks of effort and intent, so the reader hears an aim rather than a result about battery life."
+ },
+ {
+  "i": 15,
+  "style": "warm",
+  "how": "The words \"we strive to deliver\" describe trying, not achieving. Together with \"fully committed to quality,\" they give the reader a statement of purpose, while the sentence stays silent on how the battery actually performs."
+ },
+ {
+  "i": 16,
+  "style": "terse",
+  "how": "\"the misguided schedule\" slips a judgment into what otherwise reads as a plain report of an announcement."
+ },
+ {
+  "i": 16,
+  "style": "warm",
+  "how": "Most of this sentence reports facts about the timing of \"Route 9\" buses, but \"the misguided schedule\" adds a verdict in the middle of it. The reader takes in an opinion as if it were part of the news, with no reason given for it."
+ },
+ {
+  "i": 17,
+  "style": "terse",
+  "how": "\"The so-called upgrade\" casts doubt on the program's name in passing, inside an otherwise factual description."
+ },
+ {
+  "i": 17,
+  "style": "warm",
+  "how": "Calling it \"The so-called upgrade\" signals skepticism before the reader learns anything about the program. The rest of the sentence is plain description, so the doubt arrives without any stated reason and can color how the details are read."
+ },
+ {
+  "i": 18,
+  "style": "terse",
+  "how": "\"A few insist that caterpillar stripes predict a hard winter, yet scientists who study weather point out\" frames the matter as two sides, while the word choices signal how much weight each is meant to carry."
+ },
+ {
+  "i": 18,
+  "style": "warm",
+  "how": "The wording \"A few insist that caterpillar stripes predict a hard winter, yet scientists who study weather point out\" sets up a back-and-forth. That gives the first view a place in the discussion, and the contrast between \"A few\" and the experts tells the reader how to rank them."
+ },
+ {
+  "i": 19,
+  "style": "terse",
+  "how": "\"Some claim that overnight charging ruins a phone battery in a month, while researchers who test batteries disagree\" presents a two-sided debate without saying what either side is basing its view on."
+ },
+ {
+  "i": 19,
+  "style": "warm",
+  "how": "The wording \"Some claim that overnight charging ruins a phone battery in a month, while researchers who test batteries disagree\" gives the shape of a debate. It shows neither side's evidence, so the reader is left to weigh the two by their labels alone."
+ },
+ {
+  "i": 20,
+  "style": "terse",
+  "how": "Putting \"improved\" in quotation marks hints at doubt about the word, without saying what the doubt is."
+ },
+ {
+  "i": 20,
+  "style": "warm",
+  "how": "The quotation marks around \"improved\" (and around \"shorter\") suggest the words shouldn't be taken at face value. The sentence never says why, so the reader picks up a note of skepticism without any reason attached to it."
+ },
+ {
+  "i": 21,
+  "style": "terse",
+  "how": "Wrapping \"homemade\" in quotation marks signals doubt about the word and invites the reader to share it, without spelling out why."
+ },
+ {
+  "i": 21,
+  "style": "warm",
+  "how": "Setting \"homemade\" (and \"fresh\") inside quotation marks gives them an ironic tilt. The reader is nudged to doubt the words, while the sentence leaves the reasoning to the detail about \"store boxes\" rather than stating it."
+ },
+ {
+  "i": 22,
+  "style": "terse",
+  "how": "\"claimed\" frames the treasurer's statement as more doubtful than the volunteers', who simply \"said\" theirs."
+ },
+ {
+  "i": 22,
+  "style": "warm",
+  "how": "The volunteers \"said\" their figure, while the treasurer \"claimed\" a different one. That small difference in verbs makes one account sound plain and the other sound questionable, even though the sentence gives no reason to treat them differently."
+ },
+ {
+  "i": 23,
+  "style": "terse",
+  "how": "\"alleged\" makes the homeowner's statement sound less certain than the contractor's, which is simply something the contractor \"said.\""
+ },
+ {
+  "i": 23,
+  "style": "warm",
+  "how": "The contractor \"said\" the work was done, but the homeowner \"alleged\" a problem. Using a weaker, more doubtful verb for one side tilts how the reader hears the two accounts, even though both are just reports of what someone stated."
+ },
+ {
+  "i": 24,
+  "style": "terse",
+  "how": "\"top firms all use\" looks only at the shops still doing well, so the reader never sees whether struggling or closed shops did the same."
+ },
+ {
+  "i": 24,
+  "style": "warm",
+  "how": "The phrase \"top firms all use\" draws a lesson from the winners alone. It leaves out shops that may have used \"same-day callbacks\" and still failed, so the link it draws can't be checked against the full picture."
+ },
+ {
+  "i": 25,
+  "style": "terse",
+  "how": "\"A $40 investment in a backyard rain barrel would now be worth\" draws its figure only from members who \"still use theirs,\" leaving out anyone who stopped."
+ },
+ {
+  "i": 25,
+  "style": "warm",
+  "how": "The wording \"A $40 investment in a backyard rain barrel would now be worth\" sounds like a general result. But the sentence bases it on \"members who still use theirs,\" so those who gave up are missing, and the reader sees only the cases that stayed."
+ },
+ {
+  "i": 26,
+  "style": "terse",
+  "how": "\"Since March, the school bake sale fund has gained 40%\" picks one starting point, and the reader can't tell how the fund looks over a longer or different stretch."
+ },
+ {
+  "i": 26,
+  "style": "warm",
+  "how": "The wording \"Since March, the school bake sale fund has gained 40%\" frames the change around a single chosen start date. The reader isn't told why that date, or what a different window would show, before the sentence moves on to say \"the new cookie table is paying off.\""
+ },
+ {
+  "i": 27,
+  "style": "terse",
+  "how": "\"In the last two months, the Route 9 bus beat\" rests the comparison on a short, chosen window, without showing the longer record."
+ },
+ {
+  "i": 27,
+  "style": "warm",
+  "how": "Framing it as \"In the last two months, the Route 9 bus beat\" every other line puts the spotlight on one recent stretch. The sentence doesn't say how the line compares over other periods, so the reader can't tell whether this window is typical."
+ },
+ {
+  "i": 28,
+  "style": "terse",
+  "how": "\"Either we raise the bake sale prices this year or\" presents just two outcomes, leaving out any other way to fund the trip."
+ },
+ {
+  "i": 28,
+  "style": "warm",
+  "how": "The \"Either ... or\" shape of \"Either we raise the bake sale prices this year or\" narrows the choice to two paths. It never mentions other options the committee might have, so the reader is pushed to pick between only the two on offer."
+ },
+ {
+  "i": 29,
+  "style": "terse",
+  "how": "\"only two options\" cuts the choice down to buying new or putting up with \"the lag,\" and leaves every other path unmentioned."
+ },
+ {
+  "i": 29,
+  "style": "warm",
+  "how": "Saying there are \"only two options\" frames the decision as a strict pair. The sentence doesn't consider anything between or beyond \"buy the new model\" and \"live with the lag,\" so the reader is steered into a narrower choice than may exist."
+ },
+ {
+  "i": 30,
+  "style": "terse",
+  "how": "\"Act now\" puts the reader on a clock and pairs it with a warning about being \"stuck,\" which pushes for a quick decision over a considered one."
+ },
+ {
+  "i": 30,
+  "style": "warm",
+  "how": "The opening \"Act now\" sets a deadline, and the rest of the sentence raises the cost of missing it with \"stuck\" and \"for years.\" Together they press the reader to move fast, without saying why the timing matters."
+ },
+ {
+  "i": 31,
+  "style": "terse",
+  "how": "\"irreversible\" raises the stakes to permanent loss, pressing the reader to act without saying how soon or how likely that is."
+ },
+ {
+  "i": 31,
+  "style": "warm",
+  "how": "The word \"irreversible\" turns a \"small roof leak\" into a lasting loss. It adds weight and urgency to the warning, while the sentence leaves out how quickly that would happen or under what conditions."
+ },
+ {
+  "i": 32,
+  "style": "terse",
+  "how": "\"Any reasonable person\" makes disagreeing feel unreasonable, so the reader is nudged to agree to avoid that label rather than because of a reason."
+ },
+ {
+  "i": 32,
+  "style": "warm",
+  "how": "Starting with \"Any reasonable person\" ties the choice to being sensible. A reader who sees it differently is quietly placed outside that group, and the sentence gives no reason for the upgrade beyond that pressure."
+ },
+ {
+  "i": 33,
+  "style": "terse",
+  "how": "\"How could anyone possibly\" frames skipping the sale as hard to defend, making a different choice feel embarrassing rather than answering it."
+ },
+ {
+  "i": 33,
+  "style": "warm",
+  "how": "The question \"How could anyone possibly\" isn't really asking; it makes not going feel shameful. Pointing to \"all the work the parents put into planning it,\" the sentence leans on guilt instead of offering a reason to attend."
+ },
+ {
+  "i": 34,
+  "style": "terse",
+  "how": "\"simply heartbreaking\" offers a strong feeling where a description of the schedule's effects might go."
+ },
+ {
+  "i": 34,
+  "style": "warm",
+  "how": "Calling the change \"simply heartbreaking\" tells the reader how to feel about it. The sentence doesn't say what actually changed for riders on \"Route 4,\" so the emotion stands in for the details that would explain it."
+ },
+ {
+  "i": 35,
+  "style": "terse",
+  "how": "\"The devastation speaks for itself\" asks the reader to let the feeling do the work, instead of setting out a reason to chip in."
+ },
+ {
+  "i": 35,
+  "style": "warm",
+  "how": "With \"The devastation speaks for itself,\" the sentence skips the explaining. It invites the reader to be moved by the storm's damage and to let that feeling carry the request for \"new raised beds,\" without stating what is needed or why."
+ },
+ {
+  "i": 36,
+  "style": "terse",
+  "how": "\"Any caring person would agree\" ties agreement to being caring, so disagreeing seems uncaring rather than just a different view."
+ },
+ {
+  "i": 36,
+  "style": "warm",
+  "how": "The phrase \"Any caring person would agree\" makes the choice of \"Saturday, not Friday\" a matter of character. It offers no practical reason for the day, and a reader who prefers Friday is quietly cast as not caring."
+ },
+ {
+  "i": 37,
+  "style": "terse",
+  "how": "\"it is simply a matter of basic decency\" lifts the question out of practical terms and makes one answer the decent one."
+ },
+ {
+  "i": 37,
+  "style": "warm",
+  "how": "By setting aside \"a budget question\" and saying \"it is simply a matter of basic decency,\" the sentence moves the debate onto moral ground. That makes weighing costs feel improper, and it leaves out what the trade-offs actually are."
+ },
+ {
+  "i": 38,
+  "style": "terse",
+  "how": "\"Those who object to the new bus schedule fail to grasp\" turns attention from the objection to the objectors' understanding, and the objection itself goes unanswered."
+ },
+ {
+  "i": 38,
+  "style": "warm",
+  "how": "Rather than responding to what the objectors say, \"Those who object to the new bus schedule fail to grasp\" questions whether they understand. The sentence doesn't say what they are missing, so the reader gets a doubt about the critics instead of a reply to them."
+ },
+ {
+  "i": 39,
+  "style": "terse",
+  "how": "\"simply don't understand the technical requirements\" points at the customers' knowledge instead of their question, and never says what they have missed."
+ },
+ {
+  "i": 39,
+  "style": "warm",
+  "how": "The phrase \"simply don't understand the technical requirements\" shifts the focus from the question to the people asking it. It doesn't explain the requirements or how they answer the concern, so the reader is left with a judgment of understanding in place of an answer."
+ },
+ {
+  "i": 40,
+  "style": "terse",
+  "how": "\"what they're really asking\" restates a plain request as something larger and easier to reject, and the original ask of \"one more evening bus\" drops out of view."
+ },
+ {
+  "i": 40,
+  "style": "warm",
+  "how": "The riders asked for \"one more evening bus,\" but \"what they're really asking\" swaps that request for a different one. The new version is easier to wave off, and the sentence never deals with the request as it was actually made."
+ },
+ {
+  "i": 41,
+  "style": "terse",
+  "how": "\"that is really just\" recasts a request for ingredient labels as something else, so the reader is invited to dismiss it without weighing the request itself."
+ },
+ {
+  "i": 41,
+  "style": "warm",
+  "how": "Through \"that is really just,\" the sentence replaces the parents' stated request with a different purpose. It offers no basis for that reading, and the original idea, that \"each item\" carry \"an ingredient label,\" is set aside rather than discussed."
+ },
+ {
+  "i": 42,
+  "style": "terse",
+  "how": "\"is ruining my life\" pins a whole life's troubles on one cause, without saying what specifically has gone wrong."
+ },
+ {
+  "i": 42,
+  "style": "warm",
+  "how": "The phrase \"is ruining my life\" makes a schedule change responsible for everything at once. That sweeping wording conveys strong feeling, but it leaves out which parts of the day are affected and whether anything else plays a part."
+ },
+ {
+  "i": 43,
+  "style": "terse",
+  "how": "\"ruined everything\" credits one person with wrecking the whole spring, without naming what went wrong or any other factor."
+ },
+ {
+  "i": 43,
+  "style": "warm",
+  "how": "Saying the new president \"ruined everything\" folds every problem into a single cause. The sentence names no specific setback, so the reader gets a total verdict without the details that would let them judge its scope."
+ },
+ {
+  "i": 44,
+  "style": "terse",
+  "how": "\"Because of the new coach everything has gone downhill\" hangs every setback on one cause and leaves no room for others."
+ },
+ {
+  "i": 44,
+  "style": "warm",
+  "how": "The wording \"Because of the new coach everything has gone downhill\" puts all of the season's trouble on a single source. It doesn't say what went wrong or mention anything else that might have contributed, so the reader sees one cause standing in for many."
+ },
+ {
+  "i": 45,
+  "style": "terse",
+  "how": "\"the sole reason why\" rules out every other cause for the shortfall, without explaining how the others were excluded."
+ },
+ {
+  "i": 45,
+  "style": "warm",
+  "how": "Calling the rain \"the sole reason why\" leaves no room for anything else. The sentence doesn't say how other factors were ruled out, so the reader is asked to accept a single explanation for a result that could have several."
+ },
+ {
+  "i": 46,
+  "style": "terse",
+  "how": "\"sanctions will be sought\" adds a threat with a deadline, which pressures withdrawal instead of addressing the roofer's claim on its merits."
+ },
+ {
+  "i": 46,
+  "style": "warm",
+  "how": "Alongside calling the claim \"baseless,\" the sentence warns that \"sanctions will be sought\" unless it is dropped \"by Friday.\" That turns the exchange toward consequences and timing, and leaves out any reasoning about the claim itself."
+ },
+ {
+  "i": 47,
+  "style": "terse",
+  "how": "\"seeking sanctions against\" raises the cost of continuing the argument, and the fence-line question itself is never addressed."
+ },
+ {
+  "i": 47,
+  "style": "warm",
+  "how": "The phrase \"seeking sanctions against\" ties the club's argument to a penalty. Rather than answering the \"fence-line argument,\" the sentence makes pursuing it sound risky, so the pressure comes from the threat rather than from any reason given."
+ },
+ {
+  "i": 48,
+  "style": "terse",
+  "how": "\"Plaintiff claims that every\" restates the position in its broadest form, which makes it easier to knock down than a narrower version would be."
+ },
+ {
+  "i": 48,
+  "style": "warm",
+  "how": "The wording \"Plaintiff claims that every\" shingle was wrong casts the position at its most sweeping. The sentence then answers that stretched version, and the reader can't tell whether it matches what was actually argued."
+ },
+ {
+  "i": 49,
+  "style": "terse",
+  "how": "\"is essentially arguing that we should\" recasts the club's position as an extreme \"never,\" which is easier to reject than whatever was actually argued."
+ },
+ {
+  "i": 49,
+  "style": "warm",
+  "how": "Through \"is essentially arguing that we should,\" the sentence sums up the other side in its own terms. The result, \"never be allowed,\" is an extreme version that is easy to oppose, and the reader doesn't see the original argument to compare."
+ },
+ {
+  "i": 50,
+  "style": "terse",
+  "how": "\"Many people\" suggests broad support but never says who or how many, so the reader has no way to gauge it."
+ },
+ {
+  "i": 50,
+  "style": "warm",
+  "how": "Opening with \"Many people\" gives a sense of wide agreement without saying who these people are. The same vagueness carries into \"some experts,\" so the reader is asked to accept support whose size and source are both unstated."
+ },
+ {
+  "i": 51,
+  "style": "terse",
+  "how": "\"It is widely believed\" leans on unnamed agreement, giving the reader no sense of whose belief this is or what it rests on."
+ },
+ {
+  "i": 51,
+  "style": "warm",
+  "how": "The phrase \"It is widely believed\" points to a crowd without naming anyone in it. Together with \"growing support,\" it gives the impression of momentum while leaving out who holds the view and how widely."
+ },
+ {
+  "i": 52,
+  "style": "terse",
+  "how": "\"Shocking\" sets an alarmed tone before the reader learns that the change is a shift from every 15 to every 20 minutes."
+ },
+ {
+  "i": 52,
+  "style": "warm",
+  "how": "Leading with \"Shocking\" tells the reader how to react before giving any details. The facts that follow are fairly plain, so the opening word shapes the feeling around them rather than describing them."
+ },
+ {
+  "i": 53,
+  "style": "terse",
+  "how": "\"Heartbreaking\" sets an emotional frame before the reader reaches the figures that follow."
+ },
+ {
+  "i": 53,
+  "style": "warm",
+  "how": "The sentence starts with \"Heartbreaking,\" so the reader meets a strong feeling before any facts. By the time the figures arrive, the tone has already been set, which can shape how the numbers are read."
+ },
+ {
+  "i": 54,
+  "style": "terse",
+  "how": "\"However, the town engineer found no evidence\" comes last, after a long build-up, so the reader may already have taken in the blame before reaching it."
+ },
+ {
+  "i": 54,
+  "style": "warm",
+  "how": "The qualifier \"However, the town engineer found no evidence\" sits at the very end of a long passage about damage and \"blaming the old storm drains.\" Placed there, it is easy to miss, and the first impression has already formed by the time the reader gets to it."
+ },
+ {
+  "i": 55,
+  "style": "terse",
+  "how": "\"though, the drain was not confirmed\" arrives only at the end, after the vivid forum reaction has set the impression."
+ },
+ {
+  "i": 55,
+  "style": "warm",
+  "how": "Most of the passage covers angry posts and a thread titled \"This update ruined my phone.\" The closing \"though, the drain was not confirmed\" comes last and quietly, so a reader skimming may carry away the earlier impression and miss the qualifier."
+ },
+ {
+  "i": 56,
+  "style": "terse",
+  "how": "\"is expected to\" frames a forecast in confident terms without saying who expects it or on what basis."
+ },
+ {
+  "i": 56,
+  "style": "warm",
+  "how": "The phrase \"is expected to\" presents a prediction smoothly, almost like news. The sentence doesn't say who holds the expectation or why, and \"could well\" adds further speculation in the same assured tone."
+ },
+ {
+  "i": 57,
+  "style": "terse",
+  "how": "\"is poised to\" makes a prediction sound nearly settled, while leaving out who says so or what it rests on."
+ },
+ {
+  "i": 57,
+  "style": "warm",
+  "how": "Saying the team \"is poised to\" win gives a forecast the feel of something about to happen. Paired with \"signs point to,\" the sentence speaks confidently about the future without saying what those signs are."
+ },
+ {
+  "i": 58,
+  "style": "terse",
+  "how": "\"down 45% from the record high\" measures the price against its peak, which makes it look like a bargain without saying what a normal price is."
+ },
+ {
+  "i": 58,
+  "style": "warm",
+  "how": "The comparison \"down 45% from the record high\" sets the peak as the reference point. That makes today's price seem low, but the reader isn't told how the price compares to typical years before being urged to \"finally buy them.\""
+ },
+ {
+  "i": 59,
+  "style": "terse",
+  "how": "\"selling at just 40% of its peak price\" anchors the reader to the highest price, so the current one seems small by comparison."
+ },
+ {
+  "i": 59,
+  "style": "warm",
+  "how": "Describing the phone as \"selling at just 40% of its peak price\" makes the peak the yardstick. The word \"just\" adds to the sense of a deal, while the sentence leaves out what the phone is worth compared to other options now."
+ },
+ {
+  "i": 60,
+  "style": "terse",
+  "how": "\"sales will reach $600\" states a future result as a certainty, with no sign that it is an estimate."
+ },
+ {
+  "i": 60,
+  "style": "warm",
+  "how": "The words \"sales will reach $600\" talk about the coming sale as if the outcome were already known. Nothing marks it as a guess or explains where the figure comes from, so the reader may take a forecast as fact."
+ },
+ {
+  "i": 61,
+  "style": "terse",
+  "how": "\"the price will fall\" states a future change as certain, without saying it is a projection or what it is based on."
+ },
+ {
+  "i": 61,
+  "style": "warm",
+  "how": "Saying \"the price will fall\" by half treats a forecast as a done deal. The sentence gives no source or hedge, so the reader is invited to plan around something that hasn't happened yet."
+ },
+ {
+  "i": 62,
+  "style": "terse",
+  "how": "\"there's no reason to think this will stop\" carries a short recent run forward as if it would continue, without offering a reason it should."
+ },
+ {
+  "i": 62,
+  "style": "warm",
+  "how": "After pointing to \"three springs in a row,\" the sentence adds \"there's no reason to think this will stop.\" That extends a recent pattern into the future and puts the burden on doubt, while giving no reason the pattern itself should hold."
+ },
+ {
+  "i": 63,
+  "style": "terse",
+  "how": "\"continues its winning ways\" treats a recent streak as if it will keep going, which is what makes planning \"the championship parade\" sound reasonable."
+ },
+ {
+  "i": 63,
+  "style": "warm",
+  "how": "The phrase \"continues its winning ways\" turns \"six straight wins\" into a trend that seems set to last. The sentence then jumps ahead to \"the championship parade,\" letting a recent run stand in for what will happen next."
+ },
+ {
+  "i": 64,
+  "style": "terse",
+  "how": "\"Pursuant to the implementation\" wraps a simple change in process language, so the plain news, buses every 20 minutes instead of 15, takes longer to reach."
+ },
+ {
+  "i": 64,
+  "style": "warm",
+  "how": "Opening with \"Pursuant to the implementation\" puts formal process words ahead of the actual point. The reader has to get past that phrasing to learn the simple fact about \"every 20 minutes,\" and the wording makes the change sound routine and settled."
+ },
+ {
+  "i": 65,
+  "style": "terse",
+  "how": "\"Notwithstanding the foregoing\" adds formal legal phrasing that makes the point harder to follow and refers to something the reader can't see."
+ },
+ {
+  "i": 65,
+  "style": "warm",
+  "how": "The phrase \"Notwithstanding the foregoing\" points back to earlier text without saying what it was. That formal wrapping makes the warranty point sound official, while leaving the reader unsure what is being set aside."
+ },
+ {
+  "i": 66,
+  "style": "terse",
+  "how": "\"Wellsmere-educated nutritionist says\" offers a school and title as the reason to accept the view, with no reason given about the menu itself."
+ },
+ {
+  "i": 66,
+  "style": "warm",
+  "how": "The sentence leans on \"Wellsmere-educated nutritionist says\" to carry the point. It tells the reader who holds the view and where they studied, but not what about the menu makes it \"healthier,\" before moving straight to what \"the board should\" do."
+ },
+ {
+  "i": 67,
+  "style": "terse",
+  "how": "\"As a baker with thirty years of experience, I can tell you\" puts experience forward as the reason to agree, without giving any reason about the sale itself."
+ },
+ {
+  "i": 67,
+  "style": "warm",
+  "how": "Opening with \"As a baker with thirty years of experience, I can tell you\" rests the view on a background. Experience may be relevant, but the sentence doesn't say why selling \"only bread\" makes sense, so the credential does the arguing."
+ },
+ {
+  "i": 68,
+  "style": "terse",
+  "how": "\"The transit board has concluded that\" reports a finding with no reasons or evidence, asking the reader to accept it because of who reached it."
+ },
+ {
+  "i": 68,
+  "style": "warm",
+  "how": "The phrase \"The transit board has concluded that\" presents the matter as decided by a body. The sentence doesn't say what the board looked at or how \"working\" was measured, so the reader is asked to take the conclusion on the board's standing alone."
+ },
+ {
+  "i": 69,
+  "style": "terse",
+  "how": "\"The garden club has found that\" presents a conclusion with no sign of how it was reached or what it rests on."
+ },
+ {
+  "i": 69,
+  "style": "warm",
+  "how": "With \"The garden club has found that,\" the sentence offers a finding as settled. It doesn't say what was tested or how \"works\" was judged, so the reader gets the result without any of the reasoning behind it."
+ },
+ {
+  "i": 70,
+  "style": "terse",
+  "how": "\"As a neutral third party\" asks the reader to trust the judgment because it calls itself neutral, rather than showing why the upgrade is fair."
+ },
+ {
+  "i": 70,
+  "style": "warm",
+  "how": "The phrase \"As a neutral third party\" claims fairness up front. The sentence then gives its verdict without any supporting detail, so the label of neutrality stands in for the evidence a reader would need to judge it."
+ },
+ {
+  "i": 71,
+  "style": "terse",
+  "how": "\"reflects the evidence objectively\" claims objectivity instead of showing the evidence, so the reader is asked to take the review's fairness on its word."
+ },
+ {
+  "i": 71,
+  "style": "warm",
+  "how": "Saying the review \"reflects the evidence objectively\" describes its own fairness. It doesn't show any of that evidence, so the reader has a claim of objectivity but nothing to check it against."
+ },
+ {
+  "i": 72,
+  "style": "terse",
+  "how": "\"Leading organizations recommend\" leans on unnamed bodies, so the reader can't see who recommends this or why."
+ },
+ {
+  "i": 72,
+  "style": "warm",
+  "how": "The phrase \"Leading organizations recommend\" borrows authority without naming anyone. The sentence then moves straight to the club's decision, leaving the reader unable to check who gave the advice or what it was based on."
+ },
+ {
+  "i": 73,
+  "style": "terse",
+  "how": "\"Industry leaders have long recognized\" points to unnamed authority and long-standing agreement, without saying who or on what basis."
+ },
+ {
+  "i": 73,
+  "style": "warm",
+  "how": "Opening with \"Industry leaders have long recognized\" suggests a well-established view held by people in the know. The sentence names none of them and gives no reasoning, so the reader is asked to trust a standard whose source is left blank."
+ },
+ {
+  "i": 74,
+  "style": "terse",
+  "how": "\"completely destroyed\" describes the damage in total terms, leaving no room for a sense of how much was actually lost."
+ },
+ {
+  "i": 74,
+  "style": "warm",
+  "how": "Saying the storm \"completely destroyed\" the garden puts the harm at its maximum. The wording carries the shock of the event, but it doesn't tell the reader what was lost and what, if anything, made it through."
+ },
+ {
+  "i": 75,
+  "style": "terse",
+  "how": "\"everything is ruined\" sums up the damage as total, without saying what was affected."
+ },
+ {
+  "i": 75,
+  "style": "warm",
+  "how": "The phrase \"everything is ruined\" gives the flooding a sweeping, all-or-nothing scale. It conveys how bad it feels, but the reader learns nothing about what was actually damaged or how badly."
+ },
+ {
+  "i": 76,
+  "style": "terse",
+  "how": "\"settled law\" treats the question as closed, which is used to set aside the new member's question without answering it."
+ },
+ {
+  "i": 76,
+  "style": "warm",
+  "how": "Calling the plot rules \"settled law\" frames them as beyond discussion. The sentence uses that framing to say the question \"needs no answer,\" so the reader sees the question shut down rather than addressed."
+ },
+ {
+  "i": 77,
+  "style": "terse",
+  "how": "\"well settled that\" presents a rule as beyond dispute, so the coach's request is dismissed without any reasoning shown."
+ },
+ {
+  "i": 77,
+  "style": "warm",
+  "how": "The phrase \"well settled that\" signals that the matter is closed and needs no argument. It names no source for that settlement, and the sentence moves straight to saying the request \"fails,\" leaving the reader without the reasoning behind it."
+ },
+ {
+  "i": 78,
+  "style": "terse",
+  "how": "\"plainly meritless\" declares the homeowner's claim obviously empty without engaging with what it says."
+ },
+ {
+  "i": 78,
+  "style": "warm",
+  "how": "Calling the claim \"plainly meritless\" suggests it doesn't deserve a closer look. The sentence gives no reason for that label, so the reader is asked to accept the dismissal without seeing why the claim about \"the second coat of sealant\" falls short."
+ },
+ {
+  "i": 79,
+  "style": "terse",
+  "how": "\"wholly without merit\" dismisses the challenge in total terms, offering no reason the reader can weigh."
+ },
+ {
+  "i": 79,
+  "style": "warm",
+  "how": "The phrase \"wholly without merit\" rejects the challenge as entirely empty. It doesn't say what is wrong with the club's objection to \"the new plot fees,\" so the strength of the wording takes the place of an explanation."
+ },
+ {
+  "i": 80,
+  "style": "terse",
+  "how": "\"The weight of authority\" suggests a pile of support on one side without naming any of it."
+ },
+ {
+  "i": 80,
+  "style": "warm",
+  "how": "Leaning on \"The weight of authority,\" the sentence implies that many sources line up behind keeping the sale in the gym. It doesn't say what those sources are, so the reader is asked to trust the sense of volume rather than any specific reason."
+ },
+ {
+  "i": 81,
+  "style": "terse",
+  "how": "\"Every court that has addressed\" implies unanimous backing, but names no case and doesn't say whether those disputes resemble this one."
+ },
+ {
+  "i": 81,
+  "style": "warm",
+  "how": "The phrase \"Every court that has addressed\" suggests a complete record on one side. The sentence names no decisions and doesn't say how alike the cases were, so the reader is asked to accept that sweep of support on the wording alone."
+ },
+ {
+  "i": 82,
+  "style": "terse",
+  "how": "\"failed to raise\" shifts attention to timing, so the question about whether \"the cookies cost too much\" is set aside without being looked at."
+ },
+ {
+  "i": 82,
+  "style": "warm",
+  "how": "Through \"failed to raise,\" the sentence makes the concern about missing a deadline. That procedural point becomes the reason \"it will not look at\" the prices, so the reader hears about when the concern was raised rather than whether it holds up."
+ },
+ {
+  "i": 83,
+  "style": "terse",
+  "how": "\"waived any objection\" treats missing a deadline as giving up the concern entirely, so the substance about \"longer waits\" goes undiscussed."
+ },
+ {
+  "i": 83,
+  "style": "warm",
+  "how": "The phrase \"waived any objection\" turns a missed \"comment period\" into a reason not to talk about the issue at all. The sentence uses that procedural step to close the door, leaving the question of \"the longer waits on Route 9\" unexamined."
+ },
+ {
+  "i": 84,
+  "style": "terse",
+  "how": "\"People familiar with the discussions\" gives the report an inside feel while leaving the reader no way to know who is speaking or how they know."
+ },
+ {
+  "i": 84,
+  "style": "warm",
+  "how": "Attributing the news to \"People familiar with the discussions\" suggests inside knowledge. The sentence doesn't say who these people are or how close they are to the decision, so the reader can't weigh how much to rely on them."
+ },
+ {
+  "i": 85,
+  "style": "terse",
+  "how": "\"Unnamed sources\" puts the claim on people the reader can't identify, so there is no way to judge how they know."
+ },
+ {
+  "i": 85,
+  "style": "warm",
+  "how": "Leaning on \"Unnamed sources\" gives the report backing without saying whose. The reader can't tell where the information came from or how reliable it is, yet the sentence presents the price point with the same confidence as a named source."
+ }
+]

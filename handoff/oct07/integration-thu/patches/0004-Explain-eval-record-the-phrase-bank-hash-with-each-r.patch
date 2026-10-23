@@ -1,0 +1,151 @@
+From d93f76d7c5e8f575cd066bacb96e89751828d612 Mon Sep 17 00:00:00 2001
+From: BiasClear <noreply@biasclear.com>
+Date: Wed, 7 Oct 2026 13:41:45 -0500
+Subject: [PATCH 04/10] Explain eval: record the phrase-bank hash with each raw
+ selection (304)
+
+The evaluation's direct invoke returns `bankHash`, the SHA-256 of the
+bundled phrase bank, beside the model's raw selection; the displayed
+explanation stays in the body only. sampleOf and perAnswer carry it, so a
+recorded id can't be re-read against an edited bank (304 found one stale
+id, u8, after a renumbering).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ packages/explain/ops/ops.ts                     | 5 ++++-
+ packages/explain/src/app.ts                     | 5 ++++-
+ packages/explain/src/compose.ts                 | 8 ++++++++
+ packages/explain/test/evaluation-report.test.ts | 6 ++++++
+ packages/explain/test/handler.test.ts           | 5 +++++
+ 5 files changed, 27 insertions(+), 2 deletions(-)
+
+diff --git a/packages/explain/ops/ops.ts b/packages/explain/ops/ops.ts
+index d592475..dc54286 100644
+--- a/packages/explain/ops/ops.ts
++++ b/packages/explain/ops/ops.ts
+@@ -140,6 +140,8 @@ export interface Sample {
+   outTok?: number;
+   promptBytes?: number;
+   raw?: string;
++  /** The phrase bank the raw selection's ids refer to. */
++  bankHash?: string;
+   micros?: number;
+   ms?: number;
+   model?: string;
+@@ -294,6 +296,7 @@ export function sampleOf(line: RawLine): Sample {
+     ...(typeof e.outTok === "number" ? { outTok: e.outTok } : {}),
+     ...(typeof e.promptBytes === "number" ? { promptBytes: e.promptBytes } : {}),
+     ...(typeof e.raw === "string" ? { raw: e.raw } : {}),
++    ...(typeof e.bankHash === "string" ? { bankHash: e.bankHash } : {}),
+     ...(typeof e.micros === "number" ? { micros: e.micros } : {}),
+     ...(typeof e.ms === "number" ? { ms: e.ms } : {}),
+     ...(typeof body.model === "string" ? { model: body.model } : {}),
+@@ -443,7 +446,7 @@ export function report(f: Fixtures, planned: number, rawLines: RawLine[], option
+     if (control) addDimension("controlSet", control.set, x);
+     return { id: x.id, part: x.part, sample: x.sample, key: x.key, side, topic, rule: x.request.rule,
+       status: x.s?.status ?? null, outcome: x.outcome, modelCalled: x.s === undefined ? null : calledModel(x.s),
+-      providerStopReason: x.s?.providerStopReason ?? null, providerTextTruncated: x.s?.providerTextTruncated ?? null, providerTextChars: x.s?.providerTextChars ?? null, refusalLike: x.s === undefined ? false : refusalLike(x.s),
++      bankHash: x.s?.bankHash ?? null, providerStopReason: x.s?.providerStopReason ?? null, providerTextTruncated: x.s?.providerTextTruncated ?? null, providerTextChars: x.s?.providerTextChars ?? null, refusalLike: x.s === undefined ? false : refusalLike(x.s),
+       preflightRejected: x.s === undefined ? false : preflightRejected(x.s), outputRejected: x.s === undefined ? false : outputRejected(x.s),
+       inTok: x.s?.inTok ?? null, outTok: x.s?.outTok ?? null, inputBoundTokens: x.s?.inputBoundTokens ?? null,
+       outputBoundTokens: x.s?.outputBoundTokens ?? null, reservedMicros: x.s?.reservedMicros ?? null,
+diff --git a/packages/explain/src/app.ts b/packages/explain/src/app.ts
+index abd23f6..532425f 100644
+--- a/packages/explain/src/app.ts
++++ b/packages/explain/src/app.ts
+@@ -12,7 +12,7 @@ import { Ddb, DdbError } from "./aws/dynamodb.js";
+ import { converseModel, modelRequest, readAccountSettings, type ModelOutcome } from "./aws/bedrock.js";
+ import type { Transport } from "./aws/transport.js";
+ import { CodedError, type Code, type ErrorName, type PlainerState } from "./codes.js";
+-import { pickLimits, quotable } from "./compose.js";
++import { bankHash, pickLimits, quotable } from "./compose.js";
+ import type { Config } from "./config.js";
+ import type { EngineRegistry } from "./engines.js";
+ import { STATUS, ROUTE_PATH, errorResponse, header, jsonResponse, preflight, type HttpEvent, type HttpResult } from "./http.js";
+@@ -90,6 +90,8 @@ export interface EvaluationResult {
+     ms?: number | undefined;
+     /** The model's text, returned to the evaluation's IAM caller only. Never logged. */
+     raw?: string | undefined;
++    /** The phrase bank the raw selection's ids refer to (src/compose.ts), kept apart from the displayed text. */
++    bankHash?: string | undefined;
+   };
+ }
+ 
+@@ -302,6 +304,7 @@ async function explain(
+   // same refusal the checker would give after the call (src/compose.ts), without spending.
+   const mark = req.sentence.slice(req.start, req.end);
+   if (pickLimits(req.rule, mark) === undefined) stop("no_answer", quotable(mark) ? "E_OUT_HOW" : "E_OUT_PLAIN_TEXT");
++  if (evaluation) detail.bankHash = bankHash();
+   line.model = model.key;
+   const prompt = buildPrompt(deps.promptMode, move, req.sentence, req.start, req.end, req.rule);
+   detail.promptBytes = prompt.bytes;
+diff --git a/packages/explain/src/compose.ts b/packages/explain/src/compose.ts
+index dce5fa8..16a70b6 100644
+--- a/packages/explain/src/compose.ts
++++ b/packages/explain/src/compose.ts
+@@ -11,6 +11,7 @@
+ // the bank doesn't hold for this move, repeats one, or carries any other key or
+ // text is refused.
+ 
++import { createHash } from "node:crypto";
+ import phrasesJson from "../data/explain-phrases.json";
+ import { sentenceCount } from "./text.js";
+ 
+@@ -64,6 +65,13 @@ export function bundledBank(): PhraseBank {
+   return bundled;
+ }
+ 
++let bundledHash: string | undefined;
++/** SHA-256 of the bundled bank as parsed, so a recorded selection names the exact bank its ids came from. */
++export function bankHash(): string {
++  bundledHash ??= createHash("sha256").update(JSON.stringify(phrasesJson)).digest("hex");
++  return bundledHash;
++}
++
+ /** The -s form of a base verb, for a one-word mark ("The word "inevitable" presents ..."). */
+ export function thirdPerson(verb: string): string {
+   const irregular: Record<string, string> = { be: "is", have: "has", do: "does", go: "goes" };
+diff --git a/packages/explain/test/evaluation-report.test.ts b/packages/explain/test/evaluation-report.test.ts
+index 4020012..ef43c88 100644
+--- a/packages/explain/test/evaluation-report.test.ts
++++ b/packages/explain/test/evaluation-report.test.ts
+@@ -37,6 +37,12 @@ describe("observable evaluation outcomes", () => {
+     expect(classifySample({ status: 503, modelCalled: false, code: "E_RESERVE_MONTH" })).toBe("cap");
+     expect(classifySample({ status: -1, invokeFailed: true })).toBe("call_failure");
+   });
++  it("keeps the raw selection's bank hash apart from the displayed explanation", () => {
++    const f = fixtures(), raw = rows(f).map((l) => ({ ...l, evaluation: { ...(l.evaluation as object), bankHash: "b".repeat(64) } }));
++    const r = report(f, raw.length, raw, { model: MODEL, modelId: MODEL_ID });
++    expect((r.results.perAnswer as Array<{ bankHash: string | null }>).every((x) => x.bankHash === "b".repeat(64))).toBe(true);
++    expect(sampleOf(raw[0]!)).toMatchObject({ bankHash: "b".repeat(64), how: "The sentence asks for agreement as a reason." });
++  });
+   it("preserves exact stop reason and actual cost independently of reserved cost", () => {
+     expect(sampleOf({ status: 502, evaluation: { modelCalled: true, providerStopReason: "guardrail_intervened", providerText: "", actualMicros: 150, micros: 100, reservedMicros: 100, pausePersisted: true } })).toMatchObject({
+       providerStopReason: "guardrail_intervened", providerText: "", actualMicros: 150, micros: 100, reservedMicros: 100, pausePersisted: true });
+diff --git a/packages/explain/test/handler.test.ts b/packages/explain/test/handler.test.ts
+index 22215f6..fd96b9d 100644
+--- a/packages/explain/test/handler.test.ts
++++ b/packages/explain/test/handler.test.ts
+@@ -2,7 +2,9 @@
+ // Bedrock model, an in-memory DynamoDB that runs the function's own
+ // expressions, and the two account settings.
+ 
++import { createHash } from "node:crypto";
+ import { describe, expect, it } from "vitest";
++import phrases from "../data/explain-phrases.json";
+ import { MODELS } from "../src/models.js";
+ import { bundledMoves } from "../src/moves.js";
+ import { SYSTEM_PROMPTS, buildPrompt } from "../src/prompt.js";
+@@ -774,6 +776,9 @@ describe("the evaluation's direct invoke", () => {
+     expect(r.evaluation.inTok).toBe(820);
+     expect(r.evaluation.promptBytes).toBeGreaterThan(1000);
+     expect(JSON.parse(r.evaluation.raw as string)).toEqual({ ...GOOD_CHOICE, plainer: GOOD_PLAINER });
++    // The raw selection names its bank; the displayed text is in the body only.
++    expect(r.evaluation.bankHash).toBe(createHash("sha256").update(JSON.stringify(phrases)).digest("hex"));
++    expect(r.evaluation.raw).not.toContain(GOOD_HOW);
+     expect(lastLog(h).evaluation).toBe(1);
+     expect(h.logs.join("\n")).not.toContain("economist");
+   });
+-- 
+2.54.0 (Apple Git-157)
+

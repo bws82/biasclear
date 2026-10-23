@@ -1,0 +1,432 @@
+[
+ {
+  "i": 0,
+  "style": "plain",
+  "how": "\"Everyone knows\" asks the reader to accept the point because it is said to be common knowledge. It does not say who \"everyone\" is or what reasons they have."
+ },
+ {
+  "i": 1,
+  "style": "plain",
+  "how": "This sentence uses \"it is widely accepted\" to stand in for evidence. Agreement among \"home builders\" is offered as the reason, but no test, study or result is given."
+ },
+ {
+  "i": 2,
+  "style": "plain",
+  "how": "\"Studies show\" points to research without naming it. The reader is asked to trust that studies exist, but cannot tell which ones, who did them, or what they found."
+ },
+ {
+  "i": 3,
+  "style": "plain",
+  "how": "Here \"Data shows\" leans on numbers the reader never sees. It does not say what data, where it came from, or how it was measured."
+ },
+ {
+  "i": 4,
+  "style": "plain",
+  "how": "By calling the riders' view \"misinformation,\" the sentence puts a label on it instead of answering it. It does not say what the riders reported or why it is wrong."
+ },
+ {
+  "i": 5,
+  "style": "plain",
+  "how": "\"has been thoroughly debunked\" asks the reader to treat the members' idea as already answered. The sentence does not say who checked it, how, or what was found."
+ },
+ {
+  "i": 6,
+  "style": "plain",
+  "how": "Calling the change \"the inevitable direction\" presents the outcome as already decided. That leaves out any reasons for approving it now, and makes other choices seem pointless."
+ },
+ {
+  "i": 7,
+  "style": "plain",
+  "how": "\"there is no stopping this\" tells the reader the change is already certain. It skips the question of whether the change is a good idea and gives no reasons for dropping the \"paper list.\""
+ },
+ {
+  "i": 8,
+  "style": "plain",
+  "how": "Here the reason given is \"we've always done it this way.\" The sentence treats past habit as enough reason on its own and does not say why May works well."
+ },
+ {
+  "i": 9,
+  "style": "plain",
+  "how": "\"departing from tradition would be unwise\" uses the habit itself as the reason. It does not explain what would go wrong if the \"bake sale\" moved somewhere else."
+ },
+ {
+  "i": 10,
+  "style": "plain",
+  "how": "This sentence describes two very different checks, then says \"both sides make good points.\" That phrase sets them side by side as equally strong without weighing what each one actually looked at."
+ },
+ {
+  "i": 11,
+  "style": "plain",
+  "how": "\"the truth lies somewhere in the middle\" treats a rider log and one driver's view as equal weights. The wording splits the difference instead of comparing how much each side recorded."
+ },
+ {
+  "i": 12,
+  "style": "plain",
+  "how": "\"The vast majority of our garden club members agree\" offers agreement as the reason to accept the point. It does not say how many members, how they were asked, or why they think so."
+ },
+ {
+  "i": 13,
+  "style": "plain",
+  "how": "\"growing consensus suggests\" hints that more and more people agree without saying who they are. The reader is asked to go along with a crowd that is never named or counted."
+ },
+ {
+  "i": 14,
+  "style": "plain",
+  "how": "By opening with \"Our goal is to,\" the sentence states an intention rather than a result. It does not say whether buses are running on time now or what is being done."
+ },
+ {
+  "i": 15,
+  "style": "plain",
+  "how": "\"we strive to deliver\" describes an aim, not an outcome. The wording, along with \"fully committed,\" tells the reader about effort and intent but gives no measure of what the phone actually does."
+ },
+ {
+  "i": 16,
+  "style": "plain",
+  "how": "The word \"misguided\" in \"the misguided schedule\" adds a judgment to what is otherwise a plain report. The reader gets an opinion folded into the news without any reason for it."
+ },
+ {
+  "i": 17,
+  "style": "plain",
+  "how": "\"The so-called upgrade\" signals doubt about the word \"upgrade\" before the facts are given. The sentence casts the program in a doubtful light without saying why."
+ },
+ {
+  "i": 18,
+  "style": "plain",
+  "how": "\"A few insist that caterpillar stripes predict a hard winter, yet scientists who study weather point out\" sets the two views up as an even debate. It does not say how much support each side has."
+ },
+ {
+  "i": 19,
+  "style": "plain",
+  "how": "The wording \"Some claim that overnight charging ruins a phone battery in a month, while researchers who test batteries disagree\" places the two views side by side as matching sides. It suggests an even split without showing how much each has behind it."
+ },
+ {
+  "i": 20,
+  "style": "plain",
+  "how": "Putting \"improved\" in quotation marks hints that the word should not be taken at face value. The sentence casts doubt on it, and on \"shorter,\" without saying what is wrong."
+ },
+ {
+  "i": 21,
+  "style": "plain",
+  "how": "The quotation marks around \"homemade\" suggest the word is doubtful. The reader is nudged to distrust it without being told directly what the problem is."
+ },
+ {
+  "i": 22,
+  "style": "plain",
+  "how": "The volunteers \"said\" but the treasurer \"claimed\" and \"insisted.\" The word \"claimed\" quietly casts doubt on one speaker while the other gets a neutral verb."
+ },
+ {
+  "i": 23,
+  "style": "plain",
+  "how": "The contractor \"said,\" while the homeowner \"alleged\" and \"insisted.\" Using \"alleged\" for one side only makes that side's statement sound less reliable without giving any reason."
+ },
+ {
+  "i": 24,
+  "style": "plain",
+  "how": "\"top firms all use\" draws a lesson only from shops that are doing well. It does not look at shops that closed or whether they used \"same-day callbacks\" too."
+ },
+ {
+  "i": 25,
+  "style": "plain",
+  "how": "\"A $40 investment in a backyard rain barrel would now be worth\" counts only the members \"who still use theirs.\" People who stopped using a barrel are left out of the picture."
+ },
+ {
+  "i": 26,
+  "style": "plain",
+  "how": "\"Since March, the school bake sale fund has gained 40%\" picks one starting point for the result. The sentence does not show how the fund did over other periods or why March was chosen."
+ },
+ {
+  "i": 27,
+  "style": "plain",
+  "how": "\"In the last two months, the Route 9 bus beat\" measures the result over one chosen stretch of time. The reader does not see how the line did over a longer or different period."
+ },
+ {
+  "i": 28,
+  "style": "plain",
+  "how": "\"Either we raise the bake sale prices this year or\" sets up just two outcomes. The sentence does not mention any other way to pay for the \"class trip.\""
+ },
+ {
+  "i": 29,
+  "style": "plain",
+  "how": "\"only two options\" tells the reader there is nothing else to choose. It leaves out any other choices besides \"buy the new model\" or \"live with the lag.\""
+ },
+ {
+  "i": 30,
+  "style": "plain",
+  "how": "\"Act now\" pushes the reader to decide quickly, and the rest of the sentence raises the stakes with being \"stuck\" for \"years.\" It gives no reason why waiting would cause that."
+ },
+ {
+  "i": 31,
+  "style": "plain",
+  "how": "The word \"irreversible\" makes the harm sound total and permanent. The sentence uses that weight to push action but does not explain how or when the damage would become final."
+ },
+ {
+  "i": 32,
+  "style": "plain",
+  "how": "\"Any reasonable person\" makes disagreeing feel unreasonable. It asks the reader to agree to avoid looking foolish, without giving any reason to \"upgrade.\""
+ },
+ {
+  "i": 33,
+  "style": "plain",
+  "how": "\"How could anyone possibly\" turns the choice into something to feel bad about. The question gives no reason to attend, only pressure tied to \"all the work the parents put into planning it.\""
+ },
+ {
+  "i": 34,
+  "style": "plain",
+  "how": "\"simply heartbreaking\" offers a feeling where a reason might go. The sentence does not say what about the \"new bus schedule\" causes the problem for riders."
+ },
+ {
+  "i": 35,
+  "style": "plain",
+  "how": "Here \"The devastation speaks for itself\" lets a strong feeling stand in for an explanation. It does not say what was damaged or why \"new raised beds\" are the answer."
+ },
+ {
+  "i": 36,
+  "style": "plain",
+  "how": "\"Any caring person would agree\" frames one choice as the kind one. A reader who prefers \"Friday\" is made to seem uncaring, and no reason for \"Saturday\" is given."
+ },
+ {
+  "i": 37,
+  "style": "plain",
+  "how": "\"it is simply a matter of basic decency\" turns a practical choice into a moral one. The sentence sets aside the \"budget question\" instead of giving reasons to keep the \"late bus.\""
+ },
+ {
+  "i": 38,
+  "style": "plain",
+  "how": "\"Those who object to the new bus schedule fail to grasp\" questions the critics' understanding rather than their points. The sentence does not say what the objections are or answer them."
+ },
+ {
+  "i": 39,
+  "style": "plain",
+  "how": "The phrase \"simply don't understand the technical requirements\" aims at the customers' grasp, not their questions. It does not explain what those requirements are."
+ },
+ {
+  "i": 40,
+  "style": "plain",
+  "how": "\"what they're really asking\" restates the riders' request as something bigger and easier to wave off. The sentence replaces \"one more evening bus\" with a different request the riders did not state."
+ },
+ {
+  "i": 41,
+  "style": "plain",
+  "how": "With \"that is really just,\" the sentence restates the parents' request as a hidden aim. It sets aside the stated reason for \"an ingredient label\" without addressing it."
+ },
+ {
+  "i": 42,
+  "style": "plain",
+  "how": "\"is ruining my life\" credits one thing with harming everything. The wording does not say which parts of the \"new bus schedule\" cause trouble or how."
+ },
+ {
+  "i": 43,
+  "style": "plain",
+  "how": "\"ruined everything\" puts all of the spring's problems on one person. The sentence does not say what went wrong or whether anything else played a part."
+ },
+ {
+  "i": 44,
+  "style": "plain",
+  "how": "\"Because of the new coach everything has gone downhill\" names one cause for the whole season. It leaves out any other reasons results might have changed."
+ },
+ {
+  "i": 45,
+  "style": "plain",
+  "how": "By calling the rain \"the sole reason why,\" the sentence rules out every other cause. It does not show whether any other causes were looked at."
+ },
+ {
+  "i": 46,
+  "style": "plain",
+  "how": "\"sanctions will be sought\" answers the roofer's claim with a threat instead of a reply. The sentence calls the claim \"baseless\" but does not explain why."
+ },
+ {
+  "i": 47,
+  "style": "plain",
+  "how": "\"seeking sanctions against\" meets the garden club's argument with a warning of penalties. The sentence does not respond to the \"fence-line argument\" itself."
+ },
+ {
+  "i": 48,
+  "style": "plain",
+  "how": "\"Plaintiff claims that every\" casts the other side's position in all-or-nothing terms. An absolute claim like that is easier to knock down than a narrower one."
+ },
+ {
+  "i": 49,
+  "style": "plain",
+  "how": "\"is essentially arguing that we should\" restates the garden club's position in its most extreme form, \"never be allowed.\" That makes it easier to wave off than what was actually argued."
+ },
+ {
+  "i": 50,
+  "style": "plain",
+  "how": "\"Many people\" and \"some experts\" point to a crowd without saying who. The reader cannot check how many people or which experts are meant."
+ },
+ {
+  "i": 51,
+  "style": "plain",
+  "how": "\"It is widely believed\" leans on a belief without saying whose. Along with \"growing support,\" it suggests broad agreement without naming anyone or showing numbers."
+ },
+ {
+  "i": 52,
+  "style": "plain",
+  "how": "Opening with \"Shocking\" sets a strong feeling before the facts arrive. The change described after the colon is then read through that alarm."
+ },
+ {
+  "i": 53,
+  "style": "plain",
+  "how": "\"Heartbreaking\" sets a sad tone before the reader gets the numbers. The figures that follow are framed by that feeling first."
+ },
+ {
+  "i": 54,
+  "style": "plain",
+  "how": "Here the key finding, \"However, the town engineer found no evidence,\" comes only at the very end. By then the reader has already read a long account of the blame on the \"storm drains.\""
+ },
+ {
+  "i": 55,
+  "style": "plain",
+  "how": "\"though, the drain was not confirmed\" sits at the end, after a long run of angry posts and replies. Placed there, the lab result is easy to miss or give less weight."
+ },
+ {
+  "i": 56,
+  "style": "plain",
+  "how": "\"is expected to\" presents a possible result as the likely one. It does not say who expects it or why, and \"could well\" adds another guess."
+ },
+ {
+  "i": 57,
+  "style": "plain",
+  "how": "\"is poised to\" treats a possible win as the expected one. The sentence, along with \"signs point to,\" gives no reasons for that confidence."
+ },
+ {
+  "i": 58,
+  "style": "plain",
+  "how": "\"down 45% from the record high\" measures the price against its highest point. That chosen comparison makes the current price look like a deal without other context."
+ },
+ {
+  "i": 59,
+  "style": "plain",
+  "how": "\"selling at just 40% of its peak price\" compares the price to its highest point. The word \"just\" and that chosen high make the price look like \"a steal.\""
+ },
+ {
+  "i": 60,
+  "style": "plain",
+  "how": "\"sales will reach $600\" states a forecast as if it were already certain. The sentence gives no basis for the figure and does not say it is an estimate."
+ },
+ {
+  "i": 61,
+  "style": "plain",
+  "how": "Here \"the price will fall\" presents a prediction as a sure thing. The sentence does not say who expects this or on what basis."
+ },
+ {
+  "i": 62,
+  "style": "plain",
+  "how": "\"there's no reason to think this will stop\" stretches a recent run into the future. The sentence does not offer any reason the pattern should keep going."
+ },
+ {
+  "i": 63,
+  "style": "plain",
+  "how": "\"continues its winning ways\" treats a recent streak as if it will simply keep going. The jump to a \"championship parade\" rests on that streak alone."
+ },
+ {
+  "i": 64,
+  "style": "plain",
+  "how": "\"Pursuant to the implementation\" wraps a simple change in formal process language. The plain change to the schedule is tucked behind that phrasing."
+ },
+ {
+  "i": 65,
+  "style": "plain",
+  "how": "\"Notwithstanding the foregoing\" is formal, process-heavy wording. It makes the sentence harder to follow and does not explain why the leak falls outside the \"warranty.\""
+ },
+ {
+  "i": 66,
+  "style": "plain",
+  "how": "\"Wellsmere-educated nutritionist says\" offers the person's schooling as the reason to believe the claim. The sentence does not give the nutritionist's reasons for calling the menu \"healthier.\""
+ },
+ {
+  "i": 67,
+  "style": "plain",
+  "how": "\"As a baker with thirty years of experience, I can tell you\" uses years in the trade as the reason to accept the point. It does not say why the sale should \"only sell bread.\""
+ },
+ {
+  "i": 68,
+  "style": "plain",
+  "how": "\"The transit board has concluded that\" reports a conclusion without the reasons behind it. The reader is not told what the board looked at or how it decided."
+ },
+ {
+  "i": 69,
+  "style": "plain",
+  "how": "\"The garden club has found that\" presents a finding with no details. The sentence does not say how the compost was tested or what \"works\" means here."
+ },
+ {
+  "i": 70,
+  "style": "plain",
+  "how": "\"As a neutral third party\" asks the reader to trust the view because it is called neutral. The sentence does not show the evidence for finding the upgrade \"fair.\""
+ },
+ {
+  "i": 71,
+  "style": "plain",
+  "how": "\"reflects the evidence objectively\" labels the review as objective instead of showing the evidence. The reader is asked to take that description on trust."
+ },
+ {
+  "i": 72,
+  "style": "plain",
+  "how": "\"Leading organizations recommend\" leans on groups that are never named. The reader cannot tell which organizations or what they based the advice on."
+ },
+ {
+  "i": 73,
+  "style": "plain",
+  "how": "\"Industry leaders have long recognized\" points to unnamed authorities as the reason. The sentence does not say who these leaders are or why they hold that view."
+ },
+ {
+  "i": 74,
+  "style": "plain",
+  "how": "\"completely destroyed\" describes the damage as total. The wording does not say what was lost or whether anything in the garden survived."
+ },
+ {
+  "i": 75,
+  "style": "plain",
+  "how": "\"everything is ruined\" presents the harm as complete and final. It does not say what was damaged or whether any of it can be saved."
+ },
+ {
+  "i": 76,
+  "style": "plain",
+  "how": "Calling the rules \"settled law\" treats the question as closed. The sentence uses that to skip answering the new member's question at all."
+ },
+ {
+  "i": 77,
+  "style": "plain",
+  "how": "\"well settled that\" presents the rule as beyond debate. The sentence uses that to set aside the coach's request without discussing it."
+ },
+ {
+  "i": 78,
+  "style": "plain",
+  "how": "\"plainly meritless\" waves the claim away without engaging with it. The sentence does not say why the claim about the \"second coat\" fails."
+ },
+ {
+  "i": 79,
+  "style": "plain",
+  "how": "\"wholly without merit\" dismisses the challenge in strong terms. The sentence does not address the garden club's reasons about the \"new plot fees.\""
+ },
+ {
+  "i": 80,
+  "style": "plain",
+  "how": "\"The weight of authority\" points to how many sources agree rather than what they say. The reader is not told who these authorities are or their reasons."
+ },
+ {
+  "i": 81,
+  "style": "plain",
+  "how": "\"Every court that has addressed\" counts rulings instead of explaining them. The sentence does not say what reasons those courts gave or how this case compares."
+ },
+ {
+  "i": 82,
+  "style": "plain",
+  "how": "\"failed to raise\" answers the parent with a deadline rule instead of the question itself. The sentence says the prices will not be looked at, leaving the concern unanswered."
+ },
+ {
+  "i": 83,
+  "style": "plain",
+  "how": "\"waived any objection\" shuts out the riders' concern on a procedural point. The \"longer waits on Route 9\" go undiscussed because of when the riders spoke up."
+ },
+ {
+  "i": 84,
+  "style": "plain",
+  "how": "\"People familiar with the discussions\" credits the claim to sources no one can identify. The reader has no way to check who they are or how they know."
+ },
+ {
+  "i": 85,
+  "style": "plain",
+  "how": "\"Unnamed sources\" points to people the reader cannot check. The sentence gives no way to judge how they would know about the cost."
+ }
+]
